@@ -23,10 +23,3 @@ ExternalProject_Add(ufs_weather_model
                "-DNETCDF_DIR=$ENV{NETCDF}"
   INSTALL_COMMAND mkdir -p ${CMAKE_INSTALL_PREFIX}/bin && cp ${CMAKE_CURRENT_BINARY_DIR}/ufs_weather_model/src/ufs_weather_model-build/ufs_model ${CMAKE_INSTALL_PREFIX}/bin/
   )
-
-ExternalProject_Add(EMC_post
-  PREFIX ${CMAKE_CURRENT_BINARY_DIR}/EMC_post
-  SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/EMC_post
-  INSTALL_DIR ${CMAKE_INSTALL_PREFIX}
-  CMAKE_ARGS "-DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}"
-  )
