@@ -8,7 +8,7 @@ ExternalProject_Add(UFS_UTILS
   )
 
 if(NOT CCPP_SUITES)
-  set(CCPP_SUITES "rrfs_gfsv16,FV3_GFS_v15_thompson_mynn,FV3_CPT_v0,FV3_GFS_2017_gfdlmp,FV3_GFS_2017_gfdlmp_regional,FV3_GSD_SAR,FV3_GSD_v0,FV3_GFS_v15p2,FV3_GFS_v16,FV3_RRFS_v1beta")
+  set(CCPP_SUITES "rrfs_gfsv16,FV3_GFS_v15_thompson_mynn")
 endif()
 
 ExternalProject_Add(ufs_weather_model
@@ -20,6 +20,7 @@ ExternalProject_Add(ufs_weather_model
                "-DCMAKE_C_COMPILER=${MPI_C_COMPILER}"
                "-DCMAKE_CXX_COMPILER=${MPI_CXX_COMPILER}"
                "-DCMAKE_Fortran_COMPILER=${MPI_Fortran_COMPILER}"
+               "-DSTATIC=Y"
                "-DNETCDF_DIR=$ENV{NETCDF}"
   INSTALL_COMMAND mkdir -p ${CMAKE_INSTALL_PREFIX}/bin && cp ${CMAKE_CURRENT_BINARY_DIR}/ufs_weather_model/src/ufs_weather_model-build/ufs_model ${CMAKE_INSTALL_PREFIX}/bin/
   )
