@@ -1,0 +1,8 @@
+#%Module
+# Python environment for workflow on Hera
+
+module use -a /scratch1/apps/lmod/lmod/modulefiles/
+module load rocoto
+
+puts "source /scratch1/miniconda3/etc/profile.d/conda.sh"
+#conda activate regional_workflow
