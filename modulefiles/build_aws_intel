@@ -9,7 +9,7 @@ module-whatis "Loads libraries needed for building SRW on AWS"
 
 module purge
 
-module use /scratch1/hpc-stack_20220317/modulefiles/stack
+module use /scratch1/hpc-stack_20220617/modulefiles/stack
 module load hpc
 module load hpc-intel
 module load hpc-impi
