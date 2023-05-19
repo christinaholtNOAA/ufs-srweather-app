@@ -1,0 +1,100 @@
+#!/bin/bash
+
+#
+#-----------------------------------------------------------------------
+#
+# This J-JOB script stages initial and boundary conditions for the
+# analysis and model for the current cycle. The initial conditions could
+# come from an external model or a forecast from a previous cycles.  The
+# boundary conditions could come from any of several previous cycles.
+#
+#-----------------------------------------------------------------------
+
+#
+#-----------------------------------------------------------------------
+#
+# Source the variable definitions file and the bash utility functions.
+#
+#-----------------------------------------------------------------------
+#
+. $USHdir/source_util_funcs.sh
+source_config_for_task "task_prepare_analysis_input" ${GLOBAL_VAR_DEFNS_FP}
+. $USHdir/job_preamble.sh "TRUE"
+#
+#-----------------------------------------------------------------------
+#
+# Save current shell options (in a global array).  Then set new options
+# for this script/function.
+#
+#-----------------------------------------------------------------------
+#
+{ save_shell_opts; . $USHdir/preamble.sh; } > /dev/null 2>&1
+
+#
+#-----------------------------------------------------------------------
+#
+# Get the full path to the file in which this script/function is
+# located.
+# (scrfunc_fp), the name of that file (scrfunc_fn), and the directory in
+# which the file is located (scrfunc_dir).
+#
+#-----------------------------------------------------------------------
+#
+scrfunc_fp=$( $READLINK -f "${BASH_SOURCE[0]}" )
+scrfunc_fn=$( basename "${scrfunc_fp}" )
+scrfunc_dir=$( dirname "${scrfunc_fp}" )
+
+print_info_msg "
+========================================================================
+Entering script:  \"${scrfunc_fn}\"
+In directory:     \"${scrfunc_dir}\"
+
+This is the J-job script for the task that runs a analysis with FV3 for 
+the specified cycle.
+========================================================================"
+#
+#-----------------------------------------------------------------------
+#
+# Create the working directory under the cycle directory.
+#
+#-----------------------------------------------------------------------
+#
+
+DATA="${DATA:-${COMIN}${SLASH_ENSMEM_SUBDIR}}"
+
+export modelinputdir=${DATA}/INPUT
+
+rm -rf ${modelinputdir}
+mkdir_vrfy -p ${modelinputdir}
+#
+#-----------------------------------------------------------------------
+#
+# Call the ex-script for this J-job and pass to it the necessary varia-
+# bles.
+#
+#-----------------------------------------------------------------------
+#
+$SCRIPTSDIR/exregional_run_prepstart.sh || \
+print_err_msg_exit "\
+Call to ex-script corresponding to J-job \"${scrfunc_fn}\" failed."
+#
+#-----------------------------------------------------------------------
+#
+# Print exit message.
+#
+#-----------------------------------------------------------------------
+#
+print_info_msg "
+========================================================================
+Exiting script:  \"${scrfunc_fn}\"
+In directory:    \"${scrfunc_dir}\"
+========================================================================"
+#
+#-----------------------------------------------------------------------
+#
+# Restore the shell options saved at the beginning of this script/func-
+# tion.
+#
+#-----------------------------------------------------------------------
+#
+{ restore_shell_opts; } > /dev/null 2>&1
