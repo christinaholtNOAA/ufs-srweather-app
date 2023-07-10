@@ -31,7 +31,7 @@ metatask_analysis_gsi_cycledefs:
 
   task_prep_cyc_#cycle_type#:
     <<: *default_gsi
-    command: '&LOAD_MODULES_RUN_TASK_FP; "analysis_gsi" "&JOBSDIR;/JREGIONAL_PREP_CYCLE"'
+    command: '&LOAD_MODULES_RUN_TASK_FP; "analysis_gsi" "&JOBSDIR;/JREGIONAL_PREPARE_ANALYSIS_INPUT"'
     walltime: 00:10:00
     ppn: 1
     nnodes: 1

@@ -120,26 +120,32 @@ else
   relative_link_flag="FALSE"
 fi
 
-# Symlink to mosaic file with a completely different name.
-#target="${FIXlam}/${CRES}${DOT_OR_USCORE}mosaic.halo${NH4}.nc"   # Should this point to this halo4 file or a halo3 file???
-target="${FIXlam}/${CRES}${DOT_OR_USCORE}mosaic.halo${NH3}.nc"   # Should this point to this halo4 file or a halo3 file???
-symlink="grid_spec.nc"
-create_symlink_to_file target="$target" symlink="$symlink" \
-                       relative="${relative_link_flag}"
 
-# Symlink to halo-3 grid file with "halo3" stripped from name.
-mosaic_fn="grid_spec.nc"
+mosaic_fn="${FIXlam}/${CRES}${DOT_OR_USCORE}mosaic.halo${NH3}.nc"
 grid_fn=$( get_charvar_from_netcdf "${mosaic_fn}" "gridfiles" )
 
-target="${FIXlam}/${grid_fn}"
-symlink="${grid_fn}"
-create_symlink_to_file target="$target" symlink="$symlink" \
-                       relative="${relative_link_flag}"
+targets=(
+  "${FIXlam}/${CRES}${DOT_OR_USCORE}mosaic.halo${NH3}.nc"
+  "${FIXlam}/${grid_fn}"
+  "${FIXlam}/${CRES}${DOT_OR_USCORE}grid.tile${TILE_RGNL}.halo${NH4}.nc"
+)
 
-# Symlink to halo-4 grid file with "${CRES}_" stripped from name.
-#
-# If this link is not created, then the code hangs with an error message
-# like this:
+symlinks=(
+  "grid_spec.nc"
+  "${grid_fn}"
+  "grid.tile${TILE_RGNL}.halo${NH4}.nc"
+)
+
+for idx in ${#targets[@]}; do
+  symlink=${symlinks[$idx]}
+  target=${targets[$idx]}
+  create_symlink_to_file target="$target" symlink="$symlink" \
+                         relative="${relative_link_flag}"
+done
+
+# Note: If the symlink to halo-4 grid file with "${CRES}_" stripped from
+# name.  is not created, then the code hangs with an error message like
+# this:
 #
 #   check netcdf status=           2
 #  NetCDF error No such file or directory
@@ -148,15 +154,11 @@ create_symlink_to_file target="$target" symlink="$symlink" \
 # Note that even though the message says "Stopped", the task still con-
 # sumes core-hours.
 #
-target="${FIXlam}/${CRES}${DOT_OR_USCORE}grid.tile${TILE_RGNL}.halo${NH4}.nc"
-symlink="grid.tile${TILE_RGNL}.halo${NH4}.nc"
-create_symlink_to_file target="$target" symlink="$symlink" \
-                       relative="${relative_link_flag}"
 
 
 #
 # As with the symlinks grid files above, when creating the symlinks to
-# the orography files, use relative paths if running the TN_MAKE_OROG
+# the orography files, use relative paths if running the MAKE_OROG
 # task and absolute paths otherwise.
 #
 if [ -d "${EXPTDIR}/orog" ]; then
@@ -165,15 +167,25 @@ else
   relative_link_flag="FALSE"
 fi
 
-# Symlink to halo-0 orography file with "${CRES}_" and "halo0" stripped from name.
-target="${FIXlam}/${CRES}${DOT_OR_USCORE}oro_data.tile${TILE_RGNL}.halo${NH0}.nc"
-symlink="oro_data.nc"
-create_symlink_to_file target="$target" symlink="$symlink" \
-                       relative="${relative_link_flag}"
+targets=(
+  "${FIXlam}/${CRES}${DOT_OR_USCORE}oro_data.tile${TILE_RGNL}.halo${NH0}.nc"
+  "${FIXlam}/${CRES}${DOT_OR_USCORE}oro_data.tile${TILE_RGNL}.halo${NH4}.nc"
+)
+
+symlinks=(
+  "oro_data.nc"
+  "oro_data.tile${TILE_RGNL}.halo${NH4}.nc"
+)
+
+for idx in ${#targets[@]}; do
+  symlink=${symlinks[$idx]}
+  target=${targets[$idx]}
+  create_symlink_to_file target="$target" symlink="$symlink" \
+                         relative="${relative_link_flag}"
+done
 #
-# Symlink to halo-4 orography file with "${CRES}_" stripped from name.
-#
-# If this link is not created, then the code hangs with an error message
+# Note: If the link to halo-4 orography file with "${CRES}_" stripped
+# from name.  is not created, then the code hangs with an error message
 # like this:
 #
 #   check netcdf status=           2
@@ -183,10 +195,9 @@ create_symlink_to_file target="$target" symlink="$symlink" \
 # Note that even though the message says "Stopped", the task still con-
 # sumes core-hours.
 #
-target="${FIXlam}/${CRES}${DOT_OR_USCORE}oro_data.tile${TILE_RGNL}.halo${NH4}.nc"
-symlink="oro_data.tile${TILE_RGNL}.halo${NH4}.nc"
-create_symlink_to_file target="$target" symlink="$symlink" \
-                       relative="${relative_link_flag}"
+
+
+
 #
 # If using the FV3_HRRR physics suite, there are two files (that contain 
 # statistics of the orography) that are needed by the gravity wave drag 
@@ -211,10 +222,12 @@ fi
 # The FV3 model looks for the following files in the INPUT subdirectory
 # of the run directory:
 #
-#   gfs_data.nc
-#   sfc_data.nc
-#   gfs_bndy*.nc
-#   gfs_ctrl.nc
+symlinks=(\
+   gfs_data.nc
+   sfc_data.nc
+   gfs_ctrl.nc
+)
+# And a set of gfs_bndy*.nc files.
 #
 # Some of these files (gfs_ctrl.nc, gfs_bndy*.nc) already exist, but
 # others do not.  Thus, create links with these names to the appropriate
@@ -230,34 +243,45 @@ of the current run directory (DATA), where
 
 cd_vrfy ${DATA}/INPUT
 
-#
-# The symlinks to be created point to files in the same directory (INPUT),
-# so it's most straightforward to use relative paths.
-#
-relative_link_flag="FALSE"
+if [ $BKG_TYPE = "coldstart" ] ; then
+  #
+  # The symlinks to be created point to files in the same directory (INPUT),
+  # so it's most straightforward to use relative paths.
+  #
+  relative_link_flag="TRUE"
+  targets=(
+    "${INPUT_DATA}/${NET}.${cycle}${dot_ensmem}.gfs_data.tile${TILE_RGNL}.halo${NH0}.nc"
+    "${INPUT_DATA}/${NET}.${cycle}${dot_ensmem}.sfc_data.tile${TILE_RGNL}.halo${NH0}.nc"
+    "${INPUT_DATA}/${NET}.${cycle}${dot_ensmem}.gfs_ctrl.nc"
+  )
+  for fhr in $(seq -f "%03g" 0 ${LBC_SPEC_INTVL_HRS} ${FCST_LEN_HRS}); do
+    target="${INPUT_DATA}/${NET}.${cycle}${dot_ensmem}.gfs_bndy.tile${TILE_RGNL}.f${fhr}.nc"
+    symlink="gfs_bndy.tile${TILE_RGNL}.${fhr}.nc"
+    create_symlink_to_file target="$target" symlink="$symlink" \
+                           relative="${relative_link_flag}"
+  done
 
-target="${INPUT_DATA}/${NET}.${cycle}${dot_ensmem}.gfs_data.tile${TILE_RGNL}.halo${NH0}.nc"
-symlink="gfs_data.nc"
-create_symlink_to_file target="$target" symlink="$symlink" \
-                       relative="${relative_link_flag}"
+elif [ $BKG_TYPE = "cycled" ] ; then
 
-target="${INPUT_DATA}/${NET}.${cycle}${dot_ensmem}.sfc_data.tile${TILE_RGNL}.halo${NH0}.nc"
-symlink="sfc_data.nc"
-create_symlink_to_file target="$target" symlink="$symlink" \
-                       relative="${relative_link_flag}"
-
-target="${INPUT_DATA}/${NET}.${cycle}${dot_ensmem}.gfs_ctrl.nc"
-symlink="gfs_ctrl.nc"
-create_symlink_to_file target="$target" symlink="$symlink" \
-                       relative="${relative_link_flag}"
+  # Link the gfs_data.nc file, but all the rest should have been staged
+  # by the analysis task
+  relative_link_flag="FALSE"
+  target=fv_core.res.tile1.nc 
+  symlink=gfs_data.nc
+  create_symlink_to_file target="$target" symlink="$symlink" \
+                         relative="${relative_link_flag}"
 
 
-for fhr in $(seq -f "%03g" 0 ${LBC_SPEC_INTVL_HRS} ${FCST_LEN_HRS}); do
-  target="${INPUT_DATA}/${NET}.${cycle}${dot_ensmem}.gfs_bndy.tile${TILE_RGNL}.f${fhr}.nc"
-  symlink="gfs_bndy.tile${TILE_RGNL}.${fhr}.nc"
+
+fi
+
+for idx in ${#targets[@]}; do
+  symlink=${symlinks[$idx]}
+  target=${targets[$idx]}
   create_symlink_to_file target="$target" symlink="$symlink" \
                          relative="${relative_link_flag}"
 done
+
 
 if [ "${CPL_AQM}" = "TRUE" ]; then
   target="${INPUT_DATA}/${NET}.${cycle}${dot_ensmem}.NEXUS_Expt.nc"
@@ -270,7 +294,7 @@ if [ "${CPL_AQM}" = "TRUE" ]; then
   if [ -f ${target} ]; then
     symlink="PT.nc"
     create_symlink_to_file target="$target" symlink="$symlink" \
-	                       relative="${relative_link_flag}"
+                           relative="${relative_link_flag}"
   fi
 fi
 #
