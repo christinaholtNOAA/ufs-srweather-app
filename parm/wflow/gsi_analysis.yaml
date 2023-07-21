@@ -3,7 +3,7 @@
 default_gsi_task: &default_gsi
   account: '&ACCOUNT;'
   attrs:
-    cycledefs: #cycledefs_type#
+    cycledefs: '#cycledefs_type#'
     maxtries: '1'
   envars: &default_envars
     GLOBAL_VAR_DEFNS_FP: '&GLOBAL_VAR_DEFNS_FP;'
@@ -26,12 +26,12 @@ default_gsi_task: &default_gsi
 
 metatask_analysis_gsi_cycledefs:
   var:
-    cycledefs_type: forecast,long_forecast
+    cycledefs_type: analysis
     cycle_type: prod
 
   task_prep_cyc_#cycle_type#:
     <<: *default_gsi
-    command: '&LOAD_MODULES_RUN_TASK_FP; "analysis_gsi" "&JOBSDIR;/JREGIONAL_PREPARE_ANALYSIS_INPUT"'
+    command: '&LOAD_MODULES_RUN_TASK_FP; "analysis_gsi" "&JOBSdir;/JREGIONAL_PREPARE_ANALYSIS_INPUT"'
     walltime: 00:10:00
     ppn: 1
     nnodes: 1
@@ -40,15 +40,15 @@ metatask_analysis_gsi_cycledefs:
       <<: *default_envars
     dependency:
       and:
-        or:
-          timedep: '<cyclestr offset="&START_TIME_CONVENTIONAL;">@Y@m@d@H@M00</cyclestr>'
-          taskdep:
-            attrs:
-              cycle_offset: '-{{ workflow.DA_CYCLE_INTERVAL_HRS }}:00:00'
+        timedep: '<cyclestr offset="&START_TIME_CONVENTIONAL;">@Y@m@d@H@M00</cyclestr>'
+        taskdep:
+          attrs:
+            cycle_offset: '-{{ workflow.INCR_CYCL_FREQ }}:00:00'
+            task: run_fcst_mem000
 
   task_analysis_gsi_#cycle_type#:
     <<: *default_gsi
-    command: '&LOAD_MODULES_RUN_TASK_FP; "analysis_gsi" "&JOBSDIR;/JREGIONAL_ANALYSIS_GSI"'
+    command: '&LOAD_MODULES_RUN_TASK_FP; "analysis_gsi" "&JOBSdir;/JREGIONAL_ANALYSIS_GSI"'
     join: !cycstr '&LOGDIR;/{{ jobname }}_@Y@m@d@H&LOGEXT;'
     envars:
       <<: *default_envars

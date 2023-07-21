@@ -6,10 +6,18 @@ metadata:
 user:
   RUN_ENVIR: community
 workflow:
-  PREDEF_GRID_NAME: RRFS_CONUS_3km
-  DATE_FIRST_CYCL: '2022072000'
-  DATE_LAST_CYCL: '2022072000'
+  PREDEF_GRID_NAME: RRFS_CONUS_13km
+  DATE_FIRST_CYCL: '2022070100'
+  DATE_LAST_CYCL: '2022070103'
   PREEXISTING_DIR_METHOD: rename
+  INCR_CYCL_FREQ: 1
+  FCST_LEN_HRS: 3
+  BOUNDARY_LEN_HRS: 6
+task_get_extrn_ics:
+  FV3GFS_FILE_FMT_ICS: netcdf
+task_get_extrn_lbcs:
+  LBC_SPEC_INTVL_HRS: 3
+  FV3GFS_FILE_FMT_LBCS: netcdf
 task_process_radarref:
   RADARREFL_TIMELEVEL: [0]
 rocoto:
@@ -18,8 +26,11 @@ rocoto:
     START_TIME_LIGHTNING: "00:45:00"
     START_TIME_CONVENTIONAL: "00:40:00"
   cycledefs:
+    analysis:
+      - !startstopfreq ['{{workflow.DATE_FIRST_CYCL|int + workflow.INCR_CYCL_FREQ}}', '{{workflow.DATE_LAST_CYCL}}', '{{workflow.INCR_CYCL_FREQ}}']
+    cycled_from_second:
   tasks:
-    taskgroups: '{{ ["parm/wflow/coldstart.yaml", "parm/wflow/gsi_analysis.yaml", "parm/wflow/da_data_preproc.yaml"]|include }}'
+    taskgroups: '{{ ["parm/wflow/coldstart.yaml", "parm/wflow/da_data_preproc.yaml", "parm/wflow/gsi_analysis.yaml"]|include }}'
     task_get_extrn_ics:
       attrs:
         cycledefs: at_start

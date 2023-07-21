@@ -348,8 +348,8 @@ RAP_obs:
     archive_internal_dir:
       - ""
     archive_file_names:
-      - "{yyyymmddhh}00.zip"
-      - "{yyyymmddhh}00.zip"
+      - "{yyyymmdd}{prev_synop}00.zip"
+      - "{yyyymmdd}{prev_synop}00.zip"
     file_names:
       obs:
         - "{yyyymmddhh}.rap.t{hh}z.prepbufr.tm00"

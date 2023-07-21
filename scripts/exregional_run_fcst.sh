@@ -133,7 +133,7 @@ symlinks=(
   "grid.tile${TILE_RGNL}.halo${NH4}.nc"
 )
 
-for idx in ${#targets[@]}; do
+for idx in $(seq ${#targets[@]}); do
   symlink=${symlinks[$idx]}
   target=${targets[$idx]}
   create_symlink_to_file target="$target" symlink="$symlink" \

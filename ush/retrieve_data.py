@@ -220,6 +220,7 @@ def fill_template(template_str, cycle_date, templates_only=False, **kwargs):
 
     format_values = dict(
         bin6=bin6,
+        prev_synop=f"{low_end:02d}",
         ens_group=ens_group,
         fcst_hr=fcst_hr,
         dd=cycle_date.strftime("%d"),

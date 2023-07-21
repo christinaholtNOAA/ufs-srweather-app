@@ -135,8 +135,8 @@ function data_unavailable() {
 
   if [ ${min_max} = max ]; then
     msg="\
-Output from the specified external model (EXTRN_MDL_NAME) is not availa-
-ble for the specified cycle date and time (EXTRN_MDL_CDATE) because the latter is
+Output from the specified external model (EXTRN_MDL_NAME) is not available for
+the specified cycle date and time (EXTRN_MDL_CDATE) because the latter is
 later than the last forecast date and time (cdate_max) with this model:
   EXTRN_MDL_NAME = \"${name}\"
   CDATE_max = \"${end_date}\"
@@ -144,8 +144,8 @@ later than the last forecast date and time (cdate_max) with this model:
 
   elif [ ${min_max} = min ]; then
     msg="\
-Output from the specified external model (EXTRN_MDL_NAME) is not availa-
-ble for the specified cycle date and time (EXTRN_MDL_CDATE) because the latter is
+Output from the specified external model (EXTRN_MDL_NAME) is not available for
+the specified cycle date and time (EXTRN_MDL_CDATE) because the latter is
 earlier than the implementation date of this model:
   EXTRN_MDL_NAME = \"${name}\"
   CDATE_min = \"${end_date}\"

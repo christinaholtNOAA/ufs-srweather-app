@@ -25,7 +25,7 @@ rocoto:
     QUEUE_HPSS: '{{ platform.get("QUEUE_HPSS") }}'
     RUN: '{{ nco.RUN_default }}'
     SCRIPTSdir: '{{ user.SCRIPTSdir }}'
-    SLASH_ENSMEM_SUBDIR: '{% if global.DO_ENSEMBLE  %}{{ "/mem#mem#" }}{% else %}{{ "/mem000" }}{% endif %}'
+    SLASH_ENSMEM_SUBDIR: '{% if global.DO_ENSEMBLE  %}{{ "/mem#mem#" }}{% else %}{{ "/" }}{% endif %}'
     USHdir: '{{ user.USHdir }}'
     COLDSTART: '{{ workflow.COLDSTART }}'
     WARMSTART_CYCLE_DIR: '{{ workflow.WARMSTART_CYCLE_DIR }}'

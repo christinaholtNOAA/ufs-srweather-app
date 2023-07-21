@@ -4,7 +4,7 @@
 default_data_preproc_task: &default_preproc
   account: '&ACCOUNT;'
   attrs:
-    cycledefs: #cycledefs_type#
+    cycledefs: '#cycledefs_type#'
     maxtries: '1'
   envars: &default_envars
     GLOBAL_VAR_DEFNS_FP: '&GLOBAL_VAR_DEFNS_FP;'
@@ -29,7 +29,7 @@ task_get_da_obs:
   <<: *default_preproc
   command: '&LOAD_MODULES_RUN_TASK_FP; "get_da_obs" "&JOBSdir;/JREGIONAL_GET_DA_OBS"'
   attrs:
-    cycledefs: forecast
+    cycledefs: analysis
     maxtries: '1'
   join: !cycstr '&LOGDIR;/{{ jobname }}_@Y@m@d@H&LOGEXT;'
   partition: '&PARTITION_HPSS;'
@@ -39,7 +39,7 @@ task_get_da_obs:
 
 metatask_process_obs_cycle_type:
   var:
-    cycledefs_type: forecast,long_forecast
+    cycledefs_type: analysis
     cycle_type: prod
 
   task_process_radarref_#cycle_type#:
