@@ -16,7 +16,7 @@ default_task_post: &default_task
   join: !cycstr '&LOGDIR;/{{ jobname }}_@Y@m@d@H&LOGEXT;'
   native: '{{ platform.SCHED_NATIVE_CMD }}'
   nodes: '{{ nnodes }}:ppn={{ ppn }}'
-  nnodes: 2
+  nnodes: '{{ task_run_post.upp.execution.batchargs.nodes }}'
   ppn: 24
   partition: '{% if platform.get("PARTITION_DEFAULT") %}&PARTITION_DEFAULT;{% else %}None{% endif %}'
   queue: '&QUEUE_DEFAULT;'
