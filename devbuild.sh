@@ -237,7 +237,7 @@ if [ "${BUILD_CONDA}" = "on" ] ; then
   if ! conda env list | grep -q "^srw_graphics\s" ; then
     mamba env create -n srw_graphics --file graphics_environment.yml
   fi
-  if ! conda env list | grep -q "DEV-uwtools" ; then
+  if ! conda list | grep -q "^condev\b"; then
     mamba install -y -c maddenp -c conda-forge --override-channels condev
   fi
   if [ "${APPLICATION}" = "ATMAQ" ]; then
