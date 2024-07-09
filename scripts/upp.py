@@ -32,3 +32,9 @@ upp_driver.run()
 if not (run_dir / "runscript.upp.done").is_file():
     print("Error occurred running UPP. Please see component error logs.")
     sys.exit(1)
+
+# Rename/move output data
+
+GrbF06.PLEV
+
+
