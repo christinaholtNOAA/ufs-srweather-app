@@ -213,6 +213,12 @@ def load_config_for_setup(ushdir, default_config, user_config):
     # stranglers.
     update_dict(cfg_d, cfg_d)
 
+    # Load one more if running Coupled AQM
+    if cfg_d['cpl_aqm_parm']['CPL_AQM']:
+        cfg_aqm = get_yaml_config("default_aqm_config.yaml")
+        update_dict(cfg_aqm, cfg_d)
+
+
     # Set "Home" directory, the top-level ufs-srweather-app directory
     homedir = os.path.abspath(os.path.dirname(__file__) + os.sep + os.pardir)
     cfg_d["user"]["HOMEdir"] = homedir

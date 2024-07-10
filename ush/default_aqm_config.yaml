@@ -7,3 +7,5 @@ task_run_post:
       update_values:
         nampgb:
           aqf_on: true
+  output_file_labels:
+    - cmaq
