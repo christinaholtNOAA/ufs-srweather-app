@@ -215,7 +215,7 @@ def load_config_for_setup(ushdir, default_config, user_config):
 
     # Load one more if running Coupled AQM
     if cfg_d['cpl_aqm_parm']['CPL_AQM']:
-        cfg_aqm = get_yaml_config("default_aqm_config.yaml")
+        cfg_aqm = get_yaml_config("config_defaults_aqm.yaml")
         update_dict(cfg_aqm, cfg_d)
 
 
