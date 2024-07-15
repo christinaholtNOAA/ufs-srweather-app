@@ -10,6 +10,7 @@ import logging
 from textwrap import dedent
 
 import yaml
+from uwtools.api.config import get_yaml_config
 
 from link_fix import link_fix
 from python_utils import (
@@ -1508,10 +1509,9 @@ def setup(USHdir, user_config_fn="config.yaml", debug: bool = False):
         yaml.Dumper.ignore_aliases = lambda *args : True
         yaml.dump(expt_config.get("rocoto"), f, sort_keys=False)
 
-    var_defns_cfg = copy.deepcopy(expt_config)
+    var_defns_cfg = get_yaml_config(config=expt_config)
     del var_defns_cfg["rocoto"]
-    with open(global_var_defns_fp, "a") as f:
-        f.write(cfg_to_shell_str(var_defns_cfg))
+    var_defns_cfg.dump(global_var_defns_fp)
 
 
     #
