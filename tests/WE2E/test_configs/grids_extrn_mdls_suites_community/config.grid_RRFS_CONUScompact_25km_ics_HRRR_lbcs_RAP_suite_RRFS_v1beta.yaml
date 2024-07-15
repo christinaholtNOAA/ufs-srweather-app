@@ -25,4 +25,8 @@ task_get_extrn_lbcs:
   EXTRN_MDL_FILES_LBCS:
     - '{yy}{jjj}{hh}00{fcst_hr:02d}00'
 task_run_post:
-  NUMX: 2
+  upp:
+    namelist:
+      update_values:
+        nampgb:
+          numx: 2

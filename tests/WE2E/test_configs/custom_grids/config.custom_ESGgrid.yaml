@@ -48,4 +48,4 @@ task_run_fcst:
   WRTCMP_dx: 25000.0
   WRTCMP_dy: 25000.0
 task_run_post:
-  POST_OUTPUT_DOMAIN_NAME: custom_ESGgrid
+  post_output_domain_name: custom_ESGgrid

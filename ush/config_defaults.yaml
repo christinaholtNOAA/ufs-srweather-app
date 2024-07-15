@@ -100,15 +100,15 @@ user:
 
   HOMEdir: '{{ user.HOMEdir }}'
   USHdir: '{{ user.USHdir }}'
-  SCRIPTSdir: '{{ HOMEdir }}/scripts'
-  JOBSdir: '{{ HOMEdir }}/jobs'
-  SSORCdir: '{{ HOMEdir }}/sorc'
-  PARMdir: '{{ HOMEdir }}/parm'
-  MODULESdir: '{{ HOMEdir }}/modulefiles'
-  EXECdir: '{{ HOMEdir }}/{{ workflow.EXEC_SUBDIR }}'
-  METPLUS_CONF: '{{ PARMdir }}/metplus'
+  SCRIPTSdir: '{{ user.HOMEdir }}/scripts'
+  JOBSdir: '{{ user.HOMEdir }}/jobs'
+  SORCdir: '{{ user.HOMEdir }}/sorc'
+  PARMdir: '{{ user.HOMEdir }}/parm'
+  MODULESdir: '{{ user.HOMEdir }}/modulefiles'
+  EXECdir: '{{ user.HOMEdir }}/{{ workflow.EXEC_SUBDIR }}'
+  METPLUS_CONF: '{{ user.PARMdir }}/metplus'
   UFS_WTHR_MDL_DIR: '{{ user.UFS_WTHR_MDL_DIR }}'
-  ARL_NEXUS_DIR: '{{ SORCdir }}/arl_nexus'
+  ARL_NEXUS_DIR: '{{ user.SORCdir }}/arl_nexus'
 
 #----------------------------
 # PLATFORM config parameters
@@ -468,7 +468,7 @@ workflow:
   #
   #-----------------------------------------------------------------------
   #
-  WORKFLOW_ID: !nowtimestamp ''
+  WORKFLOW_ID: ''
   #
   #-----------------------------------------------------------------------
   #
@@ -637,16 +637,16 @@ workflow:
   RGNL_GRID_NML_FN: "regional_grid.nml"
   
   FV3_NML_FN: "input.nml"
-  FV3_NML_BASE_SUITE_FN: "{{ FV3_NML_FN }}.FV3"
+  FV3_NML_BASE_SUITE_FN: "{{ workflow.FV3_NML_FN }}.FV3"
   FV3_NML_YAML_CONFIG_FN: "FV3.input.yml"
-  FV3_NML_BASE_ENS_FN: "{{ FV3_NML_FN }}.base_ens"
+  FV3_NML_BASE_ENS_FN: "{{ workflow.FV3_NML_FN }}.base_ens"
   FV3_EXEC_FN: "ufs_model"
 
   DATA_TABLE_FN: "data_table"
   DIAG_TABLE_FN: "diag_table"
   FIELD_TABLE_FN: "field_table"
-  DIAG_TABLE_TMPL_FN: 'diag_table.{{ CCPP_PHYS_SUITE }}'
-  FIELD_TABLE_TMPL_FN: 'field_table.{{ CCPP_PHYS_SUITE }}'
+  DIAG_TABLE_TMPL_FN: 'diag_table.{{ workflow.CCPP_PHYS_SUITE }}'
+  FIELD_TABLE_TMPL_FN: 'field_table.{{ workflow.CCPP_PHYS_SUITE }}'
   MODEL_CONFIG_FN: "model_configure"
   UFS_CONFIG_FN: "ufs.configure"
   AQM_RC_FN: "aqm.rc"
@@ -684,15 +684,15 @@ workflow:
   #-----------------------------------------------------------------------
   #
 
-  FV3_NML_BASE_SUITE_FP: '{{ user.PARMdir }}/{{ FV3_NML_BASE_SUITE_FN }}'
-  FV3_NML_YAML_CONFIG_FP: '{{ user.PARMdir }}/{{ FV3_NML_YAML_CONFIG_FN }}'
-  FV3_NML_BASE_ENS_FP: '{{ EXPTDIR }}/{{ FV3_NML_BASE_ENS_FN }}'
-  DATA_TABLE_TMPL_FP: '{{ user.PARMdir }}/{{ DATA_TABLE_FN }}'
-  DIAG_TABLE_TMPL_FP: '{{ user.PARMdir }}/{{ DIAG_TABLE_TMPL_FN }}'
-  FIELD_TABLE_TMPL_FP: '{{ user.PARMdir }}/{{ FIELD_TABLE_TMPL_FN }}'
-  MODEL_CONFIG_TMPL_FP: '{{ user.PARMdir }}/{{ MODEL_CONFIG_FN }}'
-  UFS_CONFIG_TMPL_FP: '{{ user.PARMdir }}/{{ UFS_CONFIG_FN }}'
-  AQM_RC_TMPL_FP: '{{ user.PARMdir }}/{{ AQM_RC_TMPL_FN }}'
+  FV3_NML_BASE_SUITE_FP: '{{ user.PARMdir }}/{{ workflow.FV3_NML_BASE_SUITE_FN }}'
+  FV3_NML_YAML_CONFIG_FP: '{{ user.PARMdir }}/{{ workflow.FV3_NML_YAML_CONFIG_FN }}'
+  FV3_NML_BASE_ENS_FP: '{{ workflow.EXPTDIR }}/{{ workflow.FV3_NML_BASE_ENS_FN }}'
+  DATA_TABLE_TMPL_FP: '{{ user.PARMdir }}/{{ workflow.DATA_TABLE_FN }}'
+  DIAG_TABLE_TMPL_FP: '{{ user.PARMdir }}/{{ workflow.DIAG_TABLE_TMPL_FN }}'
+  FIELD_TABLE_TMPL_FP: '{{ user.PARMdir }}/{{ workflow.FIELD_TABLE_TMPL_FN }}'
+  MODEL_CONFIG_TMPL_FP: '{{ user.PARMdir }}/{{ workflow.MODEL_CONFIG_FN }}'
+  UFS_CONFIG_TMPL_FP: '{{ user.PARMdir }}/{{ workflow.UFS_CONFIG_FN }}'
+  AQM_RC_TMPL_FP: '{{ user.PARMdir }}/{{ workflow.AQM_RC_TMPL_FN }}'
 
   # 
   #-----------------------------------------------------------------------
@@ -764,11 +764,11 @@ workflow:
   # 
   #-----------------------------------------------------------------------
   #
-  DATA_TABLE_FP: '{{ EXPTDIR }}/{{ DATA_TABLE_FN }}'
-  FIELD_TABLE_FP: '{{ EXPTDIR }}/{{ FIELD_TABLE_FN }}'
-  UFS_CONFIG_FP: '{{ EXPTDIR }}/{{ UFS_CONFIG_FN }}'
-  FV3_NML_FP: '{{ EXPTDIR }}/{{ FV3_NML_FN }}'
-  FV3_NML_STOCH_FP: '{{ EXPTDIR }}/{{ FV3_NML_FN }}_stoch'
+  DATA_TABLE_FP: '{{ workflow.EXPTDIR }}/{{ workflow.DATA_TABLE_FN }}'
+  FIELD_TABLE_FP: '{{ workflow.EXPTDIR }}/{{ workflow.FIELD_TABLE_FN }}'
+  UFS_CONFIG_FP: '{{ workflow.EXPTDIR }}/{{ workflow.UFS_CONFIG_FN }}'
+  FV3_NML_FP: '{{ workflow.EXPTDIR }}/{{ workflow.FV3_NML_FN }}'
+  FV3_NML_STOCH_FP: '{{ workflow.EXPTDIR }}/{{ workflow.FV3_NML_FN }}_stoch'
 
   FCST_MODEL: "ufs-weather-model"
   WFLOW_XML_FN: "FV3LAM_wflow.xml"
@@ -778,10 +778,10 @@ workflow:
   WFLOW_LAUNCH_SCRIPT_FN: "launch_FV3LAM_wflow.sh"
   WFLOW_LAUNCH_LOG_FN: "log.launch_FV3LAM_wflow"
 
-  GLOBAL_VAR_DEFNS_FP: '{{ EXPTDIR }}/{{ GLOBAL_VAR_DEFNS_FN }}'
-  ROCOTO_YAML_FP: '{{ EXPTDIR }}/{{ ROCOTO_YAML_FN }}'
-  WFLOW_LAUNCH_SCRIPT_FP: '{{ user.USHdir }}/{{ WFLOW_LAUNCH_SCRIPT_FN }}'
-  WFLOW_LAUNCH_LOG_FP: '{{ EXPTDIR }}/{{ WFLOW_LAUNCH_LOG_FN }}'
+  GLOBAL_VAR_DEFNS_FP: '{{ workflow.EXPTDIR }}/{{ workflow.GLOBAL_VAR_DEFNS_FN }}'
+  ROCOTO_YAML_FP: '{{ workflow.EXPTDIR }}/{{ workflow.ROCOTO_YAML_FN }}'
+  WFLOW_LAUNCH_SCRIPT_FP: '{{ user.USHdir }}/{{ workflow.WFLOW_LAUNCH_SCRIPT_FN }}'
+  WFLOW_LAUNCH_LOG_FP: '{{ workflow.EXPTDIR }}/{{ workflow.WFLOW_LAUNCH_LOG_FN }}'
   #
   #-----------------------------------------------------------------------
   #
@@ -812,13 +812,13 @@ workflow:
   #
   #-----------------------------------------------------------------------
   #
-  FIXdir: '{{ EXPTDIR }}'
-  FIXam: '{{ FIXdir }}/fix_am"'
-  FIXclim: '{{ FIXdir }}/fix_clim"'
-  FIXlam: '{{ FIXdir }}/fix_lam"'
+  FIXdir: '{{ workflow.EXPTDIR }}'
+  FIXam: '{{ workflow.FIXdir }}/fix_am'
+  FIXclim: '{{ workflow.FIXdir }}/fix_clim'
+  FIXlam: '{{ workflow.FIXdir }}/fix_lam'
 
   THOMPSON_MP_CLIMO_FN: "Thompson_MP_MONTHLY_CLIMO.nc"
-  THOMPSON_MP_CLIMO_FP: '{{ FIXam }}/{{ THOMPSON_MP_CLIMO_FN }}'
+  THOMPSON_MP_CLIMO_FP: '{{ workflow.FIXam }}/{{ workflow.THOMPSON_MP_CLIMO_FN }}'
   #
   #-----------------------------------------------------------------------
   #
@@ -850,9 +850,9 @@ workflow:
   #-----------------------------------------------------------------------
   #
   CCPP_PHYS_SUITE: "FV3_GFS_v16"
-  CCPP_PHYS_SUITE_FN: 'suite_{{ CCPP_PHYS_SUITE }}.xml'
-  CCPP_PHYS_SUITE_IN_CCPP_FP: '{{ user.UFS_WTHR_MDL_DIR }}/FV3/ccpp/suites/{{ CCPP_PHYS_SUITE_FN }}'
-  CCPP_PHYS_SUITE_FP: '{{ workflow.EXPTDIR }}/{{ CCPP_PHYS_SUITE_FN }}'
+  CCPP_PHYS_SUITE_FN: 'suite_{{ workflow.CCPP_PHYS_SUITE }}.xml'
+  CCPP_PHYS_SUITE_IN_CCPP_FP: '{{ user.UFS_WTHR_MDL_DIR }}/FV3/ccpp/suites/{{ workflow.CCPP_PHYS_SUITE_FN }}'
+  CCPP_PHYS_SUITE_FP: '{{ workflow.EXPTDIR }}/{{ workflow.CCPP_PHYS_SUITE_FN }}'
   CCPP_PHYS_DIR: '{{ user.UFS_WTHR_MDL_DIR }}/FV3/ccpp/physics/physics/SFC_Models/Land/Noahmp'
   #
   #-----------------------------------------------------------------------
@@ -874,8 +874,8 @@ workflow:
   #-----------------------------------------------------------------------
   #
   FIELD_DICT_FN: "fd_ufs.yaml"
-  FIELD_DICT_IN_UWM_FP: '{{ user.UFS_WTHR_MDL_DIR }}/tests/parm/{{ FIELD_DICT_FN }}'
-  FIELD_DICT_FP: '{{ workflow.EXPTDIR }}/{{ FIELD_DICT_FN }}'
+  FIELD_DICT_IN_UWM_FP: '{{ user.UFS_WTHR_MDL_DIR }}/tests/parm/{{ workflow.FIELD_DICT_FN }}'
+  FIELD_DICT_FP: '{{ workflow.EXPTDIR }}/{{ workflow.FIELD_DICT_FN }}'
   #
   #-----------------------------------------------------------------------
   #
@@ -992,8 +992,8 @@ workflow:
   INCR_CYCL_FREQ: 24
   FCST_LEN_HRS: 24
   FCST_LEN_CYCL:
-    - '{{ FCST_LEN_HRS }}'
-  LONG_FCST_LEN: '{% if FCST_LEN_HRS < 0 %}{{ FCST_LEN_CYCL|max }}{% else %}{{ FCST_LEN_HRS }}{% endif %}'
+    - '{{ workflow.FCST_LEN_HRS }}'
+  LONG_FCST_LEN: '{% if workflow.FCST_LEN_HRS < 0 %}{{ workflow.FCST_LEN_CYCL|max }}{% else %}{{ workflow.FCST_LEN_HRS }}{% endif %}'
   #
   #-----------------------------------------------------------------------
   #
@@ -1188,7 +1188,7 @@ task_make_grid:
   # 
   #-----------------------------------------------------------------------
   # 
-  GRID_DIR: '{{ workflow.EXPTDIR"/grid" if rocoto.tasks.get("task_make_grid") else "" }}'
+  GRID_DIR: '{{ workflow.EXPTDIR + "/grid" if rocoto.tasks.get("task_make_grid") else "" }}'
   #
   #-----------------------------------------------------------------------
   #
@@ -1401,7 +1401,7 @@ task_make_orog:
   KMP_AFFINITY_MAKE_OROG: "disabled"
   OMP_NUM_THREADS_MAKE_OROG: 6
   OMP_STACKSIZE_MAKE_OROG: "2048m"
-  OROG_DIR: '{{ workflow.EXPTDIR}}"/orog" if rocoto.tasks.get("task_make_orog") else "" }}'
+  OROG_DIR: '{{ workflow.EXPTDIR + "/orog" if rocoto.tasks.get("task_make_orog") else "" }}'
 
 #----------------------------
 # MAKE SFC CLIMO config parameters
@@ -1425,7 +1425,7 @@ task_make_sfc_climo:
   KMP_AFFINITY_MAKE_SFC_CLIMO: "scatter"
   OMP_NUM_THREADS_MAKE_SFC_CLIMO: 1
   OMP_STACKSIZE_MAKE_SFC_CLIMO: "1024m"
-  SFC_CLIMO_DIR: '{{ workflow.EXPTDIR"/sfc_climo" if rocoto.tasks.get("task_make_sfc_climo") else "" }}'
+  SFC_CLIMO_DIR: '{{ workflow.EXPTDIR + "/sfc_climo" if rocoto.tasks.get("task_make_sfc_climo") else "" }}'
 
 #----------------------------
 # EXTRN ICS config parameters
@@ -1562,7 +1562,7 @@ task_get_extrn_lbcs:
   #
   EXTRN_MDL_NAME_LBCS: "FV3GFS"
   LBC_SPEC_INTVL_HRS: 6
-  EXTRN_MDL_LBCS_OFFSET_HRS: '{{ 3 if EXTRN_MDL_NAME_LBCS == "RAP" else 0 }}'
+  EXTRN_MDL_LBCS_OFFSET_HRS: '{{ 3 if task_get_extrn_lbcs.EXTRN_MDL_NAME_LBCS == "RAP" else 0 }}'
   FV3GFS_FILE_FMT_LBCS: "nemsio"
   #
   #-----------------------------------------------------------------------
@@ -1652,7 +1652,7 @@ task_make_ics:
   FVCOM_WCSTART: "cold"
   FVCOM_DIR: ""
   FVCOM_FILE: "fvcom.nc"
-  VCOORD_FILE: "{{ workflow.FIXam }}/global_hyblev.l65.txt"
+  VCOORD_FILE: "{{ workflow.FIXam + '/global_hyblev.l65.txt' }}"
 
 #----------------------------
 # MAKE LBCS config parameters
@@ -1700,8 +1700,8 @@ task_run_fcst:
   # input/output (I/O). (X direction is assumed to be 1.)
   #
   #------------------------------------------------------------------------
-  NNODES_RUN_FCST: '{{ (PE_MEMBER01 + PPN_RUN_FCST - 1) // PPN_RUN_FCST }}'
-  PPN_RUN_FCST: '{{ platform.NCORES_PER_NODE // OMP_NUM_THREADS_RUN_FCST }}'
+  NNODES_RUN_FCST: '{{ (task_run_fcst.PE_MEMBER01 + task_run_fcst.PPN_RUN_FCST - 1) // task_run_fcst.PPN_RUN_FCST }}'
+  PPN_RUN_FCST: '{{ platform.NCORES_PER_NODE // task_run_fcst.OMP_NUM_THREADS_RUN_FCST }}'
   FV3_EXEC_FP: '{{ user.EXECdir }}/{{ workflow.FV3_EXEC_FN }}'
   IO_LAYOUT_Y: 1
   #
@@ -1812,9 +1812,9 @@ task_run_fcst:
   #
   #-----------------------------------------------------------------------
   #
-  LAYOUT_X: '{{ LAYOUT_X }}'
-  LAYOUT_Y: '{{ LAYOUT_Y }}'
-  BLOCKSIZE: '{{ BLOCKSIZE }}'
+  LAYOUT_X: '{{ task_run_fcst.LAYOUT_X }}'
+  LAYOUT_Y: '{{ task_run_fcst.LAYOUT_Y }}'
+  BLOCKSIZE: '{{ task_run_fcst.BLOCKSIZE }}'
   #
   #-----------------------------------------------------------------------
   #
@@ -1931,7 +1931,7 @@ task_run_fcst:
   QUILTING: true
   PRINT_ESMF: false
 
-  PE_MEMBER01: '{{ LAYOUT_Y * LAYOUT_X + WRTCMP_write_groups * WRTCMP_write_tasks_per_group if QUILTING else LAYOUT_Y * LAYOUT_X}}'
+  PE_MEMBER01: '{{ task_run_fcst.LAYOUT_Y * task_run_fcst.LAYOUT_X + task_run_fcst.WRTCMP_write_groups * task_run_fcst.WRTCMP_write_tasks_per_group if task_run_fcst.QUILTING else task_run_fcst.LAYOUT_Y * task_run_fcst.LAYOUT_X}}'
   
   WRTCMP_write_groups: ""
   WRTCMP_write_tasks_per_group: ""
@@ -1999,8 +1999,8 @@ task_run_post:
       update_values:
         model_inputs:
           datestr: "{{ (cycle + leadtime).strftime('%Y-%m-%d_%H:%M:%S') }}"
-          filename: "{{ task_run_fcst.run_dir }}/dynf{{ lead }}.nc"
-          filenameflux: "{{ task_run_fcst.run_dir }}/phyf{{ lead }}.nc"
+          filename: "{{ task_run_fcst.run_dir }}/dynf{{ leadtime }}.nc"
+          filenameflux: "{{ task_run_fcst.run_dir }}/phyf{{ leadtime }}.nc"
           grib: grib2
           ioform: netcdf
           modelname: FV3R
@@ -2012,7 +2012,7 @@ task_run_post:
     account: '{{ user.ACCOUNT }}'
     scheduler: '{{ platform.SCHED }}'
   post_output_domain_name: '{{ workflow.PREDEF_GRID_NAME }}'
-  desired_output_name: '{{ nco.NET_default }}{{ cycle.strftime(%Y%m%d%H) }}.{{ file_label }}.f{{ leadtime }}.{{ post_output_domain_name }}.grib2'
+  desired_output_name: '{{ nco.NET_default }}{{ cycle.strftime(%Y%m%d%H) }}.{{ file_label }}.f{{ leadtime }}.{{ task_run_post.post_output_domain_name }}.grib2'
   output_file_labels:
     - prslev
     - natlev
@@ -2118,7 +2118,7 @@ task_nexus_emission:
   # OMP_STACKSIZE_NEXUS_EMISSION: 
   # Controls the size of the stack for threads created by the OpenMP implementation.
   #-------------------------------------------------------------------------------
-  PPN_NEXUS_EMISSION: '{{ platform.NCORES_PER_NODE // OMP_NUM_THREADS_NEXUS_EMISSION }}'
+  PPN_NEXUS_EMISSION: '{{ platform.NCORES_PER_NODE // task_nexus_emission.OMP_NUM_THREADS_NEXUS_EMISSION }}'
   NNODES_NEXUS_EMISSION: 4
   KMP_AFFINITY_NEXUS_EMISSION: "scatter"
   OMP_NUM_THREADS_NEXUS_EMISSION: 2
@@ -2231,9 +2231,9 @@ global:
   #
   DO_ENSEMBLE: false
   NUM_ENS_MEMBERS: 0
-  ENSMEM_NAMES: '{% for m in range(NUM_ENS_MEMBERS) %}{{ "mem%03d, " % m }}{% endfor %}'
-  FV3_NML_ENSMEM_FPS: '{% for mem in ENSMEM_NAMES %}{{"%s/%s_%s" % EXPTDIR, FV3_NML_FN  mem }}{% endfor %}'
-  ENS_TIME_LAG_HRS: '[ {% for m in range([1,NUM_ENS_MEMBERS]|max) %} 0, {% endfor %} ]'
+  ENSMEM_NAMES: '{% for m in range(global.NUM_ENS_MEMBERS) %}{{ "mem%03d, " % m }}{% endfor %}'
+  FV3_NML_ENSMEM_FPS: '{% for mem in global.ENSMEM_NAMES %}{{"%s/%s_%s" % workflow.EXPTDIR, workflow.FV3_NML_FN, mem }}{% endfor %}'
+  ENS_TIME_LAG_HRS: '[ {% for m in range([1,global.NUM_ENS_MEMBERS]|max) %} 0, {% endfor %} ]'
   #
   #-----------------------------------------------------------------------
   #
@@ -2428,7 +2428,7 @@ verification:
   # VX_ASNOW_ACCUMS_HRS must contain at least one element.  If not,
   # VX_ASNOW_ACCUMS_HRS will be ignored.
   #
-  VX_FCST_MODEL_NAME: '{{ nco.NET_default }}.{{ task_run_post.POST_OUTPUT_DOMAIN_NAME }}'
+  VX_FCST_MODEL_NAME: '{{ nco.NET_default }}.{{ task_run_post.post_output_domain_name }}'
   VX_FIELDS: [ "APCP", "REFC", "RETOP", "ADPSFC", "ADPUPA" ]
   VX_APCP_ACCUMS_HRS: [ 1, 3, 6, 24 ]
   VX_ASNOW_ACCUMS_HRS: [ 6, 24 ]

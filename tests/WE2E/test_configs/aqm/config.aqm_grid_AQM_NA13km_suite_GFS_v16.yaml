@@ -43,8 +43,7 @@ task_run_fcst:
   PRINT_ESMF: false
   DO_FCST_RESTART: false
 task_run_post:
-  POST_OUTPUT_DOMAIN_NAME: 793
-  USE_CUSTOM_POST_CONFIG_FILE: false
+  post_output_domain_name: 793
 global:
   DO_ENSEMBLE: false
   NUM_ENS_MEMBERS: 2

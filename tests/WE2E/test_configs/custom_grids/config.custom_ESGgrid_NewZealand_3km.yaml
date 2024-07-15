@@ -50,7 +50,7 @@ task_run_fcst:
   WRTCMP_dx: '{{ task_make_grid.ESGgrid_DELX }}'
   WRTCMP_dy: '{{ task_make_grid.ESGgrid_DELY }}'
 task_run_post:
-  POST_OUTPUT_DOMAIN_NAME: custom_ESGgrid_New_Zealand
+  post_output_domain_name: custom_ESGgrid_New_Zealand
 rocoto:
   tasks:
     metatask_run_ensemble:

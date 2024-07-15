@@ -52,4 +52,4 @@ task_run_fcst:
   WRTCMP_dlon: 0.24
   WRTCMP_dlat: 0.24
 task_run_post:
-  POST_OUTPUT_DOMAIN_NAME: custom_GFDLgrid
+  post_output_domain_name: custom_GFDLgrid
