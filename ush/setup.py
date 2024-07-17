@@ -60,8 +60,8 @@ def load_config_for_setup(ushdir, default_config, user_config):
 
     # Load the default config.
     logging.debug(f"Loading config defaults file {default_config}")
-    cfg_d = load_config_file(default_config)
-    cfg_d = get_yaml_config(cfg_d)
+    #cfg_d = load_config_file(default_config)
+    cfg_d = get_yaml_config(default_config)
     logging.debug(f"Read in the following values from config defaults file:\n")
     logging.debug(cfg_d)
 
@@ -1505,11 +1505,12 @@ def setup(USHdir, user_config_fn="config.yaml", debug: bool = False):
     clean_rocoto_dict(expt_config["rocoto"]["tasks"])
 
     rocoto_yaml_fp = workflow_config["ROCOTO_YAML_FP"]
-    with open(rocoto_yaml_fp, 'w') as f:
-        yaml.Dumper.ignore_aliases = lambda *args : True
-        yaml.dump(expt_config.get("rocoto"), f, sort_keys=False)
+    rocoto_yaml_dict = expt_config["rocoto"]
+    extend_yaml(rocoto_yaml_dict)
+    rocoto_yaml = get_yaml_config(rocoto_yaml_dict)
+    rocoto_yaml.dump(rocoto_yaml_fp)
 
-    var_defns_cfg = get_yaml_config(config=expt_config)
+    var_defns_cfg = copy.deepcopy(expt_config)
     del var_defns_cfg["rocoto"]
     var_defns_cfg.dump(global_var_defns_fp)
 

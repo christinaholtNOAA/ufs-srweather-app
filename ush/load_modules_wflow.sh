@@ -63,7 +63,6 @@ $has_mu && set +u
 
 if [ ! -z $(command -v conda) ]; then
   conda activate DEV-uwtools
-
 fi
 
 $has_mu && set -u

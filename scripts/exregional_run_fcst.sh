@@ -77,13 +77,6 @@
 #    USE_MERRA_CLIMO
 #    WRITE_DOPOST
 #
-#  task_run_post:
-#    CUSTOM_POST_CONFIG_FP
-#    DT_SUBHOURLY_POST_MNTS
-#    POST_OUTPUT_DOMAIN_NAME
-#    SUB_HOURLY_POST
-#    USE_CUSTOM_POST_CONFIG_FILE
-#
 #  global:
 #    DO_ENSEMBLE
 #    DO_LSM_SPP
@@ -116,10 +109,12 @@
 #-----------------------------------------------------------------------
 #
 . $USHdir/source_util_funcs.sh
+set -x
 for sect in user nco platform workflow global cpl_aqm_parm constants fixed_files \
-  task_get_extrn_lbcs task_run_fcst task_run_post ; do
+  task_get_extrn_lbcs task_run_fcst ; do
   source_yaml ${GLOBAL_VAR_DEFNS_FP} ${sect}
 done
+set +x
 
 #
 #-----------------------------------------------------------------------
@@ -509,42 +504,13 @@ create_symlink_to_file ${FIELD_TABLE_FP} ${DATA}/${FIELD_TABLE_FN} ${relative_li
 
 create_symlink_to_file ${FIELD_DICT_FP} ${DATA}/${FIELD_DICT_FN} ${relative_link_flag}
 
+
+
 if [ $(boolify ${WRITE_DOPOST}) = "TRUE" ]; then
-  cp ${PARMdir}/upp/nam_micro_lookup.dat ./eta_micro_lookup.dat
-  if [ $(boolify ${USE_CUSTOM_POST_CONFIG_FILE}) = "TRUE" ]; then
-    post_config_fp="${CUSTOM_POST_CONFIG_FP}"
-    print_info_msg "
-====================================================================
-  CUSTOM_POST_CONFIG_FP = \"${CUSTOM_POST_CONFIG_FP}\"
-===================================================================="
-  else
-    if [ $(boolify "${CPL_AQM}") = "TRUE" ]; then
-      post_config_fp="${PARMdir}/upp/postxconfig-NT-AQM.txt"
-    else
-      post_config_fp="${PARMdir}/upp/postxconfig-NT-fv3lam.txt"
-    fi
-    print_info_msg "
-====================================================================
-  post_config_fp = \"${post_config_fp}\"
-===================================================================="
-  fi
-  cp ${post_config_fp} ./postxconfig-NT_FH00.txt
-  cp ${post_config_fp} ./postxconfig-NT.txt
-  cp ${PARMdir}/upp/params_grib2_tbl_new .
-  # Set itag for inline-post:
-  if [ $(boolify "${CPL_AQM}") = "TRUE" ]; then
-    post_itag_add="aqf_on=.true.,"
-  else
-    post_itag_add=""
-  fi
-cat > itag <<EOF
-&MODEL_INPUTS
- MODELNAME='FV3R'
-/
-&NAMPGB
- KPO=47,PO=1000.,975.,950.,925.,900.,875.,850.,825.,800.,775.,750.,725.,700.,675.,650.,625.,600.,575.,550.,525.,500.,475.,450.,425.,400.,375.,350.,325.,300.,275.,250.,225.,200.,175.,150.,125.,100.,70.,50.,30.,20.,10.,7.,5.,3.,2.,1.,${post_itag_add}
-/
-EOF
+  cycle="${PDY:0:4}-${PDY:4:2}-${PDY:6:2}T$cyc"
+  for task in files_copied files_linked namelist_file ; do
+    uw upp $task -c ${GLOBAL_VAR_DEFNS_FN} --cycle $cycle --key-path task_run_post
+  done
 fi
 
 #
@@ -738,8 +704,6 @@ python3 $USHdir/create_model_configure_file.py \
   --fcst_len_hrs "${FCST_LEN_HRS}" \
   --fhrot "${FHROT}" \
   --run-dir "${DATA}" \
-  --sub-hourly-post "${SUB_HOURLY_POST}" \
-  --dt-subhourly-post-mnts "${DT_SUBHOURLY_POST_MNTS}" \
   --dt-atmos "${DT_ATMOS}"
 export err=$?
 if [ $err -ne 0 ]; then
@@ -896,11 +860,13 @@ if [ $(boolify ${WRITE_DOPOST}) = "TRUE" ]; then
       fhr_d=${fhr}
     fi
 
+    post_output_domain=$(uw config realize -i $GLOBAL_VAR_DEFNS_FN --output-format yaml \
+    --key-path=task_run_post.upp.post_output_domain)
     post_time=$( $DATE_UTIL --utc --date "${yyyymmdd} ${hh} UTC + ${fhr_d} hours + ${fmn} minutes" "+%Y%m%d%H%M" )
     post_mn=${post_time:10:2}
     post_mn_or_null=""
     post_fn_suffix="GrbF${fhr_d}"
-    post_renamed_fn_suffix="f${fhr}${post_mn_or_null}.${POST_OUTPUT_DOMAIN_NAME}.grib2"
+    post_renamed_fn_suffix="f${fhr}${post_mn_or_null}.${post_output_domain_name}.grib2"
 
     if [ $(boolify "${CPL_AQM}") = "TRUE" ]; then
       fids=( "cmaq" )

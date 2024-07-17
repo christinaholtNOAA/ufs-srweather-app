@@ -990,7 +990,7 @@ workflow:
   INCR_CYCL_FREQ: 24
   FCST_LEN_HRS: 24
   FCST_LEN_CYCL:
-    - '{{ workflow.FCST_LEN_HRS }}'
+    - !int '{{ workflow.FCST_LEN_HRS }}'
   LONG_FCST_LEN: '{% if workflow.FCST_LEN_HRS < 0 %}{{ workflow.FCST_LEN_CYCL|max }}{% else %}{{ workflow.FCST_LEN_HRS }}{% endif %}'
   #
   #-----------------------------------------------------------------------
@@ -1982,6 +1982,9 @@ task_run_fcst:
 task_run_post:
   upp: &det_upp
     execution:
+      batchargs:
+        nodes: 1
+        tasks_per_node: 24
       envcmds:
         - module load {{ user.HOMEdir }}/modulefiles
         - module load build_{{ user.MACHINE }}_{{ workflow.COMPILER }}
@@ -1990,22 +1993,22 @@ task_run_post:
       mpiargs:
         - --export=ALL
       threads: 1?
-    eta_micro_lookup: '{{ workflow.PARMdir }}/upp/nam_micro_lookup.dat'
-    grib2_tbl: '{{ workflow.PARMdir }}/upp/params_grib2_tbl_new'
-    postxconfig: '{{ workflow.PARMdir }}/upp/postxconfig-NT-fv3lam.txt'
+    eta_micro_lookup: '{{ user.PARMdir }}/upp/nam_micro_lookup.dat'
+    grib2_tbl: '{{ user.PARMdir }}/upp/params_grib2_tbl_new'
+    postxconfig: '{{ user.PARMdir }}/upp/postxconfig-NT-fv3lam.txt'
     namelist:
       update_values:
         model_inputs:
           datestr: "{{ (cycle + leadtime).strftime('%Y-%m-%d_%H:%M:%S') }}"
-          filename: "{{ task_run_fcst.run_dir }}/dynf{{ leadtime }}.nc"
-          filenameflux: "{{ task_run_fcst.run_dir }}/phyf{{ leadtime }}.nc"
+          filename: "{{ task_run_fcst.rundir }}/dynf{{ leadtime }}.nc"
+          filenameflux: "{{ task_run_fcst.rundir }}/phyf{{ leadtime }}.nc"
           grib: grib2
           ioform: netcdf
           modelname: FV3R
         nampgb:
           kpo: 47
           po: [1000.,975.,950.,925.,900.,875.,850.,825.,800.,775.,750.,725.,700.,675.,650.,625.,600.,575.,550.,525.,500.,475.,450.,425.,400.,375.,350.,325.,300.,275.,250.,225.,200.,175.,150.,125.,100.,70.,50.,30.,20.,10.,7.,5.,3.,2.,1.]
-    run_dir: '{{ workflow.EXPTDIR }}/{{ cycle.strftime(%Y%m%d%H) }}/postprd/{{ leadtime }}'
+    rundir: '{{ workflow.EXPTDIR }}/{{ cycle.strftime(%Y%m%d%H) }}/postprd/{{ leadtime }}'
   platform:
     account: '{{ user.ACCOUNT }}'
     scheduler: '{{ platform.SCHED }}'
@@ -2014,11 +2017,6 @@ task_run_post:
   output_file_labels:
     - prslev
     - natlev
-
-task_run_post_ensemble:
-  upp:
-    <<: *det_upp
-    run_dir: '{{ workflow.EXPTDIR }}/{{ cycle.strftime(%Y%m%d%H) }}/postprd/member{{ "MEM" | env }}/{{ leadtime }}'
 
 #----------------------------
 # RUN PRDGEN config parameters

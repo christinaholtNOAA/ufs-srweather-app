@@ -22,7 +22,8 @@ from python_utils import (
 
 
 def create_model_configure_file(
-    cdate, fcst_len_hrs, fhrot, run_dir, sub_hourly_post, dt_subhourly_post_mnts, dt_atmos
+    cdate, fcst_len_hrs, fhrot, run_dir, dt_atmos, sub_hourly_post=False,
+    dt_subhourly_post_mnts=None,
     ): #pylint: disable=too-many-arguments
     """Creates a model configuration file in the specified
     run directory
@@ -263,7 +264,6 @@ def parse_args(argv):
         "-s",
         "--sub-hourly-post",
         dest="sub_hourly_post",
-        required=True,
         help="Set sub hourly post to either TRUE/FALSE by passing corresponding string.",
     )
 
@@ -271,7 +271,6 @@ def parse_args(argv):
         "-d",
         "--dt-subhourly-post-mnts",
         dest="dt_subhourly_post_mnts",
-        required=True,
         help="Subhourly post minitues.",
     )
 
@@ -304,7 +303,5 @@ if __name__ == "__main__":
         cdate=str_to_type(args.cdate),
         fcst_len_hrs=str_to_type(args.fcst_len_hrs),
         fhrot=str_to_type(args.fhrot),
-        sub_hourly_post=str_to_type(args.sub_hourly_post),
-        dt_subhourly_post_mnts=str_to_type(args.dt_subhourly_post_mnts),
         dt_atmos=str_to_type(args.dt_atmos),
     )
