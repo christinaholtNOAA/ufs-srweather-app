@@ -20,6 +20,7 @@ from check_python_version import check_python_version
 
 from monitor_jobs import monitor_jobs, write_monitor_file
 from utils import print_test_info
+from uwtools.api.config import get_yaml_config
 
 def run_we2e_tests(homedir, args) -> None:
     """Function to run the WE2E tests selected by the user
@@ -144,7 +145,7 @@ def run_we2e_tests(homedir, args) -> None:
 
     config_default_file = os.path.join(ushdir,'config_defaults.yaml')
     logging.debug(f"Loading config defaults file {config_default_file}")
-    config_defaults = load_config_file(config_default_file)
+    config_defaults = get_yaml_config(config_default_file)
 
     machine_file = os.path.join(ushdir, 'machine', f'{machine}.yaml')
     logging.debug(f"Loading machine defaults file {machine_file}")

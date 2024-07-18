@@ -70,8 +70,7 @@ upp_driver = UPP(
     leadtime=args.leadtime,
     key_path=[args.key_path],
 )
-rundir = upp_driver.config["rundir"]
-
+rundir = Path(upp_driver.config["rundir"])
 print(f"Will run in {rundir}")
 
 # Run upp
@@ -86,20 +85,20 @@ expt_config = get_yaml_config(args.config_file)
 upp_config = expt_config[args.key_path]
 
 
-post_output = rundir.parent()
-output_file_labels = upp_config["output_file_labels"]
-for label in output_file_labels:
-    upp_config_cp = deepcopy(upp_config)
-    upp_config_cp.dereference(
+for label in upp_config["output_file_labels"]:
+    # deepcopy here because desired_output_name is parameterized within the loop
+    expt_config_cp = get_yaml_config(deepcopy(expt_config.data))
+    expt_config_cp.dereference(
         context={
             "cycle": args.cycle,
             "leadtime": args.leadtime,
             "file_label": label,
-            **expt_config,
+            **expt_config_cp,
         }
     )
-    desired_output_fn = upp_config_cp["desired_output_name"]
-    upp_output_fn = Path(
-        f"{label.upper()}.GrbF{int(args.leadtime.total_seconds() // 3600):03d}"
-    )
-    upp_output_fn.symlink_to(post_output / desired_output_fn)
+    upp_block = expt_config_cp[args.key_path]
+    desired_output_fn = upp_block["desired_output_name"]
+    upp_output_fn = rundir / f"{label.upper()}.GrbF{int(args.leadtime.total_seconds() // 3600):02d}"
+    output_link = rundir.parent / desired_output_fn
+    if not output_link.is_symlink():
+        output_link.symlink_to(upp_output_fn)

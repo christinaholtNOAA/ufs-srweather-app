@@ -21,7 +21,7 @@ metatask_run_ens_post:
       nodes: "{{ task_run_post.upp.execution.batchargs.nodes }}:ppn={{ task_run_post.upp.execution.batchargs.tasks_per_node }}"
       partition: '{% if platform.get("PARTITION_DEFAULT") %}&PARTITION_DEFAULT;{% else %}None{% endif %}'
       queue: '&QUEUE_DEFAULT;'
-      walltime: 00:15:00
+      walltime: '{{ task_run_post.upp.execution.batchargs.walltime }}'
       dependency:
         or:
           taskdep:
