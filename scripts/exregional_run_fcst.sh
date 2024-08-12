@@ -109,12 +109,10 @@
 #-----------------------------------------------------------------------
 #
 . $USHdir/source_util_funcs.sh
-set -x
 for sect in user nco platform workflow global cpl_aqm_parm constants fixed_files \
   task_get_extrn_lbcs task_run_fcst ; do
   source_yaml ${GLOBAL_VAR_DEFNS_FP} ${sect}
 done
-set +x
 
 #
 #-----------------------------------------------------------------------
@@ -505,12 +503,32 @@ create_symlink_to_file ${FIELD_TABLE_FP} ${DATA}/${FIELD_TABLE_FN} ${relative_li
 create_symlink_to_file ${FIELD_DICT_FP} ${DATA}/${FIELD_DICT_FN} ${relative_link_flag}
 
 
-
+set -x
 if [ $(boolify ${WRITE_DOPOST}) = "TRUE" ]; then
   cycle="${PDY:0:4}-${PDY:4:2}-${PDY:6:2}T$cyc"
   for task in files_copied files_linked namelist_file ; do
-    uw upp $task -c ${GLOBAL_VAR_DEFNS_FN} --cycle $cycle --key-path task_run_post
+    uw upp $task -c ${GLOBAL_VAR_DEFNS_FP} --leadtime 999 --cycle $cycle --key-path task_run_post
   done
+  mv $DATA/postprd/999/* .
+  rmdir $DATA/postprd/999
+  # remove some unused (unrecognized) entries
+(cat << EOF
+model_inputs:
+  datestr: !remove
+  filename: !remove
+  filenameflux: !remove
+  grib: !remove
+  ioform: !remove
+EOF
+) |
+  uw config realize \
+    -i itag \
+    --input-format nml \
+    -o itag \
+    --output-format nml \
+    --update-format yaml
+  # Add one more file
+  cp postxconfig-NT.txt postxconfig-NT_FH00.txt
 fi
 
 #
@@ -860,8 +878,8 @@ if [ $(boolify ${WRITE_DOPOST}) = "TRUE" ]; then
       fhr_d=${fhr}
     fi
 
-    post_output_domain=$(uw config realize -i $GLOBAL_VAR_DEFNS_FN --output-format yaml \
-    --key-path=task_run_post.upp.post_output_domain)
+    post_output_domain=$(uw config realize -i $GLOBAL_VAR_DEFNS_FP --output-format yaml \
+    --key-path=task_run_post.post_output_domain_name)
     post_time=$( $DATE_UTIL --utc --date "${yyyymmdd} ${hh} UTC + ${fhr_d} hours + ${fmn} minutes" "+%Y%m%d%H%M" )
     post_mn=${post_time:10:2}
     post_mn_or_null=""

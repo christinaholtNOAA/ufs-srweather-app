@@ -7,6 +7,7 @@ import sys
 import datetime
 import traceback
 import logging
+from pathlib import Path
 from textwrap import dedent
 
 import yaml
@@ -1412,7 +1413,7 @@ def setup(USHdir, user_config_fn="config.yaml", debug: bool = False):
     # (e.g. metatasks with no tasks, tasks with no associated commands)
     clean_rocoto_dict(expt_config["rocoto"]["tasks"])
 
-    rocoto_yaml_fp = workflow_config["ROCOTO_YAML_FP"]
+    rocoto_yaml_fp = Path(workflow_config["ROCOTO_YAML_FP"])
     rocoto_yaml_dict = expt_config["rocoto"]
     extend_yaml(rocoto_yaml_dict)
     rocoto_yaml = get_yaml_config(rocoto_yaml_dict)
@@ -1420,7 +1421,7 @@ def setup(USHdir, user_config_fn="config.yaml", debug: bool = False):
 
     var_defns_cfg = copy.deepcopy(expt_config)
     del var_defns_cfg["rocoto"]
-    var_defns_cfg.dump(global_var_defns_fp)
+    var_defns_cfg.dump(Path(global_var_defns_fp))
 
 
     #

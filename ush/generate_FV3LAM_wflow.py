@@ -11,6 +11,7 @@ import argparse
 import logging
 import os
 import sys
+from pathlib import Path
 from stat import S_IXUSR
 from string import Template
 from textwrap import dedent
@@ -521,7 +522,7 @@ def generate_FV3LAM_wflow(
         for k, v in values.copy().items():
             if v is None:
                 del base_namelist[sect][k]
-    base_namelist.dump(FV3_NML_FP)
+    base_namelist.dump(Path(FV3_NML_FP))
     #
     # If not running the TN_MAKE_GRID task (which implies the workflow will
     # use pregenerated grid files), set the namelist variables specifying

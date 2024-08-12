@@ -3,12 +3,14 @@ The run script for UPP
 """
 
 import datetime as dt
+import os
 import re
 import sys
 from argparse import ArgumentParser
 from copy import deepcopy
 from pathlib import Path
 
+from uwtools.api.file import link as uwlink
 from uwtools.api.upp import UPP
 from uwtools.api.config import get_yaml_config
 
@@ -63,6 +65,8 @@ parser.add_argument(
 )
 args = parser.parse_args()
 
+os.environ["member"] = args.member
+
 # Extract driver config from experiment config
 upp_driver = UPP(
     config=args.config_file,
@@ -72,7 +76,6 @@ upp_driver = UPP(
 )
 rundir = Path(upp_driver.config["rundir"])
 print(f"Will run in {rundir}")
-
 # Run upp
 upp_driver.run()
 
@@ -84,7 +87,7 @@ if not (rundir / "runscript.upp.done").is_file():
 expt_config = get_yaml_config(args.config_file)
 upp_config = expt_config[args.key_path]
 
-
+links = {}
 for label in upp_config["output_file_labels"]:
     # deepcopy here because desired_output_name is parameterized within the loop
     expt_config_cp = get_yaml_config(deepcopy(expt_config.data))
@@ -99,6 +102,6 @@ for label in upp_config["output_file_labels"]:
     upp_block = expt_config_cp[args.key_path]
     desired_output_fn = upp_block["desired_output_name"]
     upp_output_fn = rundir / f"{label.upper()}.GrbF{int(args.leadtime.total_seconds() // 3600):02d}"
-    output_link = rundir.parent / desired_output_fn
-    if not output_link.is_symlink():
-        output_link.symlink_to(upp_output_fn)
+    links[desired_output_fn] = str(upp_output_fn)
+
+uwlink(target_dir=rundir.parent, config=links)

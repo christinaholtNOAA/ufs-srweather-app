@@ -10,9 +10,12 @@
 . $USHdir/source_util_funcs.sh
 for sect in user nco platform workflow nco global verification cpl_aqm_parm \
   constants fixed_files grid_params \
-  task_run_post task_run_prdgen ; do
+  task_run_prdgen ; do
   source_yaml ${GLOBAL_VAR_DEFNS_FP} ${sect}
 done
+
+POST_OUTPUT_DOMAIN_NAME=$(uw config realize --output-format yaml \
+  --key-path task_run_post.post_output_domain_name)
 #
 #-----------------------------------------------------------------------
 #

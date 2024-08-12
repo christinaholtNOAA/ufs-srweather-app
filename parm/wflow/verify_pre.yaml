@@ -181,9 +181,9 @@ metatask_check_post_output_all_mems:
           #  metataskdep:
           #    attrs:
           #      metatask: run_post_mem#mem#_all_fhrs
-          taskdep: 
+          metataskdep: 
             attrs:
-              task: '{% for h in range(0, workflow.LONG_FCST_LEN+1) %}{% if h > 0 %}{{"      <taskdep task="}}{% endif %}{{ "\"run_post_mem#mem#_f%03d\"" % h }}{% if h < workflow.LONG_FCST_LEN %}{{"/>\n"}}{% endif %}{%- endfor -%}'
+              metatask: run_post_mem#mem#_all_fhrs
         # This "and" is to check whether post is being run inline (i.e. as part of
         # the weather model), and if so, to ensure that the forecast task for the
         # current member has completed.
