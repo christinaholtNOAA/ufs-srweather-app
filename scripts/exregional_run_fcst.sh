@@ -502,7 +502,6 @@ create_symlink_to_file ${FIELD_TABLE_FP} ${DATA}/${FIELD_TABLE_FN} ${relative_li
 
 create_symlink_to_file ${FIELD_DICT_FP} ${DATA}/${FIELD_DICT_FN} ${relative_link_flag}
 
-
 set -x
 if [ $(boolify ${WRITE_DOPOST}) = "TRUE" ]; then
   cycle="${PDY:0:4}-${PDY:4:2}-${PDY:6:2}T$cyc"

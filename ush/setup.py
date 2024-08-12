@@ -17,6 +17,7 @@ from link_fix import link_fix
 from python_utils import (
     log_info,
     cd_vrfy,
+    date_to_str,
     mkdir_vrfy,
     rm_vrfy,
     check_var_valid_value,
@@ -1419,9 +1420,13 @@ def setup(USHdir, user_config_fn="config.yaml", debug: bool = False):
     rocoto_yaml = get_yaml_config(rocoto_yaml_dict)
     rocoto_yaml.dump(rocoto_yaml_fp)
 
-    var_defns_cfg = copy.deepcopy(expt_config)
+    var_defns_cfg = get_yaml_config(config=expt_config)
     del var_defns_cfg["rocoto"]
-    var_defns_cfg.dump(Path(global_var_defns_fp))
+
+    # Fixup a couple of data types:
+    for dates in ("DATE_FIRST_CYCL", "DATE_LAST_CYCL"):
+        var_defns_cfg["workflow"][dates] = date_to_str(var_defns_cfg["workflow"][dates])
+    var_defns_cfg.dump(global_var_defns_fp)
 
 
     #
