@@ -1993,11 +1993,11 @@ task_run_post:
         - module load build_{{ user.MACHINE|lower }}_{{ workflow.COMPILER }}
       executable: '{{ user.EXECdir }}/upp.x'
       mpicmd: '{{ platform.BATCH_RUN_CMD }}'
-      threads: 1
     files_to_copy:
       eta_micro_lookup.dat: '{{ user.PARMdir }}/upp/nam_micro_lookup.dat'
       params_grib2_tbl_new: '{{ user.PARMdir }}/upp/params_grib2_tbl_new'
       postxconfig-NT.txt: '{{ user.UFS_WTHR_MDL_DIR }}/tests/parm/postxconfig-NT-fv3lam.txt'
+      postxconfig-NT_FH00.txt: '{{ task_run_post.upp.files_to_copy["postxconfig-NT.txt"] }}'
     namelist:
       update_values:
         model_inputs:
@@ -2015,13 +2015,14 @@ task_run_post:
     account: '{{ user.ACCOUNT }}'
     scheduler: '{{ platform.SCHED }}'
   post_output_domain_name: '{{ workflow.PREDEF_GRID_NAME }}'
-  desired_output_name: '{{ nco.NET_default }}.{{ timevars.yyyymmddhh }}.{{ file_label }}.f{{ timevars.fff }}.{{ task_run_post.post_output_domain_name }}.grib2'
+  desired_output_name: '{{ nco.NET_default }}.t{{ timevars.hh }}z.{{ file_label }}.f{{ timevars.fff }}.{{ task_run_post.post_output_domain_name }}.grib2'
   output_file_labels:
     - prslev
     - natlev
 
 timevars:
   yyyymmddhh: '{{ cycle.strftime("%Y%m%d%H") }}'
+  hh: '{{ cycle.strftime("%H") }}'
   valid_time: "{{ (cycle + leadtime).strftime('%Y-%m-%d_%H:%M:%S') }}"
   fff: '{{ "%03d" % (leadtime.total_seconds() // 3600) }}'
 

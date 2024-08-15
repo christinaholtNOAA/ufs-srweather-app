@@ -877,7 +877,7 @@ if [ $(boolify ${WRITE_DOPOST}) = "TRUE" ]; then
       fhr_d=${fhr}
     fi
 
-    post_output_domain=$(uw config realize -i $GLOBAL_VAR_DEFNS_FP --output-format yaml \
+    post_output_domain_name=$(uw config realize -i $GLOBAL_VAR_DEFNS_FP --output-format yaml \
     --key-path=task_run_post.post_output_domain_name)
     post_time=$( $DATE_UTIL --utc --date "${yyyymmdd} ${hh} UTC + ${fhr_d} hours + ${fmn} minutes" "+%Y%m%d%H%M" )
     post_mn=${post_time:10:2}
