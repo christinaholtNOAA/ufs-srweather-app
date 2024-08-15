@@ -356,7 +356,7 @@ if __name__ == "__main__":
     
     COMOUT = str(args.comout)
     CARTOPY_DIR = str(args.cartopy_dir)
-    POST_OUTPUT_DOMAIN_NAME = str(args.domain).lower()
+    POST_OUTPUT_DOMAIN_NAME = str(args.domain)
     
     # Loop over forecast hours
     for fhr in fhours:
