@@ -2447,7 +2447,7 @@ verification:
   # output.
   #
   VX_FCST_INPUT_BASEDIR: '{{ "$COMOUT/../.." if user.RUN_ENVIR == "nco" else workflow.EXPTDIR }}'
-  VX_OUTPUT_BASEDIR: '{{ $COMOUT/metout if user.RUN_ENVIR == "nco" else workflow.EXPTDIR }}'
+  VX_OUTPUT_BASEDIR: '{{ "$COMOUT/metout" if user.RUN_ENVIR == "nco" else workflow.EXPTDIR }}'
   #
   # Number of digits in the ensemble member names.  This is a configurable
   # variable to allow users to change its value (e.g. to go from "mem004"

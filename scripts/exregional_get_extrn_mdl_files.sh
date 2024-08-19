@@ -68,17 +68,16 @@
 #-----------------------------------------------------------------------
 #
 . $USHdir/source_util_funcs.sh
-
 sections=(
   user
   nco
   platform
   workflow
   global
+  task_get_extrn_ics
   task_get_extrn_lbcs
 )
 for sect in ${sections[*]} ; do
-  task_get_extrn_ics ; do
   source_yaml ${GLOBAL_VAR_DEFNS_FP} ${sect}
 done
 #
@@ -238,7 +237,7 @@ fi
 #-----------------------------------------------------------------------
 #
 
-mkdir -p ${EXTRN_MDL_STAGING_DIR}${mem_dir}
+mkdir -p ${EXTRN_MDL_STAGING_DIR}
 
 if [ $RUN_ENVIR = "nco" ]; then
     EXTRN_DEFNS="${NET}.${cycle}.${EXTRN_MDL_NAME}.${ICS_OR_LBCS}.${EXTRN_MDL_VAR_DEFNS_FN}.sh"
