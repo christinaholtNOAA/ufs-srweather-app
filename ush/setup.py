@@ -62,7 +62,6 @@ def load_config_for_setup(ushdir, default_config, user_config):
 
     # Load the default config.
     logging.debug(f"Loading config defaults file {default_config}")
-    #cfg_d = load_config_file(default_config)
     cfg_d = get_yaml_config(default_config)
     logging.debug(f"Read in the following values from config defaults file:\n")
     logging.debug(cfg_d)
@@ -1072,7 +1071,7 @@ def setup(USHdir, user_config_fn="config.yaml", debug: bool = False):
         raise Exception(
             f"""
 
-            The preferred output files from post has not been set:
+            The preferred output domain from the post task has not been set:
 
             task_run_post:
               post_output_domain_name: {post_output_domain_name}

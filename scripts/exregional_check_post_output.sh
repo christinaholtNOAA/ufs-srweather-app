@@ -46,7 +46,15 @@
 #-----------------------------------------------------------------------
 #
 . $USHdir/source_util_funcs.sh
-for sect in user nco workflow global verification constants ; do
+sections=(
+  user
+  nco
+  workflow
+  global
+  verification
+  constants
+)
+for sect in ${sections[*]} ; do
   source_yaml ${GLOBAL_VAR_DEFNS_FP} ${sect}
 done
 #

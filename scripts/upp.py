@@ -65,7 +65,7 @@ parser.add_argument(
 )
 args = parser.parse_args()
 
-os.environ["member"] = args.member
+os.environ["MEMBER"] = args.member
 
 # Extract driver config from experiment config
 upp_driver = UPP(

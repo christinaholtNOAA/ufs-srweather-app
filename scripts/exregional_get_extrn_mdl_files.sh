@@ -69,7 +69,15 @@
 #
 . $USHdir/source_util_funcs.sh
 
-for sect in user nco platform workflow global task_get_extrn_lbcs \
+sections=(
+  user
+  nco
+  platform
+  workflow
+  global
+  task_get_extrn_lbcs
+)
+for sect in ${sections[*]} ; do
   task_get_extrn_ics ; do
   source_yaml ${GLOBAL_VAR_DEFNS_FP} ${sect}
 done

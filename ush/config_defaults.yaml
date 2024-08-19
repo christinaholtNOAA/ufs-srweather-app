@@ -991,7 +991,7 @@ workflow:
   FCST_LEN_HRS: 24
   FCST_LEN_CYCL:
     - !int '{{ workflow.FCST_LEN_HRS }}'
-  LONG_FCST_LEN: '{% if workflow.FCST_LEN_HRS < 0 %}{{ workflow.FCST_LEN_CYCL|max }}{% else %}{{ workflow.FCST_LEN_HRS }}{% endif %}'
+  LONG_FCST_LEN: '{{ workflow.FCST_LEN_CYCL|max if workflow.FCST_LEN_HRS < 0 else workflow.FCST_LEN_HRS }}'
   #
   #-----------------------------------------------------------------------
   #
@@ -1682,7 +1682,7 @@ task_make_lbcs:
 #-----------------------------
 task_run_fcst:
   # UW Placeholder additions
-  rundir: '{{ workflow.EXPTDIR }}/{{ timevars.yyyymmddhh }}/{% if global.DO_ENSEMBLE %}/mem{{"member" | env}}{% endif %}'
+  rundir: '{{ workflow.EXPTDIR }}/{{ timevars.yyyymmddhh }}{{ "/mem%s" % ("MEMBER"|env) if global.DO_ENSEMBLE }}'
   #------------------------------------------------------------------------
   #
   # NNODES_RUN_FCST: 
@@ -2446,8 +2446,8 @@ verification:
   # Template for top-level directory in which METplus will place its
   # output.
   #
-  VX_FCST_INPUT_BASEDIR: '{% if user.RUN_ENVIR == "nco" %}$COMOUT/../..{% else %}{{ workflow.EXPTDIR }}{% endif %}'
-  VX_OUTPUT_BASEDIR: '{% if user.RUN_ENVIR == "nco" %}$COMOUT/metout{% else %}{{ workflow.EXPTDIR }}{% endif %}'
+  VX_FCST_INPUT_BASEDIR: '{{ "$COMOUT/../.." if user.RUN_ENVIR == "nco" else workflow.EXPTDIR }}'
+  VX_OUTPUT_BASEDIR: '{{ $COMOUT/metout if user.RUN_ENVIR == "nco" else workflow.EXPTDIR }}'
   #
   # Number of digits in the ensemble member names.  This is a configurable
   # variable to allow users to change its value (e.g. to go from "mem004"
@@ -2473,9 +2473,9 @@ verification:
   # both for 1 hour and for > 1 hour accumulation periods, in NetCDF
   # format.)
   #
-  FCST_SUBDIR_TEMPLATE: '{% if user.RUN_ENVIR == "nco" %}${NET_default}.{init?fmt=%Y%m%d?shift=-${time_lag}}/{init?fmt=%H?shift=-${time_lag}}{% else %}{init?fmt=%Y%m%d%H?shift=-${time_lag}}{% if global.DO_ENSEMBLE %}/${ensmem_name}{% endif %}/postprd{% endif %}'
-  FCST_FN_TEMPLATE: '${NET_default}.t{init?fmt=%H?shift=-${time_lag}}z{% if user.RUN_ENVIR == "nco" and global.DO_ENSEMBLE %}.${ensmem_name}{% endif %}.prslev.f{lead?fmt=%HHH?shift=${time_lag}}.{{ task_run_post.post_output_domain_name }}.grib2'
-  FCST_FN_TEMPLATE_PCPCOMBINE_OUTPUT: '${NET_default}.t{init?fmt=%H}z{% if user.RUN_ENVIR == "nco" and global.DO_ENSEMBLE %}.${ensmem_name}{% endif %}.prslev.f{lead?fmt=%HHH}.{{ task_run_post.post_output_domain_name }}_${VAR}_a${ACCUM_HH}h.nc'
+  FCST_SUBDIR_TEMPLATE: '{% if user.RUN_ENVIR == "nco" %}${NET_default}.{init?fmt=%Y%m%d?shift=-${time_lag}}/{init?fmt=%H?shift=-${time_lag}}{% else %}{init?fmt=%Y%m%d%H?shift=-${time_lag}}{{ "/${ensmem_name}" if global.DO_ENSEMBLE }}/postprd{% endif %}'
+  FCST_FN_TEMPLATE: '${NET_default}.t{init?fmt=%H?shift=-${time_lag}}z{{ ".${ensmem_name}" if user.RUN_ENVIR == "nco" and global.DO_ENSEMBLE }}.prslev.f{lead?fmt=%HHH?shift=${time_lag}}.{{ task_run_post.post_output_domain_name }}.grib2'
+  FCST_FN_TEMPLATE_PCPCOMBINE_OUTPUT: '${NET_default}.t{init?fmt=%H}z{{ ".${ensmem_name}" if user.RUN_ENVIR == "nco" and global.DO_ENSEMBLE }}.prslev.f{lead?fmt=%HHH}.{{ task_run_post.post_output_domain_name }}_${VAR}_a${ACCUM_HH}h.nc'
   #
   # For verification tasks that need observational data, this specifies
   # the maximum number of observation files that may be missing.  If more
