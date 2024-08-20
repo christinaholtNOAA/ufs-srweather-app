@@ -1650,7 +1650,7 @@ task_make_ics:
   FVCOM_WCSTART: "cold"
   FVCOM_DIR: ""
   FVCOM_FILE: "fvcom.nc"
-  VCOORD_FILE: "{{ workflow.FIXam + '/global_hyblev.l65.txt' }}"
+  VCOORD_FILE: "{{ workflow.FIXam }}/global_hyblev.l65.txt"
 
 #----------------------------
 # MAKE LBCS config parameters
