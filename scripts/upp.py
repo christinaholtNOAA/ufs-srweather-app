@@ -24,7 +24,7 @@ def _timedelta_from_str(tds: str) -> dt.timedelta:
     if matches := re.match(r"(\d+)(:(\d+))?(:(\d+))?", tds):
         h, m, s = [int(matches.groups()[n] or 0) for n in (0, 2, 4)]
         return dt.timedelta(hours=h, minutes=m, seconds=s)
-    msg = f"Specify leadtime as {tds}"
+    msg = f"Specify leadtime as hours[:minutes[:seconds]]"
     print(msg, file=sys.stderr)
     sys.exit(1)
 
