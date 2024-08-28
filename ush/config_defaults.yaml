@@ -1396,29 +1396,72 @@ task_make_grid:
 # the MAKE_OROG task is not meant to run.
 #-----------------------------------------------------------------------
 task_make_orog:
-  KMP_AFFINITY_MAKE_OROG: "disabled"
-  OMP_NUM_THREADS_MAKE_OROG: 6
-  OMP_STACKSIZE_MAKE_OROG: "2048m"
-  OROG_DIR: '{{ workflow.EXPTDIR + "/orog" if rocoto.tasks.get("task_make_orog") else "" }}'
+  rundir: '{{ workflow.EXPTDIR + "/orog" if rocoto.tasks.get("task_make_orog") else "" }}'
 
-#----------------------------
-# MAKE SFC CLIMO config parameters
-#-----------------------------
-#-----------------------------------------------------------------------
-# KMP_AFFINITY_MAKE_SFC_CLIMO: 
-# Intel Thread Affinity Interface for the make_sfc_climo task. 
-#
-# OMP_NUM_THREADS_MAKE_SFC_CLIMO: 
-# The number of OpenMP threads to use for parallel regions.
-#
-# OMP_STACKSIZE_MAKE_SFC_CLIMO: 
-# Controls the size of the stack for threads created by the OpenMP 
-# implementation.
-#
-# SFC_CLIMO_DIR: 
-# The directory containing pre-generated surface climatology files 
-# to use when the MAKE_SFC_CLIMO task is not meant to run.
-#-----------------------------------------------------------------------
+  orog:
+    execution:
+      threads: 6
+      executable: "{{ workflow.EXECdir }}/orog"
+      envcmds:
+        - module use {{ user.HOMEdir }}/modulefiles
+        - module load build_{{ user.MACHINE|lower }}_{{ workflow.COMPILER }}
+    files_to_link:
+      fort.15: "{{ platform.FIXorg }}/thirty.second.antarctic.new.bin"
+      landcover30.fixed: "{{ platform.FIXorg }}/landcover30.fixed"
+      fort.235: "{{ platform.FIXorg }}/gmted2010.30sec.int"
+    old_line1_items:
+      mtnres: 1
+      lonb: 0
+      latb: 0
+      jcap: 0
+      nr: 0
+      nf1: 0
+      nf2: 0
+      efac: 0
+      blat: 0
+    grid_file: "{{ workflow.FIXlam }}/{{ CRES | env }}{{ workflow.DOT_OR_UNDERSCORE }}grid.tile7.halo{{ grid_params.NHW }}.nc"
+    orog_file: "none"
+  filter_topo:
+    execution:
+      executable: "{{ workflow.EXECdir }}/filter_topo"
+      envcmds:
+        - module use {{ user.HOMEdir }}/modulefiles
+        - module load build_{{ user.MACHINE|lower }}_{{ workflow.COMPILER }}
+    namelist:
+      update_values:
+        filter_topo_nml:
+          grid_file: "{{ workflow.FIXlam }}/{{ CRES | env }}{{ workflow.DOT_OR_UNDERSCORE }}mosaic.halo{{ grid_params.NHW }}.nc"
+          topo_file: "{{ task_make_orog.filtered_output }}"
+          mask_field: land_frac
+          regional: true
+          stretch_fac: "{{ grid_params.STRETCH_FAC }}"
+          res: "{{ ('CRES' | env)[1:] if workflow.GRID_GEN_METHOD == 'ESGgrid' else task_make_grid.GFDLgrid_NUM_CELLS }}"
+    rundir: "{{ task_make_orog.rundir }}/filtered_topo"
+  shave0:
+    shave:
+      execution:
+        executable: "{{ workflow.EXECdir }}/shave"
+        envcmds:
+          - module use {{ user.HOMEdir }}/modulefiles
+          - module load build_{{ user.MACHINE|lower }}_{{ workflow.COMPILER }}
+      config: &shave_config
+        input_grid_file: "{{ task_make_orog.filtered_output }}"
+        nhalo: "{{ constants.NH0 }}"
+        nx: "{{ grid_params.NX }}"
+        ny: "{{ grid_params.NY }}"
+      rundir: "{{ task_make_orog.rundir }}/shave0/"
+  shave4:
+    shave:
+      execution:
+        executable: "{{ workflow.EXECdir }}/shave"
+        envcmds:
+          - module use {{ user.HOMEdir }}/modulefiles
+          - module load build_{{ user.MACHINE|lower }}_{{ workflow.COMPILER }}
+      config:
+        <<: *shave_config
+        nhalo: "{{ constants.NH4 }}"
+      rundir: "{{ task_make_orog.rundir }}/shave4/"
+  filtered_output: "{{ task_make_orog.filter_topo.rundir }}/{{ CRES | env }}{{ workflow.DOT_OR_UNDERSCORE }}filtered_orog"
 task_make_sfc_climo:
   KMP_AFFINITY_MAKE_SFC_CLIMO: "scatter"
   OMP_NUM_THREADS_MAKE_SFC_CLIMO: 1
@@ -1989,7 +2032,7 @@ task_run_post:
         tasks_per_node: 24
         walltime: 00:15:00
       envcmds:
-        - module load {{ user.HOMEdir }}/modulefiles
+        - module use {{ user.HOMEdir }}/modulefiles
         - module load build_{{ user.MACHINE|lower }}_{{ workflow.COMPILER }}
       executable: '{{ user.EXECdir }}/upp.x'
       mpicmd: '{{ platform.BATCH_RUN_CMD }}'
