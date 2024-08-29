@@ -15,12 +15,8 @@ default_task_prep: &default_task
     LOGDIR: !cycstr "&LOGDIR;"
     nprocs: '{{ parent.nnodes * parent.ppn }}'
   native: '{{ platform.SCHED_NATIVE_CMD }}'
-  nodes: '{{ nnodes }}:ppn={{ ppn }}'
-  nnodes: 1
-  ppn: 24
   partition: '{% if platform.get("PARTITION_DEFAULT") %}&PARTITION_DEFAULT;{% else %}None{% endif %}'
   queue: '&QUEUE_DEFAULT;'
-  walltime: 00:20:00
 
 task_make_grid:
   <<: *default_task
@@ -31,6 +27,8 @@ task_make_orog:
   <<: *default_task
   command: '&LOAD_MODULES_RUN_TASK; "make_orog" "&JOBSdir;/JREGIONAL_MAKE_OROG"'
   join: !cycstr '&LOGDIR;/{{ jobname }}_@Y@m@d@H&LOGEXT;'
+  nodes: "{{ task_make_orog.orog.execution.batchargs.nodes }}:ppn={{ task_make_orog.orog.execution.batchargs.tasks_per_node}}"
+  walltime: "{{ task_make_orog.orog.execution.batchargs.walltime }}"
   dependency:
     or: &make_grid_satisfied
       and:

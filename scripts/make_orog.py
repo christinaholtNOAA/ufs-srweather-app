@@ -1,6 +1,7 @@
 """
 The run script for making the orography files for the experiment.
 """
+import os
 from argparse import ArgumentParser
 from pathlib import Path
 
@@ -30,6 +31,9 @@ expt_config = get_yaml_config(args.config_file)
 make_orog_config = get_yaml_config(expt_config[args.key_path])
 task_rundir = Path(make_orog_config["rundir"])
 print(f"Will run make_orog in {task_rundir}")
+
+CRES = expt_config["workflow"]["CRES"]
+os.environ["CRES"] = CRES
 
 # Run orog
 orog_driver = Orog(
@@ -89,3 +93,11 @@ for sub_path in ["shave0", "shave4"]:
        print(f"Error occurred running {sub_path}. Please see component error logs.")
 
 # Link shave output to fix directory
+fix_lam_path = Path(expt_config["workflow"]["FIXlam"])
+for fpath in glob.glob(str(rundir / f"{CRES}*.nc")):
+    path = Path(fpath)
+    linkname = fix_lam_path / path.name
+    relative_path = path.relative_to(fix_lam_path)
+    linkname.symlink_to(path)
+
+Path(rundir / "make_orog_task_complete.txt").touch()
