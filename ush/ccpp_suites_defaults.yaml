@@ -1,0 +1,36 @@
+
+orog_gsl_defaults: &orog_gsl_defaults
+  config:
+    halo: 4
+    input_grid_file: "{{ workflow.FIXlam }}/{{ 'CRES' | env }}_grid.tile7.halo{{ grid_params.NHW }}.nc"
+    resolution: !int "{{ ('CRES' | env )[1:] }}"
+    tile: 7
+    topo_data_2p5m: "{{ workflow.FIXam }}/geo_em.d01.lat-lon.2.5m.HGT_M.nc"
+    topo_data_30s: "{{ workflow.FIXam }}/HGT.Beljaars_filtered.lat-lon.30s_res.nc"
+  execution:
+    batchargs:
+      nodes: 1
+      tasks_per_node: 1
+      walltime: 00:10:00
+    executable: "{{ user.EXECdir }}/orog_gsl"
+    envcmds:
+      - module use {{ user.HOMEdir }}/modulefiles
+      - module load build_{{ user.MACHINE|lower }}_{{ workflow.COMPILER }}
+  rundir: "{{ task_make_orog.rundir }}/orog_gsl"
+
+FV3_RAP:
+  task_make_orog:
+    orog_gsl:
+      <<: *orog_gsl_defaults
+FV3_HRRR:
+  task_make_orog:
+    orog_gsl:
+      <<: *orog_gsl_defaults
+FV3_GFS_v15_thompson_mynn_lam3km:
+  task_make_orog:
+    orog_gsl:
+      <<: *orog_gsl_defaults
+FV3_GFS_v17_p8:
+  task_make_orog:
+    orog_gsl:
+      <<: *orog_gsl_defaults
