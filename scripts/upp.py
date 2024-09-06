@@ -10,7 +10,7 @@ from argparse import ArgumentParser
 from copy import deepcopy
 from pathlib import Path
 
-from uwtools.api.file import link as uwlink
+from uwtools.api.fs import link as uwlink
 from uwtools.api.upp import UPP
 from uwtools.api.config import get_yaml_config
 

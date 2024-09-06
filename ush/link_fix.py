@@ -6,6 +6,8 @@ import argparse
 import re
 import glob
 
+from uwtools.api.config import get_yaml_config
+
 from python_utils import (
     import_vars,
     print_input_args,
@@ -18,7 +20,6 @@ from python_utils import (
     cd_vrfy,
     mkdir_vrfy,
     find_pattern_in_str,
-    load_yaml_config,
 )
 
 
@@ -403,7 +404,7 @@ def parse_args(argv):
 
 if __name__ == "__main__":
     args = parse_args(sys.argv[1:])
-    cfg = load_yaml_config(args.path_to_defns)
+    cfg = get_yaml_config(args.path_to_defns)
     link_fix(
         verbose=cfg["workflow"]["VERBOSE"],
         file_group=args.file_group,

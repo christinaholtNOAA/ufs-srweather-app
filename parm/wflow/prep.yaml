@@ -15,8 +15,12 @@ default_task_prep: &default_task
     LOGDIR: !cycstr "&LOGDIR;"
     nprocs: '{{ parent.nnodes * parent.ppn }}'
   native: '{{ platform.SCHED_NATIVE_CMD }}'
+  nodes: '{{ nnodes }}:ppn={{ ppn }}'
+  nnodes: 1
+  ppn: 24
   partition: '{% if platform.get("PARTITION_DEFAULT") %}&PARTITION_DEFAULT;{% else %}None{% endif %}'
   queue: '&QUEUE_DEFAULT;'
+  walltime: 00:20:00
 
 task_make_grid:
   <<: *default_task
@@ -25,9 +29,11 @@ task_make_grid:
 
 task_make_orog:
   <<: *default_task
-  command: '&LOAD_MODULES_RUN_TASK; "make_orog" "&JOBSdir;/JREGIONAL_MAKE_OROG"'
+  command: !cycstr 'source &USHdir;/load_modules_wflow.sh hera ; python &SCRIPTSdir;/make_orog.py
+    -c &GLOBAL_VAR_DEFNS_FP;
+    --key-path task_make_orog'
   join: !cycstr '&LOGDIR;/{{ jobname }}_@Y@m@d@H&LOGEXT;'
-  nodes: "{{ task_make_orog.orog.execution.batchargs.nodes }}:ppn={{ task_make_orog.orog.execution.batchargs.tasks_per_node}}"
+  nodes: "{{ task_make_orog.orog.execution.batchargs.nodes }}:ppn={{ task_make_orog.orog.execution.batchargs.tasks_per_node }}"
   walltime: "{{ task_make_orog.orog.execution.batchargs.walltime }}"
   dependency:
     or: &make_grid_satisfied
@@ -65,5 +71,5 @@ task_make_sfc_climo:
         datadep:
           attrs:
             age: 00:00:00:05
-          text: '{{ task_make_orog.OROG_DIR }}/make_orog_task_complete.txt'
+          text: '{{ task_make_orog.rundir }}/make_orog_task_complete.txt'
 

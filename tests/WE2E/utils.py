@@ -16,12 +16,13 @@ from multiprocessing import Pool
 
 sys.path.append("../../ush")
 
+from uwtools.api.config import get_yaml_config
+
 from calculate_cost import calculate_cost
 from python_utils import (
     cfg_to_yaml_str,
     flatten_dict,
     load_config_file,
-    load_yaml_config
 )
 
 REPORT_WIDTH = 100
@@ -160,7 +161,7 @@ def calculate_core_hours(expts_dict: dict) -> dict:
             logging.warning(f"{vardefs_file}\ndoes not exist!\n\nDropping experiment from summary")
             continue
         logging.debug(f'Reading variable definitions file {vardefs_file}')
-        vardefs = load_yaml_config(vardefs_file)
+        vardefs = get_yaml_config(vardefs_file)
         vdf = flatten_dict(vardefs)
         cores_per_node = vdf["NCORES_PER_NODE"]
         for task in expts_dict[expt]:

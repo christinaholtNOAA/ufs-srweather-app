@@ -513,8 +513,8 @@ def generate_FV3LAM_wflow(
 
     physics_cfg = get_yaml_config(FV3_NML_YAML_CONFIG_FP)
     base_namelist = get_nml_config(FV3_NML_BASE_SUITE_FP)
-    base_namelist.update_values(physics_cfg[CCPP_PHYS_SUITE])
-    base_namelist.update_values(settings)
+    base_namelist.update_from(physics_cfg[CCPP_PHYS_SUITE])
+    base_namelist.update_from(settings)
     for sect, values in base_namelist.copy().items():
         if not values:
             del base_namelist[sect]

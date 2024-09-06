@@ -911,7 +911,7 @@ workflow:
   #
   #-----------------------------------------------------------------------
   #
-  GRID_GEN_METHOD: ""
+  GRID_GEN_METHOD: ESGgrid
   #
   #-----------------------------------------------------------------------
   #
@@ -1387,7 +1387,7 @@ task_make_orog:
         tasks_per_node: 24
         walltime: 00:10:00
       threads: 6
-      executable: "{{ workflow.EXECdir }}/orog"
+      executable: "{{ user.EXECdir }}/orog"
       envcmds:
         - module use {{ user.HOMEdir }}/modulefiles
         - module load build_{{ user.MACHINE|lower }}_{{ workflow.COMPILER }}
@@ -1405,63 +1405,65 @@ task_make_orog:
       nf2: 0
       efac: 0
       blat: 0
-    grid_file: "{{ workflow.FIXlam }}/{{ CRES | env }}_grid.tile7.halo{{ grid_params.NHW }}.nc"
+    grid_file: "{{ workflow.FIXlam }}/{{ 'CRES' | env }}_grid.tile7.halo{{ grid_params.NHW }}.nc"
     orog_file: "none"
+    rundir: "{{ task_make_orog.rundir }}/orog"
   filter_topo:
+    config:
+      filtered_orog: "{{ task_make_orog.filtered_output }}"
+      input_grid_file: "{{ workflow.FIXlam }}/{{ 'CRES' | env }}_grid.tile7.halo{{ grid_params.NHW }}.nc"
+      input_raw_orog: "{{ task_make_orog.orog.rundir }}/out.oro.nc"
     execution:
       batchargs:
         nodes: 1
         tasks_per_node: 1
         walltime: 00:05:00
-      executable: "{{ workflow.EXECdir }}/filter_topo"
+      executable: "{{ user.EXECdir }}/filter_topo"
       envcmds:
         - module use {{ user.HOMEdir }}/modulefiles
         - module load build_{{ user.MACHINE|lower }}_{{ workflow.COMPILER }}
     namelist:
       update_values:
         filter_topo_nml:
-          grid_file: "{{ workflow.FIXlam }}/{{ CRES | env }}_mosaic.halo{{ grid_params.NHW }}.nc"
-          topo_file: "{{ task_make_orog.filtered_output }}"
+          grid_file: "{{ workflow.FIXlam }}/{{ 'CRES' | env }}_mosaic.halo{{ grid_params.NHW }}.nc"
+          topo_file: "{{ task_make_orog.filter_topo.rundir }}/{{ 'CRES' | env }}_filtered_orog"
           mask_field: land_frac
           regional: true
-          stretch_fac: "{{ grid_params.STRETCH_FAC }}"
-          res: "{{ ('CRES' | env)[1:] if workflow.GRID_GEN_METHOD == 'ESGgrid' else task_make_grid.GFDLgrid_NUM_CELLS }}"
+          stretch_fac: !float "{{ grid_params.STRETCH_FAC }}"
+          res: !int "{{ ('CRES' | env)[1:] }}"
     rundir: "{{ task_make_orog.rundir }}/filtered_topo"
   shave0:
     shave:
-      execution:
+      execution: &shave_execution
         batchargs:
           nodes: 1
           tasks_per_node: 1
           walltime: 00:05:00
-        executable: "{{ workflow.EXECdir }}/shave"
+        executable: "{{ user.EXECdir }}/shave"
         envcmds:
           - module use {{ user.HOMEdir }}/modulefiles
           - module load build_{{ user.MACHINE|lower }}_{{ workflow.COMPILER }}
-      config: &shave_config
         batchargs:
           nodes: 1
           tasks_per_node: 1
           walltime: 00:05:00
+      config: &shave_config
         input_grid_file: "{{ task_make_orog.filtered_output }}"
-        output_grid_file: "{{ task_make_orog.rundir }}/{{ CRES | env }}_oro_data.tile{{ constants.TILE_RGNL }}.halo{{ constants.NH0 }}.nc"
-        nhalo: "{{ constants.NH0 }}"
-        nx: "{{ grid_params.NX }}"
-        ny: "{{ grid_params.NY }}"
+        output_grid_file: "{{ task_make_orog.rundir }}/{{ 'CRES' | env }}_oro_data.tile{{ constants.TILE_RGNL }}.halo{{ constants.NH0 }}.nc"
+        nhalo: !int "{{ constants.NH0 }}"
+        nx: !int "{{ grid_params.NX }}"
+        ny: !int "{{ grid_params.NY }}"
       rundir: "{{ task_make_orog.rundir }}/shave0"
   shave4:
     shave:
       execution:
-        executable: "{{ workflow.EXECdir }}/shave"
-        envcmds:
-          - module use {{ user.HOMEdir }}/modulefiles
-          - module load build_{{ user.MACHINE|lower }}_{{ workflow.COMPILER }}
+        <<: *shave_execution
       config:
         <<: *shave_config
-        nhalo: "{{ constants.NH4 }}"
-        output_grid_file: "{{ task_make_orog.rundir }}/{{ CRES | env }}_oro_data.tile{{ constants.TILE_RGNL }}.halo{{ constants.NH4 }}.nc"
+        nhalo: !int "{{ constants.NH4 }}"
+        output_grid_file: "{{ task_make_orog.rundir }}/{{ 'CRES' | env }}_oro_data.tile{{ constants.TILE_RGNL }}.halo{{ constants.NH4 }}.nc"
       rundir: "{{ task_make_orog.rundir }}/shave4"
-  filtered_output: "{{ task_make_orog.filter_topo.rundir }}/{{ CRES | env }}_filtered_orog"
+  filtered_output: "{{ task_make_orog.filter_topo.rundir }}/{{ 'CRES' | env }}_filtered_orog.tile{{ constants.TILE_RGNL }}.nc"
 task_make_sfc_climo:
   KMP_AFFINITY_MAKE_SFC_CLIMO: "scatter"
   OMP_NUM_THREADS_MAKE_SFC_CLIMO: 1
