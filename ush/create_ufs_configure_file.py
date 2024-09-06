@@ -9,8 +9,6 @@ import argparse
 import os
 import sys
 from textwrap import dedent
-from uwtools.api.template import render
-from uwtools.api.config import get_yaml_config
 
 from python_utils import (
     cfg_to_yaml_str,
@@ -19,6 +17,9 @@ from python_utils import (
     print_info_msg,
     print_input_args,
 )
+
+from uwtools.api.config import get_yaml_config
+from uwtools.api.template import render
 
 def create_ufs_configure_file(run_dir):
     """ Creates a ufs configuration file in the specified

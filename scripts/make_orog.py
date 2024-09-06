@@ -8,7 +8,6 @@ import os
 import sys
 from argparse import ArgumentParser
 from pathlib import Path
-from time import sleep
 
 from uwtools.api.filter_topo import FilterTopo
 from uwtools.api.orog import Orog
@@ -46,7 +45,7 @@ print(f"Will run make_orog in {task_rundir}")
 CRES = expt_config["workflow"]["CRES"]
 os.environ["CRES"] = CRES
 
-KEY_PATH = args.key_path.split('.')
+KEY_PATH = args.key_path.split(".")
 fix_lam_path = Path(expt_config["workflow"]["FIXlam"])
 
 # Run orog
@@ -86,7 +85,7 @@ if ccpp_phys_suite in orog_drag_suites:
     output_files = [
         f"{CRES}_oro_data_ss.tile7.halo0.nc",
         f"{CRES}_oro_data_ls.tile7.halo0.nc",
-        ]
+    ]
     for ofile in output_files:
         path = rundir / ofile
         linkname = fix_lam_path / path.name
