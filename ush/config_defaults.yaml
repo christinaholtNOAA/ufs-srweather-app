@@ -1443,10 +1443,6 @@ task_make_orog:
         envcmds:
           - module use {{ user.HOMEdir }}/modulefiles
           - module load build_{{ user.MACHINE|lower }}_{{ workflow.COMPILER }}
-        batchargs:
-          nodes: 1
-          tasks_per_node: 1
-          walltime: 00:05:00
       config: &shave_config
         input_grid_file: "{{ task_make_orog.filtered_output }}"
         output_grid_file: "{{ task_make_orog.rundir }}/{{ 'CRES' | env }}_oro_data.tile{{ constants.TILE_RGNL }}.halo{{ constants.NH0 }}.nc"
