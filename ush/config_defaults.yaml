@@ -1379,7 +1379,7 @@ task_make_grid:
 # MAKE OROG config parameters
 #-----------------------------
 task_make_orog:
-  rundir: '{{ workflow.EXPTDIR + "/orog" if rocoto.tasks.get("task_make_orog") else "" }}'
+  rundir: '{{ workflow.EXPTDIR }}/orog'
   orog:
     execution:
       batchargs:
