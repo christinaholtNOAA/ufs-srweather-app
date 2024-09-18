@@ -29,7 +29,7 @@ task_make_grid:
 
 task_make_orog:
   <<: *default_task
-  command: !cycstr 'source &USHdir;/load_modules_wflow.sh hera ; python &SCRIPTSdir;/make_orog.py
+  command: !cycstr 'source &USHdir;/load_modules_wflow.sh hera ; &SCRIPTSdir;/make_orog.py
     -c &GLOBAL_VAR_DEFNS_FP;
     --key-path task_make_orog'
   join: !cycstr '&LOGDIR;/{{ jobname }}_@Y@m@d@H&LOGEXT;'
