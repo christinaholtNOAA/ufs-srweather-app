@@ -37,7 +37,7 @@ def parse_args(argv):
     Parse arguments for the script.
     """
     parser = ArgumentParser(
-        description="Script that runs the make_grid task via uwtools API",
+        description="Script that runs the make_orog task via uwtools API.",
     )
     parser.add_argument(
         "-c",
@@ -49,7 +49,7 @@ def parse_args(argv):
     )
     parser.add_argument(
         "--key-path",
-        help="Dot-separated path of keys leading through the config to the tasks's YAML block",
+        help="Dot-separated path of keys leading through the config to the tasks's YAML block.",
         metavar="KEY[.KEY...]",
         required=True,
         type=lambda s: s.split("."),

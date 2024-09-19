@@ -56,7 +56,7 @@ def parse_args(argv):
     Parse arguments for the script.
     """
     parser = ArgumentParser(
-        description="Script that runs UPP via uwtools API",
+        description="Script that runs UPP via uwtools API.",
     )
     parser.add_argument(
         "-c",
@@ -68,19 +68,19 @@ def parse_args(argv):
     )
     parser.add_argument(
         "--cycle",
-        help="The cycle in ISO8601 format (e.g. 2024-07-15T18)",
+        help="The cycle in ISO8601 format (e.g. 2024-07-15T18).",
         required=True,
         type=dt.datetime.fromisoformat,
     )
     parser.add_argument(
         "--leadtime",
-        help="The leadtime as hours[:minutes[:seconds]]",
+        help="The leadtime as hours[:minutes[:seconds]].",
         required=True,
         type=_timedelta_from_str,
     )
     parser.add_argument(
         "--key-path",
-        help="Dot-separated path of keys leading through the config to the driver's YAML block",
+        help="Dot-separated path of keys leading through the config to the driver's YAML block.",
         metavar="KEY[.KEY...]",
         required=True,
         type=lambda s: s.split("."),
