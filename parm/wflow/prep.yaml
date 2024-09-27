@@ -6,33 +6,34 @@ default_task_prep: &default_task
   attrs:
     cycledefs: at_start
     maxtries: '2'
-  envars: &default_envars
-    GLOBAL_VAR_DEFNS_FP: '&GLOBAL_VAR_DEFNS_FP;'
-    USHdir: '&USHdir;'
-    PDY: !cycstr "@Y@m@d"
-    cyc: !cycstr "@H"
-    subcyc: !cycstr "@M"
-    LOGDIR: !cycstr "&LOGDIR;"
-    nprocs: '{{ parent.nnodes * parent.ppn }}'
   native: '{{ platform.SCHED_NATIVE_CMD }}'
-  nodes: '{{ nnodes }}:ppn={{ ppn }}'
-  nnodes: 1
-  ppn: 24
-  partition: '{% if platform.get("PARTITION_DEFAULT") %}&PARTITION_DEFAULT;{% else %}None{% endif %}'
+  partition: '{{ "&PARTITION_DEFAULT;" if platform.get("PARTITION_DEFAULT") else "" }}'
   queue: '&QUEUE_DEFAULT;'
-  walltime: 00:20:00
 
 task_make_grid:
   <<: *default_task
   command: '&LOAD_MODULES_RUN_TASK; "make_grid" "&JOBSdir;/JREGIONAL_MAKE_GRID"'
-  join: !cycstr '&LOGDIR;/{{ jobname }}_@Y@m@d@H&LOGEXT;'
+  envars:
+    GLOBAL_VAR_DEFNS_FP: '&GLOBAL_VAR_DEFNS_FP;'
+    USHdir: '&USHdir;'
+    LOGDIR:
+      cyclestr:
+        value: "&LOGDIR;"
+    nprocs: '{{ task_make_grid.execution.nodes * task_make_grid.execution.cores }}'
+  nodes: '{{ task_make_grid.execution.nodes }}:ppn={{ task_make_grid.execution.cores }}'
+  join:
+    cyclestr:
+      value: '&LOGDIR;/{{ jobname }}_@Y@m@d@H&LOGEXT;'
+  walltime: "{{ task_make_grid.execution..walltime }}"
 
 task_make_orog:
   <<: *default_task
-  command: !cycstr 'source &USHdir;/load_modules_wflow.sh {{ user.MACHINE }} ; &SCRIPTSdir;/make_orog.py
+  command: 'source &USHdir;/load_modules_wflow.sh {{ user.MACHINE }} ; &SCRIPTSdir;/make_orog.py
     -c &GLOBAL_VAR_DEFNS_FP;
     --key-path task_make_orog'
-  join: !cycstr '&LOGDIR;/{{ jobname }}_@Y@m@d@H&LOGEXT;'
+  join:
+    cyclestr:
+      value: '&LOGDIR;/{{ jobname }}_@Y@m@d@H&LOGEXT;'
   nodes: "{{ task_make_orog.orog.execution.batchargs.nodes }}:ppn={{ task_make_orog.orog.execution.batchargs.tasks_per_node }}"
   walltime: "{{ task_make_orog.orog.execution.batchargs.walltime }}"
   dependency:
@@ -47,21 +48,18 @@ task_make_orog:
       datadep:
         attrs:
           age: 00:00:00:05
-        text: '{{ task_make_grid.GRID_DIR }}/make_grid_task_complete.txt'
+        value: '{{ task_make_grid.GRID_DIR }}/make_grid_task_complete.txt'
 
 task_make_sfc_climo:
-  account: '&ACCOUNT;'
-  attrs:
-    cycledefs: at_start
-    maxtries: '2'
+  <<: *default_task
   command: 'source &USHdir;/load_modules_wflow.sh {{ user.MACHINE }}; &SCRIPTSdir;/make_sfc_climo.py
-    -c &GLOBAL_VAR_DEFNS_FP; 
+    -c &GLOBAL_VAR_DEFNS_FP;
     --key-path task_make_sfc_climo'
-  join: !cycstr '&LOGDIR;/{{ jobname }}_@Y@m@d@H&LOGEXT;'
+  join:
+    cyclestr:
+      value: '&LOGDIR;/{{ jobname }}_@Y@m@d@H&LOGEXT;'
   nodes: "{{ task_make_sfc_climo.sfc_climo_gen.execution.batchargs.nodes }}:ppn={{ task_make_sfc_climo.sfc_climo_gen.execution.batchargs.tasks_per_node }}"
-
-  partition: '{% if platform.get("PARTITION_DEFAULT") %}&PARTITION_DEFAULT;{% else %}None{% endif %}'
-  queue: '&QUEUE_DEFAULT;'
+  partition: '{{ "&PARTITION_DEFAULT;" if platform.get("PARTITION_DEFAULT") else "" }}'
   walltime: "{{ task_make_sfc_climo.sfc_climo_gen.execution.batchargs.walltime }}" 
   dependency:
     and:
@@ -78,5 +76,5 @@ task_make_sfc_climo:
         datadep:
           attrs:
             age: 00:00:00:05
-          text: '{{ task_make_orog.rundir }}/make_orog_task_complete.txt'
+          value: '{{ task_make_orog.rundir }}/make_orog_task_complete.txt'
 

@@ -20,7 +20,7 @@ default_task: &default_task
         value: "&LOGDIR;"
     ENSMEM_INDX: '#mem#'
   native: '{{ platform.SCHED_NATIVE_CMD }}'
-  partition: '{% if platform.get("PARTITION_DEFAULT") %}&PARTITION_DEFAULT;{% else %}None{% endif %}'
+  partition: '{{ "&PARTITION_DEFAULT;" if platform.get("PARTITION_DEFAULT") else "None" }}'
   queue: '&QUEUE_DEFAULT;'
 
 task_get_extrn_ics:
@@ -37,8 +37,8 @@ task_get_extrn_ics:
     cyclestr:
       value: '&LOGDIR;/{{ jobname }}_@Y@m@d@H&LOGEXT;'
   memory: 4G
-  native: '{% if platform.get("SCHED_NATIVE_CMD_HPSS") %}{{ platform.SCHED_NATIVE_CMD_HPSS }}{% else %}{{ platform.SCHED_NATIVE_CMD}}{% endif %}'
-  partition: '{% if platform.get("PARTITION_HPSS") %}&PARTITION_HPSS;{% else %}None{% endif %}'
+  native: '{{ platform.SCHED_NATIVE_CMD_HPSS if platform.get("SCHED_NATIVE_CMD_HPSS") else platform.SCHED_NATIVE_CMD}}'
+  partition: '{{ "&PARTITION_HPSS" if platform.get("PARTITION_HPSS") else "None" }}'
   nodes: '{{ task_get_extrn_ics.execution.nodes }}:ppn={{ task_get_extrn_ics.execution.cores }}'
   queue: '&QUEUE_HPSS;'
   walltime: '{{ task_get_extrn_ics.execution.walltime }}'
@@ -75,8 +75,8 @@ task_get_extrn_lbcs:
       value: '&LOGDIR;/{{ jobname }}_@Y@m@d@H&LOGEXT;'
   memory: 4G
   nodes: '{{ task_get_extrn_lbcs.execution.nodes }}:ppn={{ task_get_extrn_lbcs.execution.cores }}'
-  native: '{% if platform.get("SCHED_NATIVE_CMD_HPSS") %}{{ platform.SCHED_NATIVE_CMD_HPSS }}{% else %}{{ platform.SCHED_NATIVE_CMD}}{% endif %}'
-  partition: '{% if platform.get("PARTITION_HPSS") %}&PARTITION_HPSS;{% else %}None{% endif %}'
+  native: '{{ platform.SCHED_NATIVE_CMD_HPSS if platform.get("SCHED_NATIVE_CMD_HPSS") else platform.SCHED_NATIVE_CMD }}'
+  partition: '{{ "&PARTITION_HPSS;" if platform.get("PARTITION_HPSS") else "None" }}'
   queue: '&QUEUE_HPSS;'
   walltime: '{{ task_get_extrn_lbcs.execution.walltime }}'
   dependency:
@@ -171,7 +171,7 @@ metatask_run_ensemble:
     join:
       cyclestr:
         value: '&LOGDIR;/{{ jobname }}_@Y@m@d@H&LOGEXT;'
-    partition: '{% if platform.get("PARTITION_FCST") %}&PARTITION_FCST;{% else %}None{% endif %}'
+    partition: '{{ "&PARTITION_FCST;" if platform.get("PARTITION_FCST") else "None" }}'
     queue: '&QUEUE_FCST;'
     nodes: '{{ task_run_fcst.NNODES_RUN_FCST // 1 }}:ppn={{ task_run_fcst.PPN_RUN_FCST // 1 }}'
     walltime: '{{ task_run_fcst.execution.walltime }}'

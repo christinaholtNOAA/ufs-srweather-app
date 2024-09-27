@@ -1177,6 +1177,10 @@ nco:
 # MAKE GRID config parameters
 #-----------------------------
 task_make_grid:
+  execution:
+    nodes: 1
+    cores: 24
+    walltime: 00:20:00
   #
   #-----------------------------------------------------------------------
   #
@@ -2162,6 +2166,10 @@ task_run_prdgen:
 # PLOT_ALLVARS config parameters
 #-----------------------------
 task_plot_allvars:
+  execution:
+    cores: 24
+    nodes: 1
+    walltime: 01:00:00
   #-------------------------------------------------------------------------
   # Path to the reference experiment's COMOUT directory. This is where the GRIB2 files 
   # from postprocessing are located. Make this a template to compare

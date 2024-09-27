@@ -10,16 +10,20 @@ metatask_run_ens_post:
       attrs:
         cycledefs: '#cycledef#'
         maxtries: '2'
-      command: !cycstr 'source &USHdir;/load_modules_wflow.sh hera ; &SCRIPTSdir;/upp.py
-        -c &GLOBAL_VAR_DEFNS_FP;
-        --cycle @Y-@m-@dT@H:@M:@S
-        --leadtime #fhr#:00:00
-        --key-path task_run_post
-        --mem #mem#'
-      join: !cycstr '&LOGDIR;/{{ jobname }}_@Y@m@d@H&LOGEXT;'
+      command:
+        cyclestr:
+          value: 'source &USHdir;/load_modules_wflow.sh hera ; &SCRIPTSdir;/upp.py
+            -c &GLOBAL_VAR_DEFNS_FP;
+            --cycle @Y-@m-@dT@H:@M:@S
+            --leadtime #fhr#:00:00
+            --key-path task_run_post
+            --mem #mem#'
+      join:
+        cyclestr:
+          value: '&LOGDIR;/{{ jobname }}_@Y@m@d@H&LOGEXT;'
       native: '{{ platform.SCHED_NATIVE_CMD }}'
       nodes: "{{ task_run_post.upp.execution.batchargs.nodes }}:ppn={{ task_run_post.upp.execution.batchargs.tasks_per_node }}"
-      partition: '{% if platform.get("PARTITION_DEFAULT") %}&PARTITION_DEFAULT;{% else %}None{% endif %}'
+      partition: '{{ "&PARTITION_DEFAULT;" if platform.get("PARTITION_DEFAULT") else "None" }}'
       queue: '&QUEUE_DEFAULT;'
       walltime: '{{ task_run_post.upp.execution.batchargs.walltime }}'
       dependency:
@@ -29,10 +33,14 @@ metatask_run_ens_post:
               task: run_fcst_mem#mem#
           and:
             datadep_dyn:
-              text: !cycstr '&FCST_DIR;&SLASH_ENSMEM_SUBDIR;/dynf#fhr#.nc'
               attrs:
                 age: '05:00'
+              value:
+                cyclestr:
+                  value: '&FCST_DIR;&SLASH_ENSMEM_SUBDIR;/dynf#fhr#.nc'
             datadep_phy:
-              text: !cycstr '&FCST_DIR;&SLASH_ENSMEM_SUBDIR;/phyf#fhr#.nc'
               attrs:
                 age: '05:00'
+              value:
+                cyclestr:
+                  value: '&FCST_DIR;&SLASH_ENSMEM_SUBDIR;/phyf#fhr#.nc'

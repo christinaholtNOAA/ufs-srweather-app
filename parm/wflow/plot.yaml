@@ -9,25 +9,33 @@ default_task_plot: &default_task
   envars: &default_envars
     GLOBAL_VAR_DEFNS_FP: '&GLOBAL_VAR_DEFNS_FP;'
     USHdir: '&USHdir;'
-    PDY: !cycstr "@Y@m@d"
-    cyc: !cycstr "@H"
-    subcyc: !cycstr "@M"
-    LOGDIR: !cycstr "&LOGDIR;"
+    PDY:
+      cyclestr:
+        value:  "@Y@m@d"
+    cyc:
+      cyclestr:
+        value:  "@H"
+    subcyc:
+      cyclestr:
+        value:  "@M"
+    LOGDIR:
+      cyclestr:
+        value:  "&LOGDIR;"
     SLASH_ENSMEM_SUBDIR: '&SLASH_ENSMEM_SUBDIR;'
     ENSMEM_INDX: '#mem#'
     nprocs: '{{ nnodes * ppn }}'
   native: '{{ platform.SCHED_NATIVE_CMD }}'
-  nnodes: 1
-  nodes: '{{ nnodes }}:ppn={{ ppn }}'
-  partition: '{% if platform.get("PARTITION_DEFAULT") %}&PARTITION_DEFAULT;{% else %}None{% endif %}'
-  ppn: 24
+  nodes: '{{ task_plot_allvars.execution.nodes }}:ppn={{ task_plot_allvars.execution.cores }}'
+  partition: '{{ "&PARTITION_DEFAULT;" if platform.get("PARTITION_DEFAULT") else "None" }}'
   queue: '&QUEUE_DEFAULT;'
-  walltime: 01:00:00
+  walltime: '{{ task_plot_allvars.execution.walltime }}'
 
 task_plot_allvars:
   <<: *default_task
   command: '&LOAD_MODULES_RUN_TASK; "plot_allvars" "&JOBSdir;/JREGIONAL_PLOT_ALLVARS"'
-  join: !cycstr '&LOGDIR;/{{ jobname }}_@Y@m@d@H&LOGEXT;'
+  join:
+    cyclestr:
+      value:  '&LOGDIR;/{{ jobname }}_@Y@m@d@H&LOGEXT;'
   dependency:
     or_do_post: &post_files_exist
       and_run_post: # If post was meant to run, wait on the whole post metatask
