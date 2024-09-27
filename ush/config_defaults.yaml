@@ -1461,7 +1461,6 @@ task_make_orog:
       rundir: "{{ task_make_orog.rundir }}/shave4"
   filtered_output: "{{ task_make_orog.filter_topo.rundir }}/{{ task_make_orog.filter_topo.config.filtered_orog }}"
 task_make_sfc_climo:
-  SFC_CLIMO_DIR: '{{ workflow.EXPTDIR + "/sfc_climo" if rocoto.tasks.get("task_make_sfc_climo") else "" }}'
   sfc_climo_gen:
     execution:
       batchargs:
@@ -1503,6 +1502,10 @@ task_make_sfc_climo:
 # EXTRN ICS config parameters
 #-----------------------------
 task_get_extrn_ics:
+  execution:
+    cores: 1
+    nodes: 1
+    walltime: "01:30:00"
   #
   #-----------------------------------------------------------------------
   #
@@ -1597,6 +1600,10 @@ task_get_extrn_ics:
 # EXTRN LBCS config parameters
 #-----------------------------
 task_get_extrn_lbcs:
+  execution:
+    cores: 1
+    nodes: 1
+    walltime: "01:30:00"
   #
   #-----------------------------------------------------------------------
   #
@@ -1757,6 +1764,8 @@ task_make_lbcs:
 task_run_fcst:
   # UW Placeholder additions
   rundir: '{{ workflow.EXPTDIR }}/{{ timevars.yyyymmddhh }}{{ "/mem%s" % ("MEMBER"|env) if global.DO_ENSEMBLE }}'
+  execution:
+    walltime: 04:30:00
   #------------------------------------------------------------------------
   #
   # NNODES_RUN_FCST: 
