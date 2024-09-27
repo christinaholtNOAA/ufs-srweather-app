@@ -2118,6 +2118,10 @@ timevars:
 # RUN PRDGEN config parameters
 #-----------------------------
 task_run_prdgen:
+  execution:
+    nodes: 1
+    cores: 22
+    walltime: 00:30:00
   #-----------------------------------------------------------------------
   # KMP_AFFINITY_RUN_PRDGEN: 
   # Intel Thread Affinity Interface for the run_prdgen task. 
