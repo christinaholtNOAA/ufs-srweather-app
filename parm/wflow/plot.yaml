@@ -1,12 +1,10 @@
-# Settings that will run tasks needed per-experiment to create "fix
-# files" for the stationary grid.
-
-default_task_plot: &default_task
+task_plot_allvars:
+  command: '&LOAD_MODULES_RUN_TASK; "plot_allvars" "&JOBSdir;/JREGIONAL_PLOT_ALLVARS"'
   account: '&ACCOUNT;'
   attrs:
     cycledefs: forecast
     maxtries: '1'
-  envars: &default_envars
+  envars:
     GLOBAL_VAR_DEFNS_FP: '&GLOBAL_VAR_DEFNS_FP;'
     USHdir: '&USHdir;'
     PDY:
@@ -23,16 +21,12 @@ default_task_plot: &default_task
         value:  "&LOGDIR;"
     SLASH_ENSMEM_SUBDIR: '&SLASH_ENSMEM_SUBDIR;'
     ENSMEM_INDX: '#mem#'
-    nprocs: '{{ nnodes * ppn }}'
+    nprocs: '{{ task_plot_allvars.execution.nodes * task_plot_allvars.execution.cores }}'
   native: '{{ platform.SCHED_NATIVE_CMD }}'
   nodes: '{{ task_plot_allvars.execution.nodes }}:ppn={{ task_plot_allvars.execution.cores }}'
   partition: '{{ "&PARTITION_DEFAULT;" if platform.get("PARTITION_DEFAULT") else "None" }}'
   queue: '&QUEUE_DEFAULT;'
   walltime: '{{ task_plot_allvars.execution.walltime }}'
-
-task_plot_allvars:
-  <<: *default_task
-  command: '&LOAD_MODULES_RUN_TASK; "plot_allvars" "&JOBSdir;/JREGIONAL_PLOT_ALLVARS"'
   join:
     cyclestr:
       value:  '&LOGDIR;/{{ jobname }}_@Y@m@d@H&LOGEXT;'

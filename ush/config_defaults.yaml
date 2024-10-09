@@ -2218,11 +2218,12 @@ task_nexus_emission:
   # OMP_STACKSIZE_NEXUS_EMISSION: 
   # Controls the size of the stack for threads created by the OpenMP implementation.
   #-------------------------------------------------------------------------------
-  PPN_NEXUS_EMISSION: '{{ platform.NCORES_PER_NODE // task_nexus_emission.OMP_NUM_THREADS_NEXUS_EMISSION }}'
+  PPN_NEXUS_EMISSION: !int '{{ platform.NCORES_PER_NODE // task_nexus_emission.OMP_NUM_THREADS_NEXUS_EMISSION }}'
   NNODES_NEXUS_EMISSION: 4
   KMP_AFFINITY_NEXUS_EMISSION: "scatter"
   OMP_NUM_THREADS_NEXUS_EMISSION: 2
   OMP_STACKSIZE_NEXUS_EMISSION: "1024m"
+  WALLTIME_NEXUS_EMISSION: 01:00:00
 
 #-----------------------------
 # POINT_SOURCE config parameters

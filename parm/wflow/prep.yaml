@@ -24,7 +24,7 @@ task_make_grid:
   join:
     cyclestr:
       value: '&LOGDIR;/{{ jobname }}_@Y@m@d@H&LOGEXT;'
-  walltime: "{{ task_make_grid.execution..walltime }}"
+  walltime: "{{ task_make_grid.execution.walltime }}"
 
 task_make_orog:
   <<: *default_task
