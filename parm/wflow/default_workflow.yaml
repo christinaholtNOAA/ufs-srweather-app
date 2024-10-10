@@ -58,5 +58,3 @@ workflow:
   log:
     cyclestr:
       value: '&LOGDIR;/FV3LAM_wflow.{{ srwworkflow.WORKFLOW_ID + "." if user.RUN_ENVIR == "nco" }}log'
-  tasks: !include
-    - prep.yaml

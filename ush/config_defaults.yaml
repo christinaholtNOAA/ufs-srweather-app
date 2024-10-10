@@ -461,6 +461,12 @@ platform:
 # WORKFLOW config parameters
 #-----------------------------
 workflow:
+
+  taskgroups:
+    - parm/wflow/prep.yaml
+    - parm/wflow/coldstart.yaml
+    - parm/wflow/post.yaml
+    - parm/wflow/test.yaml
   #
   #-----------------------------------------------------------------------
   #
