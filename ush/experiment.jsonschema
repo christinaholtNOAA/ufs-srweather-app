@@ -1,7 +1,7 @@
 {
    "properties": {
      "additionalProperties": true,
-     "properties":
+     "properties": {
        "cpl_aqm_parm": {
          "additionalProperties": true,
          "properties": {
@@ -25,10 +25,7 @@
            },
            "DO_AQM_SAVE_AIRNOW_HIST": {
              "type": "boolean"
-           },
-           "CPL_AQM": {
-             "type": "boolean"
-           },
+           }
          }
        },
        "global": {
@@ -106,7 +103,6 @@
               ],
              "type": "string"
            }
-
          },
          "required": [
            "NCORES_PER_NODE",
@@ -117,7 +113,7 @@
            "FIXsfc"
          ],
          "type": "object"
-       }
+       },
        "user": {
          "additionalProperties": true,
          "properties": {
@@ -146,7 +142,7 @@
              "type": "string"
            }
          }
-       }
+       },
        "workflow": {
          "additionalProperties": true,
          "properties": {
@@ -230,6 +226,7 @@
            "VERBOSE": {
              "type": "boolean"
            }
+         }
        },
        "task_get_extrn_ics": {
          "additionalProperties": true,
@@ -273,9 +270,9 @@
                "GEFS",
                "GSMGFS",
                "HRRR",
-               "NAM"
+               "NAM",
                "RAP",
-               "UFS-CASE-STUDY",
+               "UFS-CASE-STUDY"
              ],
              "type": "string"
            },
@@ -286,9 +283,9 @@
                "GEFS",
                "GSMGFS",
                "HRRR",
-               "NAM"
+               "NAM",
                "RAP",
-               "UFS-CASE-STUDY",
+               "UFS-CASE-STUDY"
              ],
              "type": "string"
            }
@@ -308,8 +305,9 @@
                3072
              ],
              "type": "integer"
+           }
          }
-       }
+       },
        "verification": {
          "additionalProperties": true,
          "properties": {
@@ -330,12 +328,17 @@
            "VX_FIELDS": {
              "enum": [
                "ADPSFC",
-               "ADPUPA"
+               "ADPUPA",
                "APCP",
                "ASNOW",
                "REFC",
-               "RETOP",
+               "RETOP"
              ],
              "type": "string"
            }
+         }
+       }
+     },
+     "type": "object"
    }
+}
