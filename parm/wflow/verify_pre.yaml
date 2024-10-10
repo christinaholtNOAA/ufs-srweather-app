@@ -6,20 +6,27 @@ default_task_verify_pre: &default_task_verify_pre
   envars: &default_vars
     GLOBAL_VAR_DEFNS_FP: '&GLOBAL_VAR_DEFNS_FP;'
     USHdir: '&USHdir;'
-    PDY: !cycstr '@Y@m@d'
-    cyc: !cycstr "@H"
-    subcyc: !cycstr "@M"
-    LOGDIR: !cycstr "&LOGDIR;"
+    PDY:
+      cyclestr:
+        value:  '@Y@m@d'
+    cyc:
+      cyclestr:
+        value:  "@H"
+    subcyc:
+      cyclestr:
+        value:  "@M"
+    LOGDIR:
+      cyclestr:
+        value:  "&LOGDIR;"
     nprocs: '{{ parent.nnodes * parent.ppn }}'
-  join: !cycstr '&LOGDIR;/{{ jobname }}_@Y@m@d@H&LOGEXT;'
-  memory: '{% if user.MACHINE not in ["NOAACLOUD"] %}{{ "2G" }}{% endif %}'
+  join:
+    cyclestr:
+      value:  '&LOGDIR;/{{ jobname }}_@Y@m@d@H&LOGEXT;'
+  memory: '{{ "2G" if user.MACHINE not in ["NOAACLOUD"] }}'
   native: '{{ platform.SCHED_NATIVE_CMD }}'
-  nnodes: 1
-  nodes: '{{ nnodes }}:ppn={{ ppn }}'
+  cores: !int '{{ verification.execution.cores }}'
   partition: '{{ "&PARTITION_DEFAULT;" if platform.get("PARTITION_DEFAULT") else "" }}'
-  ppn: 1
   queue: '&QUEUE_DEFAULT;'
-  walltime: 00:30:00
 
 task_get_obs_ccpa:
   <<: *default_task_verify_pre
@@ -30,10 +37,10 @@ task_get_obs_ccpa:
     OBS_DIR: '&CCPA_OBS_DIR;'
     OBTYPE: 'CCPA'
     FHR: '{% for h in range(0, workflow.FCST_LEN_HRS+1) %}{{ " %02d" % h  }}{% endfor %}'
-  native: '{% if platform.get("SCHED_NATIVE_CMD_HPSS") %}{{ platform.SCHED_NATIVE_CMD_HPSS }}{% else %}{{ platform.SCHED_NATIVE_CMD}}{% endif %}'
+  native: '{{ platform.SCHED_NATIVE_CMD_HPSS if platform.get("SCHED_NATIVE_CMD_HPSS") else platform.SCHED_NATIVE_CMD }}'
   partition: '{{ "&PARTITION_HPSS;" if platform.get("PARTITION_HPSS") else "" }}'
   queue: "&QUEUE_HPSS;"
-  walltime: 00:45:00
+  walltime: "{{ verification.execution.get_obs.ccpa.walltime }}"
 
 task_get_obs_nohrsc:
   <<: *default_task_verify_pre
@@ -43,10 +50,10 @@ task_get_obs_nohrsc:
     OBS_DIR: '&NOHRSC_OBS_DIR;'
     OBTYPE: 'NOHRSC'
     FHR: '{% for h in range(0, workflow.FCST_LEN_HRS+1) %}{{ " %02d" % h  }}{% endfor %}'
-  native: '{% if platform.get("SCHED_NATIVE_CMD_HPSS") %}{{ platform.SCHED_NATIVE_CMD_HPSS }}{% else %}{{ platform.SCHED_NATIVE_CMD}}{% endif %}'
+  native: '{{ platform.SCHED_NATIVE_CMD_HPSS if platform.get("SCHED_NATIVE_CMD_HPSS") else platform.SCHED_NATIVE_CMD }}'
   partition: '{{ "&PARTITION_HPSS;" if platform.get("PARTITION_HPSS") else "" }}'
   queue: "&QUEUE_HPSS;"
-  walltime: 00:45:00
+  walltime: "{{ verification.execution.get_obs.nohrsc.walltime }}"
 
 task_get_obs_mrms:
   <<: *default_task_verify_pre
@@ -57,10 +64,10 @@ task_get_obs_mrms:
     OBTYPE: 'MRMS'
     VAR: 'REFC RETOP'
     FHR: '{% for h in range(0, workflow.FCST_LEN_HRS+1) %}{{ " %02d" % h  }}{% endfor %}'
-  native: '{% if platform.get("SCHED_NATIVE_CMD_HPSS") %}{{ platform.SCHED_NATIVE_CMD_HPSS }}{% else %}{{ platform.SCHED_NATIVE_CMD}}{% endif %}'
+  native: '{{ platform.SCHED_NATIVE_CMD_HPSS if platform.get("SCHED_NATIVE_CMD_HPSS") else platform.SCHED_NATIVE_CMD }}'
   partition: '{{ "&PARTITION_HPSS;" if platform.get("PARTITION_HPSS") else "" }}'
   queue: "&QUEUE_HPSS;"
-  walltime: 00:45:00
+  walltime: "{{ verification.execution.get_obs.mrms.walltime }}"
 
 task_get_obs_ndas:
   <<: *default_task_verify_pre
@@ -71,9 +78,9 @@ task_get_obs_ndas:
     FHR: '{% for h in range(0, workflow.FCST_LEN_HRS+1) %}{{ " %02d" % h  }}{% endfor %}'
   command: '&LOAD_MODULES_RUN_TASK; "get_obs" "&JOBSdir;/JREGIONAL_GET_VERIF_OBS"'
   queue: "&QUEUE_HPSS;"
-  native: '{% if platform.get("SCHED_NATIVE_CMD_HPSS") %}{{ platform.SCHED_NATIVE_CMD_HPSS }}{% else %}{{ platform.SCHED_NATIVE_CMD}}{% endif %}'
+  native: '{{ platform.SCHED_NATIVE_CMD_HPSS if platform.get("SCHED_NATIVE_CMD_HPSS") else platform.SCHED_NATIVE_CMD }}'
   partition: '{{ "&PARTITION_HPSS;" if platform.get("PARTITION_HPSS") else "" }}'
-  walltime: 02:00:00
+  walltime: "{{ verification.execution.get_obs.ndas.walltime }}"
 
 task_run_MET_Pb2nc_obs:
   <<: *default_task_verify_pre
@@ -89,10 +96,11 @@ task_run_MET_Pb2nc_obs:
     OBTYPE: NDAS
     OBS_DIR: '&NDAS_OBS_DIR;'
     METPLUSTOOLNAME: 'PB2NC'
+  walltime: "{{ verification.execution.pb2nc.walltime }}"
   dependency:
     and:
       datadep:
-        text: "&NDAS_OBS_DIR;"
+        value: "&NDAS_OBS_DIR;"
       or:
         not:
           taskvalid:
@@ -119,10 +127,11 @@ metatask_PcpCombine_obs:
       OBTYPE: CCPA
       OBS_DIR: '&CCPA_OBS_DIR;'
       METPLUSTOOLNAME: 'PCPCOMBINE'
+    walltime: "{{ verification.execution.pcpcombine.obs..walltime }}"
     dependency:
       and:
         datadep:
-          text: "&CCPA_OBS_DIR;"
+          value: "&CCPA_OBS_DIR;"
         or:
           not:
             taskvalid:
@@ -146,6 +155,7 @@ metatask_check_post_output_all_mems:
       VAR: APCP
       ACCUM_HH: '01'
       ENSMEM_INDX: '#mem#'
+    walltime: "{{ verification.execution.check_post_output.walltime }}"
     dependency:
       # This "or" checks that the necessary stand-alone post tasks or forecast
       # tasks with inline post have run to generate the post files that are 
@@ -235,8 +245,10 @@ metatask_PcpCombine_fcst_APCP_all_accums_all_mems:
         datadep:
           attrs:
             age: 00:00:00:30
-          text: !cycstr '{{ workflow.EXPTDIR }}/@Y@m@d@H/post_files_exist_mem#mem#.txt'
-      walltime: 00:10:00
+          value:
+            cyclestr:
+              value:  '{{ workflow.EXPTDIR }}/@Y@m@d@H/post_files_exist_mem#mem#.txt'
+      walltime: "{{ verification.execution.pcpcombine.ensemble.walltime }}"
 
 metatask_PcpCombine_fcst_ASNOW_all_accums_all_mems:
   var:
@@ -263,5 +275,7 @@ metatask_PcpCombine_fcst_ASNOW_all_accums_all_mems:
         datadep:
           attrs:
             age: 00:00:00:30
-          text: !cycstr '{{ workflow.EXPTDIR }}/@Y@m@d@H/post_files_exist_mem#mem#.txt'
-      walltime: 00:10:00
+          value:
+            cyclestr:
+              value:  '{{ workflow.EXPTDIR }}/@Y@m@d@H/post_files_exist_mem#mem#.txt'
+      walltime: "{{ verification.execution.pcpcombine.ensemble.walltime }}"

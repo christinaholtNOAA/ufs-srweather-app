@@ -2450,6 +2450,42 @@ global:
 # verification (vx) parameters
 #-----------------------------
 verification:
+  execution:
+    cores: 1
+    deterministic:
+      gridstat:
+        walltime: 02:00:00
+      pointstat:
+        walltime: 01:00:00
+    ensemble:
+      genensprod:
+        default:
+          walltim: 01:00:00
+        ndas:
+          walltime: 02:30:00
+      ensemblestat:
+        walltime: 01:00:00
+      gridstat:
+        walltime: 01:00:00
+    get_obs:
+      ccpa:
+        walltime: 00:45:00
+      nohrsc:
+        walltime: 00:45:00
+      mrms:
+        walltime: 00:45:00
+      ndas:
+        walltime: 02:00:00
+    pb2nc:
+      walltime: 00:30:00
+    pcpcombine:
+      obs:
+        walltime: 00:30:00
+      ensemble:
+        walltime: 00:10:00
+    check_post_output:
+      walltime: 00:30:00
+
   #
   # METPLUS_VERBOSITY_LEVEL: 
   # Logging verbosity level used by METplus verification tools.  0 to 5,

@@ -6,20 +6,26 @@ default_task_verify_det: &default_task_verify_det
   envars: &default_vars
     GLOBAL_VAR_DEFNS_FP: '&GLOBAL_VAR_DEFNS_FP;'
     USHdir: '&USHdir;'
-    PDY: !cycstr '@Y@m@d'
-    cyc: !cycstr "@H"
-    subcyc: !cycstr "@M"
-    LOGDIR: !cycstr "&LOGDIR;"
-    nprocs: '{{ parent.nnodes * parent.ppn }}'
-  join: !cycstr '&LOGDIR;/{{ jobname }}_@Y@m@d@H&LOGEXT;'
-  memory: '{% if user.MACHINE not in ["NOAACLOUD"] %}{{ "2G" }}{% endif %}'
+    PDY:
+      cyclestr:
+        value: '@Y@m@d'
+    cyc:
+      cyclestr:
+        value: '@H'
+    subcyc:
+      cyclestr:
+        value: '@M'
+    LOGDIR:
+      cyclestr:
+        value: '&LOGDIR;'
+  join:
+    cyclestr:
+      value:  '&LOGDIR;/{{ jobname }}_@Y@m@d@H&LOGEXT;'
+  memory: '{{ "2G" if user.MACHINE not in ["NOAACLOUD"] }}'
   native: '{{ platform.SCHED_NATIVE_CMD }}'
-  nnodes: 1
-  nodes: '{{ nnodes }}:ppn={{ ppn }}'
   partition: '{{ "&PARTITION_DEFAULT;" if platform.get("PARTITION_DEFAULT") else "" }}'
-  ppn: 1
+  cores: !int '{{ verification.execution.cores }}'
   queue: '&QUEUE_DEFAULT;'
-  walltime: 00:30:00
 
 metatask_GridStat_CCPA_all_accums_all_mems:
   var:
@@ -40,10 +46,10 @@ metatask_GridStat_CCPA_all_accums_all_mems:
         METPLUSTOOLNAME: 'GRIDSTAT'
         OBTYPE: 'CCPA'
         ENSMEM_INDX: "#mem#"
-        SLASH_ENSMEM_SUBDIR_OR_NULL: '{% if global.DO_ENSEMBLE %}{{ "/mem#mem#" }}{% endif %}'
+        SLASH_ENSMEM_SUBDIR_OR_NULL: '{{ "/mem#mem#" if global.DO_ENSEMBLE }}'
         FCST_LEVEL: 'A#ACCUM_HH#'
         FCST_THRESH: 'all'
-      walltime: 02:00:00
+      walltime: "{{ verification.execution.deterministic.gridstat.walltime }}"
       dependency:
         and:
           taskdep_pcpcombine_obs:
@@ -72,10 +78,10 @@ metatask_GridStat_NOHRSC_all_accums_all_mems:
         METPLUSTOOLNAME: 'GRIDSTAT'
         OBTYPE: 'NOHRSC'
         ENSMEM_INDX: "#mem#"
-        SLASH_ENSMEM_SUBDIR_OR_NULL: '{% if global.DO_ENSEMBLE %}{{ "/mem#mem#" }}{% endif %}'
+        SLASH_ENSMEM_SUBDIR_OR_NULL: '{{ "/mem#mem#" if global.DO_ENSEMBLE }}'
         FCST_LEVEL: 'A#ACCUM_HH#'
         FCST_THRESH: 'all'
-      walltime: 02:00:00
+      walltime: "{{ verification.execution.deterministic.gridstat.walltime }}"
       dependency:
         and:
           taskdep_get_obs_nohrsc:
@@ -102,10 +108,10 @@ metatask_GridStat_MRMS_all_mems:
         METPLUSTOOLNAME: 'GRIDSTAT'
         OBTYPE: 'MRMS'
         ENSMEM_INDX: "#mem#"
-        SLASH_ENSMEM_SUBDIR_OR_NULL: '{% if global.DO_ENSEMBLE %}{{ "/mem#mem#" }}{% endif %}'
+        SLASH_ENSMEM_SUBDIR_OR_NULL: '{{ "/mem#mem#" if global.DO_ENSEMBLE }}'
         FCST_LEVEL: 'L0'
         FCST_THRESH: 'all'
-      walltime: 02:00:00
+      walltime: "{{ verification.execution.deterministic.gridstat.walltime }}"
       dependency:
         and:
           taskdep_get_obs_mrms:
@@ -114,7 +120,9 @@ metatask_GridStat_MRMS_all_mems:
           datadep_post_files_exist:
             attrs:
               age: 00:00:00:30
-            text: !cycstr '{{ workflow.EXPTDIR }}/@Y@m@d@H/post_files_exist_mem#mem#.txt'
+            value:
+              cyclestr:
+                value:  '{{ workflow.EXPTDIR }}/@Y@m@d@H/post_files_exist_mem#mem#.txt'
 
 metatask_PointStat_NDAS_all_mems:
   var:
@@ -133,10 +141,10 @@ metatask_PointStat_NDAS_all_mems:
         OBTYPE: 'NDAS'
         ACCUM_HH: '01'
         ENSMEM_INDX: "#mem#"
-        SLASH_ENSMEM_SUBDIR_OR_NULL: '{% if global.DO_ENSEMBLE %}{{ "/mem#mem#" }}{% endif %}'
+        SLASH_ENSMEM_SUBDIR_OR_NULL: '{{ "/mem#mem#" if global.DO_ENSEMBLE }}'
         FCST_LEVEL: 'all'
         FCST_THRESH: 'all'
-      walltime: 01:00:00
+      walltime: "{{ verification.execution.pointstat.walltime }}"
       dependency:
         and:
           taskdep_pb2nc:
@@ -145,4 +153,6 @@ metatask_PointStat_NDAS_all_mems:
           datadep_post_files_exist:
             attrs:
               age: 00:00:00:30
-            text: !cycstr '{{ workflow.EXPTDIR }}/@Y@m@d@H/post_files_exist_mem#mem#.txt'
+            value:
+              cyclestr:
+                value:  '{{ workflow.EXPTDIR }}/@Y@m@d@H/post_files_exist_mem#mem#.txt'
