@@ -1,17 +1,17 @@
 #
 # The defaults that cover a majority of our workflow test experiments.
 #
-workflow:
+rocoto:
   entities:
     ACCOUNT: '{{ user.ACCOUNT }}'
     CCPA_OBS_DIR: '{{ platform.CCPA_OBS_DIR }}'
-    COLDSTART: '{{ srwworkflow.COLDSTART }}'
+    COLDSTART: '{{ workflow.COLDSTART }}'
     COMINgfs: '{{ platform.get("COMINgfs") }}'
-    GLOBAL_VAR_DEFNS_FP: '{{ srwworkflow.GLOBAL_VAR_DEFNS_FP }}'
+    GLOBAL_VAR_DEFNS_FP: '{{ workflow.GLOBAL_VAR_DEFNS_FP }}'
     HOMEdir: '{{ user.HOMEdir }}'
     JOBSdir: '{{ user.JOBSdir }}'
     KEEPDATA: '{{ nco.KEEPDATA_default }}'
-    LOAD_MODULES_RUN_TASK: '{{ srwworkflow.LOAD_MODULES_RUN_TASK_FP }} {{ user.MACHINE }}'
+    LOAD_MODULES_RUN_TASK: '{{ workflow.LOAD_MODULES_RUN_TASK_FP }} {{ user.MACHINE }}'
     LOGEXT: ".log"
     NET: '{{ nco.NET_default }}'
     MRMS_OBS_DIR: '{{ platform.MRMS_OBS_DIR }}'
@@ -29,17 +29,17 @@ workflow:
     SENDCOM: '{{ nco.SENDCOM_default }}'
     SLASH_ENSMEM_SUBDIR: '{{ "/mem#mem#" if global.DO_ENSEMBLE else "/" }}'
     USHdir: '{{ user.USHdir }}'
-    WARMSTART_CYCLE_DIR: '{{ srwworkflow.WARMSTART_CYCLE_DIR }}'
-    WORKFLOW_ID: '{{ srwworkflow.WORKFLOW_ID }}'
+    WARMSTART_CYCLE_DIR: '{{ workflow.WARMSTART_CYCLE_DIR }}'
+    WORKFLOW_ID: '{{ workflow.WORKFLOW_ID }}'
 
     envir: '{{ nco.envir_default }}'
     model_ver: '{{ nco.model_ver_default }}'
     COMROOT: '{{ nco.PTMP }}/&envir;/com'
     DATAROOT: '{{ nco.PTMP }}/&envir;/tmp'
     DCOMROOT: '{{ nco.PTMP }}/&envir;/dcom'
-    COMIN_DIR: '{{ "&COMROOT;/&NET;/&model_ver;/&RUN;.@Y@m@d/@H" if user.RUN_ENVIR == "nco" else  srwworkflow.EXPTDIR }}/@Y@m@d@H'
-    FCST_DIR: '{{ "&DATAROOT;/run_fcst_mem#mem#_@Y@m@d@H"  if user.RUN_ENVIR == "nco" else srwworkflow.EXPTDIR }}/@Y@m@d@H'
-    LOGDIR: '{{ "&COMROOT;/output/logs/@Y@m@d" if user.RUN_ENVIR == "nco" else srwworkflow.EXPTDIR }}/log'
+    COMIN_DIR: '{{ "&COMROOT;/&NET;/&model_ver;/&RUN;.@Y@m@d/@H" if user.RUN_ENVIR == "nco" else  workflow.EXPTDIR }}/@Y@m@d@H'
+    FCST_DIR: '{{ "&DATAROOT;/run_fcst_mem#mem#_@Y@m@d@H"  if user.RUN_ENVIR == "nco" else workflow.EXPTDIR }}/@Y@m@d@H'
+    LOGDIR: '{{ "&COMROOT;/output/logs/@Y@m@d" if user.RUN_ENVIR == "nco" else workflow.EXPTDIR }}/log'
   attrs:
     cyclethrottle: 200
     realtime: false
@@ -48,13 +48,13 @@ workflow:
   cycledef:
     - attrs:
         group: at_start
-      spec: '{{srwworkflow.DATE_FIRST_CYCL}} {{srwworkflow.DATE_FIRST_CYCL}} {{srwworkflow.INCR_CYCL_FREQ}}:00:00'
+      spec: '{{workflow.DATE_FIRST_CYCL}} {{workflow.DATE_FIRST_CYCL}} {{workflow.INCR_CYCL_FREQ}}:00:00'
     - attrs:
         group: forecast
-      spec: '{{srwworkflow.DATE_FIRST_CYCL}} {{srwworkflow.DATE_LAST_CYCL}} {{srwworkflow.INCR_CYCL_FREQ}}:00:00'
+      spec: '{{workflow.DATE_FIRST_CYCL}} {{workflow.DATE_LAST_CYCL}} {{workflow.INCR_CYCL_FREQ}}:00:00'
     - attrs:
         group: cycled_from_second
-      spec: '{{ "{}{:02d}00".format(srwworkflow.DATE_FIRST_CYCL[0:8], srwworkflow.INCR_CYCL_FREQ) if srwworkflow.DATE_FIRST_CYCL != srwworkflow.DATE_LAST_CYCL else srwworkflow.DATE_FIRST_CYCL}} {{srwworkflow.DATE_LAST_CYCL}} {{srwworkflow.INCR_CYCL_FREQ}}:00:00'
+      spec: '{{ "{}{:02d}00".format(workflow.DATE_FIRST_CYCL[0:8], workflow.INCR_CYCL_FREQ) if workflow.DATE_FIRST_CYCL != workflow.DATE_LAST_CYCL else workflow.DATE_FIRST_CYCL}} {{workflow.DATE_LAST_CYCL}} {{workflow.INCR_CYCL_FREQ}}:00:00'
   log:
     cyclestr:
-      value: '&LOGDIR;/FV3LAM_wflow.{{ srwworkflow.WORKFLOW_ID + "." if user.RUN_ENVIR == "nco" }}log'
+      value: '&LOGDIR;/FV3LAM_wflow.{{ workflow.WORKFLOW_ID + "." if user.RUN_ENVIR == "nco" }}log'

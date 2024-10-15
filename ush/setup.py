@@ -46,7 +46,7 @@ from set_cycle_dates import set_cycle_dates
 from set_predef_grid_params import set_predef_grid_params
 from set_gridparams_ESGgrid import set_gridparams_ESGgrid
 from set_gridparams_GFDLgrid import set_gridparams_GFDLgrid
-from uwtools.api.config import get_yaml_config
+from uwtools.api.config import get_yaml_config, validate
 
 def load_config_for_setup(ushdir, default_config_path, user_config_path):
     """Load in the default, machine, and user configuration files into
@@ -64,7 +64,7 @@ def load_config_for_setup(ushdir, default_config_path, user_config_path):
     ushdir = Path(ushdir)
 
     # Load the default and user configs.
-    logging.debug(f"Loading config defaults file {default_config}")
+    logging.debug(f"Loading config defaults file {default_config_path}")
     default_config = get_yaml_config(default_config_path)
     logging.debug(f"Read in the following values from config defaults file:\n")
     logging.debug(default_config)
@@ -128,7 +128,7 @@ def load_config_for_setup(ushdir, default_config_path, user_config_path):
 
 
     # Load the rocoto workflow default file
-    default_wflow = Path(ushdir).parent / "parm" / "wflow" / "default_workflow.yaml"
+    default_workflow = Path(ushdir).parent / "parm" / "wflow" / "default_workflow.yaml"
     workflow_config = get_yaml_config(default_workflow)
 
     # Update default config with other loaded config file. Order matters.
@@ -163,10 +163,8 @@ def load_config_for_setup(ushdir, default_config_path, user_config_path):
     default_config["rocoto"]["tasks"] = {}
     for taskgroup in taskgroups:
         tasks = get_yaml_config(homedir / taskgroup)
-        for k in tasks:
-            if re.search(r"^default_*", k):
-                del tasks[k]
-        default_config["rocoto"]["tasks"].update(tasks)
+        keep = {k: v for k, v in tasks.items() if not re.search(r"^default_*", k)}
+        default_config["rocoto"]["tasks"].update(keep)
 
     # Update one more time in case there are user-settings to override the tasks
     default_config.update_from(user_config)
@@ -179,6 +177,14 @@ def load_config_for_setup(ushdir, default_config_path, user_config_path):
     #    for k, v in settings.items():
     #        if not (v is None or v == "") and isinstance(v, str):
     #            default_config[sect][k] = str_to_list(v)
+
+    # Validate experiment config against schema
+    schema = ushdir / "experiment.jsonschema"
+    valid = validate(schema_file=schema, config=default_config)
+
+    if not valid:
+        logging.error(f"Experiment configuration is not valid against schema")
+        sys.exit(1)
 
     return default_config
 
@@ -1313,9 +1319,7 @@ def setup(USHdir, user_config_fn="config.yaml", debug: bool = False):
     clean_rocoto_dict(expt_config["rocoto"]["tasks"])
 
     rocoto_yaml_fp = Path(workflow_config["ROCOTO_YAML_FP"])
-    rocoto_yaml_dict = expt_config["rocoto"]
-    extend_yaml(rocoto_yaml_dict)
-    rocoto_yaml = get_yaml_config(rocoto_yaml_dict)
+    rocoto_yaml = get_yaml_config({"workflow": expt_config["rocoto"]})
     rocoto_yaml.dump(rocoto_yaml_fp)
 
     var_defns_cfg = get_yaml_config(config=expt_config.data)
