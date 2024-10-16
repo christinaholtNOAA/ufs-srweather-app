@@ -2775,11 +2775,3 @@ cpl_aqm_parm:
   NEXUS_GFS_SFC_OFFSET_HRS: 0
   NEXUS_GFS_SFC_DIR: ""
   NEXUS_GFS_SFC_ARCHV_DIR: "/NCEPPROD/hpssprod/runhistory"
-
-rocoto:
-  attrs: ""
-  cycledefs: ""
-  entities: ""
-  log: ""
-  tasks:
-    taskgroups: ""

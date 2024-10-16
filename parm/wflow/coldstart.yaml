@@ -111,6 +111,7 @@ metatask_run_ensemble:
       cyclestr:
         value: '&LOGDIR;/{{ jobname }}_@Y@m@d@H&LOGEXT;'
     nodes: '{{ task_make_ics.chgres_cube.execution.batchargs.nodes }}:ppn={{ task_make_ics.chgres_cube.execution.batchargs.cores }}'
+    walltime: '{{ task_make_ics.chgres_cube.execution.batchargs.walltime }}'
     dependency:
       and: &make_ics_deps
         taskdep_get_extrn:

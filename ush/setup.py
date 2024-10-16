@@ -691,7 +691,7 @@ def setup(USHdir, user_config_fn="config.yaml", debug: bool = False):
               )
               raise ValueError
 
-        # Build cycledefs entries for the long forecasts
+        # Build cycledef entries for the long forecasts
         # Short forecast cycles will be relevant to all intended
         # forecasts...after all, a 12 hour forecast also encompasses a 3
         # hour forecast, so the short ones will be consistent with the
@@ -710,11 +710,16 @@ def setup(USHdir, user_config_fn="config.yaml", debug: bool = False):
         fcst_cdef = []
 
         for hh in long_cycles:
-            first = date_first_cycl.replace(hour=hh).strftime("%Y%m%d%H")
-            last = date_last_cycl.replace(hour=hh).strftime("%Y%m%d%H")
-            fcst_cdef.append(f'{first}00 {last}00 24:00:00')
+            first = date_first_cycl.replace(hour=hh).strftime("%Y%m%d%H%S")
+            last = date_last_cycl.replace(hour=hh).strftime("%Y%m%d%H%S")
+            spec = f'{first} {last} 24:00:00'
 
-        rocoto_config['cycledefs']['long_forecast'] = fcst_cdef
+            rocoto_config['cycledef'].append(
+                {
+                    "attrs": {"group": "long_forecast"},
+                    "spec": spec
+                 }
+            )
 
     # check the availability of restart intervals for restart capability of forecast
     do_fcst_restart = fcst_config.get("DO_FCST_RESTART")
