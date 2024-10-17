@@ -1691,6 +1691,13 @@ task_get_extrn_lbcs:
 # MAKE ICS config parameters
 #-----------------------------
 task_make_ics:
+
+  chgres_cube:
+    execution:
+      batchargs:
+        walltime: 00:30:00
+        threads: 1
+        cores: 1
   #-----------------------------------------------------------------------
   # KMP_AFFINITY_MAKE_ICS: 
   # Intel Thread Affinity Interface for the make_ics task. 
@@ -1747,6 +1754,12 @@ task_make_ics:
 # MAKE LBCS config parameters
 #-----------------------------
 task_make_lbcs:
+  chgres_cube:
+    execution:
+      batchargs:
+        walltime: 00:30:00
+        threads: 1
+        cores: 1
   #------------------------------------------------------------------------
   #
   # KMP_AFFINITY_MAKE_LBCS: 

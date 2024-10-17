@@ -38,7 +38,7 @@ task_get_extrn_ics:
       value: '&LOGDIR;/{{ jobname }}_@Y@m@d@H&LOGEXT;'
   memory: 4G
   native: '{{ platform.SCHED_NATIVE_CMD_HPSS if platform.get("SCHED_NATIVE_CMD_HPSS") else platform.SCHED_NATIVE_CMD}}'
-  partition: '{{ "&PARTITION_HPSS" if platform.get("PARTITION_HPSS") else "None" }}'
+  partition: '{{ "&PARTITION_HPSS;" if platform.get("PARTITION_HPSS") else "None" }}'
   nodes: '{{ task_get_extrn_ics.execution.nodes }}:ppn={{ task_get_extrn_ics.execution.cores }}'
   queue: '&QUEUE_HPSS;'
   walltime: '{{ task_get_extrn_ics.execution.walltime }}'
@@ -155,6 +155,7 @@ metatask_run_ensemble:
       cyclestr:
         value: '&LOGDIR;/{{ jobname }}_@Y@m@d@H&LOGEXT;'
     nodes: '{{ task_make_lbcs.chgres_cube.execution.batchargs.nodes }}:ppn={{ task_make_lbcs.chgres_cube.execution.batchargs.cores }}'
+    walltime: '{{ task_make_lbcs.chgres_cube.execution.batchargs.walltime }}'
     dependency:
       and:
         <<: *make_ics_deps
