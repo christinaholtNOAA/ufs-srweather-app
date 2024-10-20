@@ -374,8 +374,8 @@ def check_task_get_extrn_bcs(cfg: dict, mach: dict, dflt: dict, ics_or_lbcs: str
     # To turn off that task, taskgroups is included without the
     # coldstart group, or task_get_extrn_{ics_or_lbcs} is included
     # without a value
-    taskgroups = cfg.get('rocoto', {}).get('taskgroups')
-    if taskgroups is not None and "coldstart.yaml" not in taskgroups:
+    taskgroups = cfg.get('workflow', {}).get('taskgroups')
+    if taskgroups is not None and not any("coldstart.yaml" in g for g in tasksgroups):
         return cfg_bcs
     rocoto_tasks = cfg.get('rocoto', {}).get('tasks',{})
     if rocoto_tasks.get(f"task_get_extrn_{ics_or_lbcs}", "NA") is None:

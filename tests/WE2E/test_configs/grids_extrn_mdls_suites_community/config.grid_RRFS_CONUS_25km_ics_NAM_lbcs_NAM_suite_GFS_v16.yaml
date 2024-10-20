@@ -14,9 +14,16 @@ workflow:
   DATE_LAST_CYCL: '2021051212'
   FCST_LEN_HRS: 6
   PREEXISTING_DIR_METHOD: rename
+  taskgroups:
+    - parm/wflow/prep.yaml
+    - parm/wflow/coldstart.yaml
+    - parm/wflow/post.yaml
+    - parm/wflow/verify_pre.yaml
+    - parm/wflow/verify_det.yaml
+    - parm/wflow/verify_ens.yaml
+    - parm/wflow/test.yaml
 rocoto:
   tasks:
-    taskgroups: '{{ ["parm/wflow/prep.yaml", "parm/wflow/coldstart.yaml", "parm/wflow/post.yaml", "parm/wflow/verify_pre.yaml", "parm/wflow/verify_det.yaml", "parm/wflow/verify_ens.yaml", "parm/wflow/test.yaml"]|include }}'
     metatask_run_ensemble:
       task_run_fcst_mem#mem#:
         walltime: 01:00:00

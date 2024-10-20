@@ -13,9 +13,15 @@ workflow:
   DATE_LAST_CYCL: '2023021700'
   FCST_LEN_HRS: 6
   PREEXISTING_DIR_METHOD: rename
+  taskgroups:
+    - parm/wflow/prep.yaml
+    - parm/wflow/coldstart.yaml
+    - parm/wflow/post.yaml
+    - parm/wflow/verify_pre.yaml
+    - parm/wflow/verify_det.yaml
+    - parm/wflow/test.yaml
 rocoto:
   tasks:
-    taskgroups: '{{ ["parm/wflow/prep.yaml", "parm/wflow/coldstart.yaml", "parm/wflow/post.yaml", "parm/wflow/verify_pre.yaml", "parm/wflow/verify_det.yaml", "parm/wflow/test.yaml"]|include }}'
     metatask_run_ensemble:
       task_run_fcst_mem#mem#:
         walltime: 01:00:00
@@ -56,7 +62,13 @@ task_run_post:
   post_output_domain_name: custom_ESGgrid_Michigan_Ontario
 verification:
   VX_FCST_MODEL_NAME: Michigan_Ontario_snow_8km
-  VX_FIELDS: [ "APCP", "REFC", "RETOP", "ADPSFC", "ADPUPA", "ASNOW" ]
+  VX_FIELDS:
+    - APCP
+    - REFC
+    - RETOP
+    - ADPSFC
+    - ADPUPA
+    - ASNOW
 platform:
   CCPA_OBS_DIR: '{{ workflow.EXPTDIR }}/CCPA_obs'
   MRMS_OBS_DIR: '{{ workflow.EXPTDIR }}/MRMS_obs'

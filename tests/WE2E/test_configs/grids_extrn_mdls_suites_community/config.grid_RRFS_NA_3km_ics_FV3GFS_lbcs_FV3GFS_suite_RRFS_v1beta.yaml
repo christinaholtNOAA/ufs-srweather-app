@@ -15,6 +15,12 @@ workflow:
   DATE_LAST_CYCL: '2019070100'
   FCST_LEN_HRS: 3
   PREEXISTING_DIR_METHOD: rename
+  taskgroups:
+    - parm/wflow/prep.yaml
+    - parm/wflow/coldstart.yaml
+    - parm/wflow/post.yaml
+    - parm/wflow/prdgen.yaml
+    - parm/wflow/test.yaml
 task_make_orog:
   OMP_NUM_THREADS_MAKE_OROG: 24
 task_get_extrn_ics:
@@ -33,7 +39,6 @@ task_run_prdgen:
   DO_PARALLEL_PRDGEN: true
 rocoto:
   tasks:
-    taskgroups: '{{ ["parm/wflow/prep.yaml", "parm/wflow/coldstart.yaml", "parm/wflow/post.yaml", "parm/wflow/prdgen.yaml", "parm/wflow/test.yaml"]|include }}'
     task_make_orog:
       walltime: 01:00:00
     metatask_run_ensemble:
