@@ -132,10 +132,9 @@ def load_config_for_setup(ushdir, default_config_path, user_config_path):
     workflow_config = get_yaml_config(default_workflow)
 
     # Update default config with other loaded config file. Order matters.
-    for cfg in (constants, fix_file_config, machine_config, fix_file_config, workflow_config,
+    for cfg in (constants, workflow_config, machine_config, fix_file_config,
             user_config):
         default_config.update_from(cfg)
-
 
     # Load one more if running Coupled AQM
     if default_config['cpl_aqm_parm']['CPL_AQM']:
@@ -148,15 +147,14 @@ def load_config_for_setup(ushdir, default_config_path, user_config_path):
     default_config.update_from(ccpp_config)
 
     # Set "Home" directory, the top-level ufs-srweather-app directory
-    homedir = Path(__file__).parent.parent.absolute()
-    default_config["user"]["HOMEdir"] = homedir
+    homedir = Path(__file__).parent.parent.resolve()
+    default_config["user"]["HOMEdir"] = str(homedir)
 
     # Special logic if EXPT_BASEDIR is a relative path; see config_defaults.yaml for explanation
     expt_basedir = default_config["workflow"]["EXPT_BASEDIR"]
     if (not expt_basedir) or (expt_basedir[0] != "/"):
         expt_basedir = homedir.parent / "expt_dirs" / expt_basedir
-    default_config["workflow"]["EXPT_BASEDIR"] = Path(expt_basedir).absolute()
-
+    default_config["workflow"]["EXPT_BASEDIR"] = str(Path(expt_basedir).resolve())
 
     # Expand out the workflow tasks now that all settings have been applied
     taskgroups = default_config["workflow"]["taskgroups"]
@@ -166,8 +164,9 @@ def load_config_for_setup(ushdir, default_config_path, user_config_path):
         keep = {k: v for k, v in tasks.items() if not re.search(r"^default_*", k)}
         default_config["rocoto"]["tasks"].update(keep)
 
-    # Update one more time in case there are user-settings to override the tasks
-    default_config.update_from(user_config)
+    # Update one more time in case there are user or machine settings to override the tasks
+    for cfg in (machine_config, user_config):
+        default_config.update_from(cfg)
 
     # Dereference all Jinja expressions
     default_config.dereference()
@@ -629,7 +628,6 @@ def setup(USHdir, user_config_fn="config.yaml", debug: bool = False):
             workflow_config["PREDEF_GRID_NAME"],
             fcst_config["QUILTING"],
         )
-
         # Users like to change these variables, so don't overwrite them
         special_vars = ["DT_ATMOS", "LAYOUT_X", "LAYOUT_Y", "BLOCKSIZE"]
         for param, value in grid_params.items():
@@ -655,7 +653,7 @@ def setup(USHdir, user_config_fn="config.yaml", debug: bool = False):
                 else:
                     fcst_config[param] = value
             elif param.startswith("WRTCMP"):
-                if fcst_config.get(param) == "":
+                if fcst_config.get(param).strip("'") == "":
                     fcst_config[param] = value
             elif param == "GRID_GEN_METHOD":
                 workflow_config[param] = value

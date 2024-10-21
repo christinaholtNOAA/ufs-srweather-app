@@ -32,16 +32,16 @@ task_get_extrn_ics:
   envars:
     <<: *default_vars
     ICS_OR_LBCS: ICS
-    nprocs: !int '{{ task_get_extrn_ics.execution.nodes * task_get_extrn_ics.execution.cores }}'
+    nprocs: !int '{{ task_get_extrn_ics.tasks_per_node }}'
   join:
     cyclestr:
       value: '&LOGDIR;/{{ jobname }}_@Y@m@d@H&LOGEXT;'
   memory: 4G
   native: '{{ platform.SCHED_NATIVE_CMD_HPSS if platform.get("SCHED_NATIVE_CMD_HPSS") else platform.SCHED_NATIVE_CMD}}'
   partition: '{{ "&PARTITION_HPSS;" if platform.get("PARTITION_HPSS") else "None" }}'
-  nodes: '{{ task_get_extrn_ics.execution.nodes }}:ppn={{ task_get_extrn_ics.execution.cores }}'
+  cores: !int '{{ task_get_extrn_ics.tasks_per_node }}'
   queue: '&QUEUE_HPSS;'
-  walltime: '{{ task_get_extrn_ics.execution.walltime }}'
+  walltime: '{{ task_get_extrn_ics.walltime }}'
   dependency:
     or:
       and:
@@ -69,16 +69,16 @@ task_get_extrn_lbcs:
   envars:
     <<: *default_vars
     ICS_OR_LBCS: LBCS
-    nprocs: !int '{{ task_get_extrn_lbcs.execution.nodes * task_get_extrn_lbcs.execution.cores }}'
+    nprocs: !int '{{ task_get_extrn_lbcs.tasks_per_node }}'
   join:
     cyclestr:
       value: '&LOGDIR;/{{ jobname }}_@Y@m@d@H&LOGEXT;'
   memory: 4G
-  nodes: '{{ task_get_extrn_lbcs.execution.nodes }}:ppn={{ task_get_extrn_lbcs.execution.cores }}'
+  cores: !int '{{ task_get_extrn_lbcs.tasks_per_node }}'
   native: '{{ platform.SCHED_NATIVE_CMD_HPSS if platform.get("SCHED_NATIVE_CMD_HPSS") else platform.SCHED_NATIVE_CMD }}'
   partition: '{{ "&PARTITION_HPSS;" if platform.get("PARTITION_HPSS") else "None" }}'
   queue: '&QUEUE_HPSS;'
-  walltime: '{{ task_get_extrn_lbcs.execution.walltime }}'
+  walltime: '{{ task_get_extrn_lbcs.walltime }}'
   dependency:
     or:
       and:
@@ -106,11 +106,11 @@ metatask_run_ensemble:
     envars:
       <<: *default_vars
       SLASH_ENSMEM_SUBDIR: '&SLASH_ENSMEM_SUBDIR;'
-      nprocs: !int '{{ task_make_ics.chgres_cube.execution.batchargs.nodes * task_make_ics.chgres_cube.execution.batchargs.cores }}'
+      nprocs: !int '{{ task_make_ics.chgres_cube.execution.batchargs.nodes * task_make_ics.chgres_cube.execution.batchargs.tasks_per_node }}'
     join:
       cyclestr:
         value: '&LOGDIR;/{{ jobname }}_@Y@m@d@H&LOGEXT;'
-    nodes: '{{ task_make_ics.chgres_cube.execution.batchargs.nodes }}:ppn={{ task_make_ics.chgres_cube.execution.batchargs.cores }}'
+    nodes: '{{ task_make_ics.chgres_cube.execution.batchargs.nodes }}:ppn={{ task_make_ics.chgres_cube.execution.batchargs.tasks_per_node }}'
     walltime: '{{ task_make_ics.chgres_cube.execution.batchargs.walltime }}'
     dependency:
       and: &make_ics_deps
@@ -150,11 +150,11 @@ metatask_run_ensemble:
       SLASH_ENSMEM_SUBDIR: '&SLASH_ENSMEM_SUBDIR;'
       bcgrp: '00'
       bcgrpnum: '1'
-      nprocs: !int '{{ task_make_lbcs.chgres_cube.execution.batchargs.nodes * task_make_lbcs.chgres_cube.execution.batchargs.cores }}'
+      nprocs: !int '{{ task_make_lbcs.chgres_cube.execution.batchargs.nodes * task_make_lbcs.chgres_cube.execution.batchargs.tasks_per_node }}'
     join:
       cyclestr:
         value: '&LOGDIR;/{{ jobname }}_@Y@m@d@H&LOGEXT;'
-    nodes: '{{ task_make_lbcs.chgres_cube.execution.batchargs.nodes }}:ppn={{ task_make_lbcs.chgres_cube.execution.batchargs.cores }}'
+    nodes: '{{ task_make_lbcs.chgres_cube.execution.batchargs.nodes }}:ppn={{ task_make_lbcs.chgres_cube.execution.batchargs.tasks_per_node }}'
     walltime: '{{ task_make_lbcs.chgres_cube.execution.batchargs.walltime }}'
     dependency:
       and:
@@ -176,7 +176,7 @@ metatask_run_ensemble:
     partition: '{{ "&PARTITION_FCST;" if platform.get("PARTITION_FCST") else "None" }}'
     queue: '&QUEUE_FCST;'
     nodes: '{{ task_run_fcst.NNODES_RUN_FCST // 1 }}:ppn={{ task_run_fcst.PPN_RUN_FCST // 1 }}'
-    walltime: '{{ task_run_fcst.execution.walltime }}'
+    walltime: '{{ task_run_fcst.walltime }}'
     dependency:
       and:
         taskdep_make_ics:

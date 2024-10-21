@@ -220,7 +220,6 @@ def create_model_configure_file(
     # -----------------------------------------------------------------------
     #
     model_config_fp = os.path.join(run_dir, MODEL_CONFIG_FN)
-
     render(
         input_file = MODEL_CONFIG_TMPL_FP,
         output_file = model_config_fp,
@@ -297,8 +296,11 @@ def parse_args(argv):
 if __name__ == "__main__":
     args = parse_args(sys.argv[1:])
     cfg = get_yaml_config(args.path_to_defns)
-    cfg = flatten_dict(cfg)
-    import_vars(dictionary=cfg)
+    import_vars(dictionary={
+        **cfg["task_run_fcst"],
+        **cfg["workflow"],
+        }
+        )
     create_model_configure_file(
         run_dir=args.run_dir,
         cdate=str_to_type(args.cdate),

@@ -20,8 +20,6 @@ sections=(
   fixed_files
   grid_params
   task_get_extrn_lbcs
-  task_make_lbcs
-  task_make_orog
 )
 for sect in ${sections[*]} ; do
   source_yaml ${GLOBAL_VAR_DEFNS_FP} ${sect}

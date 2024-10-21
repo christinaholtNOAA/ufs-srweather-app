@@ -109,10 +109,17 @@ sections=(
   workflow
   constants
   grid_params
-  task_make_grid
 )
 for sect in ${sections[*]} ; do
   source_yaml ${GLOBAL_VAR_DEFNS_FP} ${sect}
+done
+items=(
+task_make_grid.GFDLgrid_NUM_CELLS
+task_make_grid.GFDLgrid_USE_NUM_CELLS_IN_FILENAMES
+task_make_grid.GRID_DIR
+)
+for item in ${items[*]} ; do
+  export_env ${GLOBAL_VAR_DEFNS_FP} ${item}
 done
 #
 #-----------------------------------------------------------------------

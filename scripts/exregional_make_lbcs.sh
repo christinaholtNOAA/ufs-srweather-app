@@ -96,10 +96,22 @@ sections=(
   cpl_aqm_parm
   constants
   task_get_extrn_lbcs
-  task_make_lbcs
 )
 for sect in ${sections[*]} ; do
   source_yaml ${GLOBAL_VAR_DEFNS_FP} ${sect}
+done
+items=(
+  task_make_lbcs.FVCOM_DIR
+  task_make_lbcs.FVCOM_FILE
+  task_make_lbcs.FVCOM_WCSTART
+  task_make_lbcs.KMP_AFFINITY_MAKE_LBCS
+  task_make_lbcs.OMP_NUM_THREADS_MAKE_LBCS
+  task_make_lbcs.OMP_STACKSIZE_MAKE_LBCS
+  task_make_lbcs.USE_FVCOM
+  task_make_lbcs.VCOORD_FILE
+)
+for item in ${items[*]} ; do
+  export_env ${GLOBAL_VAR_DEFNS_FP} ${item}
 done
 #
 #-----------------------------------------------------------------------
