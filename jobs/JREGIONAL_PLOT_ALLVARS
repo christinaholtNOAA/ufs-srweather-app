@@ -58,6 +58,17 @@ sections=(
 for sect in ${sections[*]} ; do
   source_yaml ${GLOBAL_VAR_DEFNS_FP} ${sect}
 done
+items=(
+  task_plot_allvars.COMOUT_REF
+  task_plot_allvars.PLOT_DOMAINS
+  task_plot_allvars.PLOT_FCST_END
+  task_plot_allvars.PLOT_FCST_INC
+  task_plot_allvars.PLOT_FCST_START
+)
+for item in ${items[*]} ; do
+  export_env ${GLOBAL_VAR_DEFNS_FP} ${item}
+done
+#
 . $USHdir/job_preamble.sh
 #
 #-----------------------------------------------------------------------

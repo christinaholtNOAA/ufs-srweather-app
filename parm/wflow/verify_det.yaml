@@ -24,7 +24,7 @@ default_task_verify_det: &default_task_verify_det
   memory: '{{ "2G" if user.MACHINE not in ["NOAACLOUD"] }}'
   native: '{{ platform.SCHED_NATIVE_CMD }}'
   partition: '{{ "&PARTITION_DEFAULT;" if platform.get("PARTITION_DEFAULT") else "" }}'
-  cores: !int '{{ verification.execution.cores }}'
+  cores: !int '{{ verification_resources.execution.cores }}'
   queue: '&QUEUE_DEFAULT;'
 
 metatask_GridStat_CCPA_all_accums_all_mems:
@@ -49,7 +49,7 @@ metatask_GridStat_CCPA_all_accums_all_mems:
         SLASH_ENSMEM_SUBDIR_OR_NULL: '{{ "/mem#mem#" if global.DO_ENSEMBLE }}'
         FCST_LEVEL: 'A#ACCUM_HH#'
         FCST_THRESH: 'all'
-      walltime: "{{ verification.execution.deterministic.gridstat.walltime }}"
+      walltime: "{{ verification_resources.execution.deterministic.gridstat.walltime }}"
       dependency:
         and:
           taskdep_pcpcombine_obs:
@@ -81,7 +81,7 @@ metatask_GridStat_NOHRSC_all_accums_all_mems:
         SLASH_ENSMEM_SUBDIR_OR_NULL: '{{ "/mem#mem#" if global.DO_ENSEMBLE }}'
         FCST_LEVEL: 'A#ACCUM_HH#'
         FCST_THRESH: 'all'
-      walltime: "{{ verification.execution.deterministic.gridstat.walltime }}"
+      walltime: "{{ verification_resources.execution.deterministic.gridstat.walltime }}"
       dependency:
         and:
           taskdep_get_obs_nohrsc:
@@ -111,7 +111,7 @@ metatask_GridStat_MRMS_all_mems:
         SLASH_ENSMEM_SUBDIR_OR_NULL: '{{ "/mem#mem#" if global.DO_ENSEMBLE }}'
         FCST_LEVEL: 'L0'
         FCST_THRESH: 'all'
-      walltime: "{{ verification.execution.deterministic.gridstat.walltime }}"
+      walltime: "{{ verification_resources.execution.deterministic.gridstat.walltime }}"
       dependency:
         and:
           taskdep_get_obs_mrms:
@@ -144,7 +144,7 @@ metatask_PointStat_NDAS_all_mems:
         SLASH_ENSMEM_SUBDIR_OR_NULL: '{{ "/mem#mem#" if global.DO_ENSEMBLE }}'
         FCST_LEVEL: 'all'
         FCST_THRESH: 'all'
-      walltime: "{{ verification.execution.pointstat.walltime }}"
+      walltime: "{{ verification_resources.execution.pointstat.walltime }}"
       dependency:
         and:
           taskdep_pb2nc:

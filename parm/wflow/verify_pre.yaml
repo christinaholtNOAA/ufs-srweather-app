@@ -24,7 +24,7 @@ default_task_verify_pre: &default_task_verify_pre
       value:  '&LOGDIR;/{{ jobname }}_@Y@m@d@H&LOGEXT;'
   memory: '{{ "2G" if user.MACHINE not in ["NOAACLOUD"] }}'
   native: '{{ platform.SCHED_NATIVE_CMD }}'
-  cores: !int '{{ verification.execution.cores }}'
+  cores: !int '{{ verification_resources.execution.cores }}'
   partition: '{{ "&PARTITION_DEFAULT;" if platform.get("PARTITION_DEFAULT") else "" }}'
   queue: '&QUEUE_DEFAULT;'
 
@@ -40,7 +40,7 @@ task_get_obs_ccpa:
   native: '{{ platform.SCHED_NATIVE_CMD_HPSS if platform.get("SCHED_NATIVE_CMD_HPSS") else platform.SCHED_NATIVE_CMD }}'
   partition: '{{ "&PARTITION_HPSS;" if platform.get("PARTITION_HPSS") else "" }}'
   queue: "&QUEUE_HPSS;"
-  walltime: "{{ verification.execution.get_obs.ccpa.walltime }}"
+  walltime: "{{ verification_resources.execution.get_obs.ccpa.walltime }}"
 
 task_get_obs_nohrsc:
   <<: *default_task_verify_pre
@@ -53,7 +53,7 @@ task_get_obs_nohrsc:
   native: '{{ platform.SCHED_NATIVE_CMD_HPSS if platform.get("SCHED_NATIVE_CMD_HPSS") else platform.SCHED_NATIVE_CMD }}'
   partition: '{{ "&PARTITION_HPSS;" if platform.get("PARTITION_HPSS") else "" }}'
   queue: "&QUEUE_HPSS;"
-  walltime: "{{ verification.execution.get_obs.nohrsc.walltime }}"
+  walltime: "{{ verification_resources.execution.get_obs.nohrsc.walltime }}"
 
 task_get_obs_mrms:
   <<: *default_task_verify_pre
@@ -67,7 +67,7 @@ task_get_obs_mrms:
   native: '{{ platform.SCHED_NATIVE_CMD_HPSS if platform.get("SCHED_NATIVE_CMD_HPSS") else platform.SCHED_NATIVE_CMD }}'
   partition: '{{ "&PARTITION_HPSS;" if platform.get("PARTITION_HPSS") else "" }}'
   queue: "&QUEUE_HPSS;"
-  walltime: "{{ verification.execution.get_obs.mrms.walltime }}"
+  walltime: "{{ verification_resources.execution.get_obs.mrms.walltime }}"
 
 task_get_obs_ndas:
   <<: *default_task_verify_pre
@@ -80,7 +80,7 @@ task_get_obs_ndas:
   queue: "&QUEUE_HPSS;"
   native: '{{ platform.SCHED_NATIVE_CMD_HPSS if platform.get("SCHED_NATIVE_CMD_HPSS") else platform.SCHED_NATIVE_CMD }}'
   partition: '{{ "&PARTITION_HPSS;" if platform.get("PARTITION_HPSS") else "" }}'
-  walltime: "{{ verification.execution.get_obs.ndas.walltime }}"
+  walltime: "{{ verification_resources.execution.get_obs.ndas.walltime }}"
 
 task_run_MET_Pb2nc_obs:
   <<: *default_task_verify_pre
@@ -96,7 +96,7 @@ task_run_MET_Pb2nc_obs:
     OBTYPE: NDAS
     OBS_DIR: '&NDAS_OBS_DIR;'
     METPLUSTOOLNAME: 'PB2NC'
-  walltime: "{{ verification.execution.pb2nc.walltime }}"
+  walltime: "{{ verification_resources.execution.pb2nc.walltime }}"
   dependency:
     and:
       datadep:
@@ -127,7 +127,7 @@ metatask_PcpCombine_obs:
       OBTYPE: CCPA
       OBS_DIR: '&CCPA_OBS_DIR;'
       METPLUSTOOLNAME: 'PCPCOMBINE'
-    walltime: "{{ verification.execution.pcpcombine.obs..walltime }}"
+    walltime: "{{ verification_resources.execution.pcpcombine.obs..walltime }}"
     dependency:
       and:
         datadep:
@@ -155,7 +155,7 @@ metatask_check_post_output_all_mems:
       VAR: APCP
       ACCUM_HH: '01'
       ENSMEM_INDX: '#mem#'
-    walltime: "{{ verification.execution.check_post_output.walltime }}"
+    walltime: "{{ verification_resources.execution.check_post_output.walltime }}"
     dependency:
       # This "or" checks that the necessary stand-alone post tasks or forecast
       # tasks with inline post have run to generate the post files that are 
@@ -248,7 +248,7 @@ metatask_PcpCombine_fcst_APCP_all_accums_all_mems:
           value:
             cyclestr:
               value:  '{{ workflow.EXPTDIR }}/@Y@m@d@H/post_files_exist_mem#mem#.txt'
-      walltime: "{{ verification.execution.pcpcombine.ensemble.walltime }}"
+      walltime: "{{ verification_resources.execution.pcpcombine.ensemble.walltime }}"
 
 metatask_PcpCombine_fcst_ASNOW_all_accums_all_mems:
   var:
@@ -278,4 +278,4 @@ metatask_PcpCombine_fcst_ASNOW_all_accums_all_mems:
           value:
             cyclestr:
               value:  '{{ workflow.EXPTDIR }}/@Y@m@d@H/post_files_exist_mem#mem#.txt'
-      walltime: "{{ verification.execution.pcpcombine.ensemble.walltime }}"
+      walltime: "{{ verification_resources.execution.pcpcombine.ensemble.walltime }}"

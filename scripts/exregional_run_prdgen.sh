@@ -19,10 +19,19 @@ sections=(
   constants
   fixed_files
   grid_params
-  task_run_prdgen
 )
 for sect in ${sections[*]} ; do
   source_yaml ${GLOBAL_VAR_DEFNS_FP} ${sect}
+done
+items=(
+  task_run_prdgen.KMP_AFFINITY_RUN_PRDGEN
+  task_run_prdgen.OMP_NUM_THREADS_RUN_PRDGEN
+  task_run_prdgen.OMP_STACKSIZE_RUN_PRDGEN
+  task_run_prdgen.DO_PARALLEL_PRDGEN
+  task_run_prdgen.ADDNL_OUTPUT_GRIDS
+)
+for item in ${items[*]} ; do
+  export_env ${GLOBAL_VAR_DEFNS_FP} ${item}
 done
 
 POST_OUTPUT_DOMAIN_NAME=$(uw config realize --output-format yaml \
