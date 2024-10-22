@@ -1187,6 +1187,11 @@ task_make_grid:
     nodes: 1
     cores: 24
     walltime: 00:20:00
+  # Variables used in run script
+  envars:
+    GRID_DIR: '{{ task_make_grid.GRID_DIR }}'
+    GFDLgrid_NUM_CELLS: '{{ task_make_grid.GFDLgrid_NUM_CELLS }}'
+    GFDLgrid_USE_NUM_CELLS_IN_FILENAMES: '{{ task_make_grid.GFDLgrid_USE_NUM_CELLS_IN_FILENAMES }}'
   #
   #-----------------------------------------------------------------------
   #
@@ -1196,6 +1201,7 @@ task_make_grid:
   # 
   #-----------------------------------------------------------------------
   # 
+
   GRID_DIR: '{{ workflow.EXPTDIR + "/grid" if rocoto.tasks.get("task_make_grid") else "" }}'
   #
   #-----------------------------------------------------------------------
@@ -1512,8 +1518,9 @@ task_make_sfc_climo:
 # EXTRN ICS config parameters
 #-----------------------------
 task_get_extrn_ics:
-  tasks_per_node: 1
-  walltime: "01:30:00"
+  execution:
+    tasks_per_node: 1
+    walltime: "01:30:00"
   #
   #-----------------------------------------------------------------------
   #
@@ -1539,77 +1546,79 @@ task_get_extrn_ics:
   #
   #-----------------------------------------------------------------------
   #
-  EXTRN_MDL_NAME_ICS: "FV3GFS"
-  EXTRN_MDL_ICS_OFFSET_HRS: 0
-  FV3GFS_FILE_FMT_ICS: "nemsio"
-  #
-  #-----------------------------------------------------------------------
-  #
-  # Base directories in which to search for external model files.
-  #
-  # EXTRN_MDL_SYSBASEDIR_ICS:
-  # A known location of a real data stream on a given platform. This is typically 
-  # a real-time data stream as on Hera, Jet, or WCOSS. External model files 
-  # for generating ICs on the native grid should be accessible via this data stream. 
-  # The way the full path containing these files is constructed depends on the 
-  # user-specified external model for ICs, i.e. EXTRN_MDL_NAME_ICS.
-  #
-  # Note that this must be defined as a null string here so that if it is 
-  # specified by the user in the experiment configuration file, it remains 
-  # set to those values, and if not, it gets set to machine-dependent 
-  # values.
-  #
-  #-----------------------------------------------------------------------
-  # 
-  EXTRN_MDL_SYSBASEDIR_ICS: ''
-  #
-  #-----------------------------------------------------------------------
-  #
-  # User-staged external model directories and files.  Definitions:
-  #
-  # USE_USER_STAGED_EXTRN_FILES:
-  # Flag that determines whether or not the workflow will look for the 
-  # external model files needed for generating ICs in user-specified
-  # directories.
-  #
-  # EXTRN_MDL_SOURCE_BASEDIR_ICS:
-  # Directory in which to look for external model files for generating ICs.
-  # If USE_USER_STAGED_EXTRN_FILES is set to true, the workflow looks in 
-  # this directory for a subdirectory named "YYYYMMDDHH" consisting of the 
-  # starting date and cycle hour of 
-  # the forecast, where YYYY is the 4-digit year, MM the 2-digit month, DD 
-  # the 2-digit day of the month, and HH the 2-digit hour of the day) for 
-  # the external model files specified by the array EXTRN_MDL_FILES_ICS 
-  # (these files will be used to generate the ICs on the native FV3-LAM 
-  # grid). This variable is not used if USE_USER_STAGED_EXTRN_FILES is 
-  # set to false.
-  # 
-  # EXTRN_MDL_FILES_ICS:
-  # Array containing templates of the names of the files to search for in
-  # the directory specified by EXTRN_MDL_SOURCE_BASEDIR_ICS.  This
-  # variable is not used if USE_USER_STAGED_EXTRN_FILES is set to false.
-  # A single template should be used for each model file type that is
-  # used. You may use any of the Python-style templates
-  # allowed in the ush/retrieve_data.py script. To see the full list of
-  # supported templates, run that script with a -h option. For example, to 
-  # set FV3GFS nemsio input files, add:
-  #   EXTRN_MDL_FILES_ICS=( gfs.t{hh}z.atmf{fcst_hr:03d}.nemsio \
-  #   gfs.t{hh}z.sfcf{fcst_hr:03d}.nemsio )
-  # Or for FV3GFS grib files:
-  #   EXTRN_MDL_FILES_ICS=( gfs.t{hh}z.pgrb2.0p25.f{fcst_hr:03d} )
-  #
-  #-----------------------------------------------------------------------
-  #
-  USE_USER_STAGED_EXTRN_FILES: false
-  EXTRN_MDL_SOURCE_BASEDIR_ICS: ""
-  EXTRN_MDL_FILES_ICS: ""
+  envars:
+    EXTRN_MDL_NAME_ICS: "FV3GFS"
+    EXTRN_MDL_ICS_OFFSET_HRS: 0
+    FV3GFS_FILE_FMT_ICS: "nemsio"
+    #
+    #-----------------------------------------------------------------------
+    #
+    # Base directories in which to search for external model files.
+    #
+    # EXTRN_MDL_SYSBASEDIR_ICS:
+    # A known location of a real data stream on a given platform. This is typically 
+    # a real-time data stream as on Hera, Jet, or WCOSS. External model files 
+    # for generating ICs on the native grid should be accessible via this data stream. 
+    # The way the full path containing these files is constructed depends on the 
+    # user-specified external model for ICs, i.e. EXTRN_MDL_NAME_ICS.
+    #
+    # Note that this must be defined as a null string here so that if it is 
+    # specified by the user in the experiment configuration file, it remains 
+    # set to those values, and if not, it gets set to machine-dependent 
+    # values.
+    #
+    #-----------------------------------------------------------------------
+    # 
+    EXTRN_MDL_SYSBASEDIR_ICS: ''
+    #
+    #-----------------------------------------------------------------------
+    #
+    # User-staged external model directories and files.  Definitions:
+    #
+    # USE_USER_STAGED_EXTRN_FILES:
+    # Flag that determines whether or not the workflow will look for the 
+    # external model files needed for generating ICs in user-specified
+    # directories.
+    #
+    # EXTRN_MDL_SOURCE_BASEDIR_ICS:
+    # Directory in which to look for external model files for generating ICs.
+    # If USE_USER_STAGED_EXTRN_FILES is set to true, the workflow looks in 
+    # this directory for a subdirectory named "YYYYMMDDHH" consisting of the 
+    # starting date and cycle hour of 
+    # the forecast, where YYYY is the 4-digit year, MM the 2-digit month, DD 
+    # the 2-digit day of the month, and HH the 2-digit hour of the day) for 
+    # the external model files specified by the array EXTRN_MDL_FILES_ICS 
+    # (these files will be used to generate the ICs on the native FV3-LAM 
+    # grid). This variable is not used if USE_USER_STAGED_EXTRN_FILES is 
+    # set to false.
+    # 
+    # EXTRN_MDL_FILES_ICS:
+    # Array containing templates of the names of the files to search for in
+    # the directory specified by EXTRN_MDL_SOURCE_BASEDIR_ICS.  This
+    # variable is not used if USE_USER_STAGED_EXTRN_FILES is set to false.
+    # A single template should be used for each model file type that is
+    # used. You may use any of the Python-style templates
+    # allowed in the ush/retrieve_data.py script. To see the full list of
+    # supported templates, run that script with a -h option. For example, to 
+    # set FV3GFS nemsio input files, add:
+    #   EXTRN_MDL_FILES_ICS=( gfs.t{hh}z.atmf{fcst_hr:03d}.nemsio \
+    #   gfs.t{hh}z.sfcf{fcst_hr:03d}.nemsio )
+    # Or for FV3GFS grib files:
+    #   EXTRN_MDL_FILES_ICS=( gfs.t{hh}z.pgrb2.0p25.f{fcst_hr:03d} )
+    #
+    #-----------------------------------------------------------------------
+    #
+    USE_USER_STAGED_EXTRN_FILES: false
+    EXTRN_MDL_SOURCE_BASEDIR_ICS: ""
+    EXTRN_MDL_FILES_ICS: ""
 
 #----------------------------
 # EXTRN LBCS config parameters
 #-----------------------------
 task_get_extrn_lbcs:
-  tasks_per_node: 1
-  walltime: "01:30:00"
+  execution:
+    tasks_per_node: 1
+    walltime: "01:30:00"
   #
   #-----------------------------------------------------------------------
   #
@@ -1645,43 +1654,44 @@ task_get_extrn_lbcs:
   #
   #-----------------------------------------------------------------------
   #
-  EXTRN_MDL_NAME_LBCS: "FV3GFS"
-  LBC_SPEC_INTVL_HRS: 6
-  EXTRN_MDL_LBCS_OFFSET_HRS: '{{ 3 if task_get_extrn_lbcs.EXTRN_MDL_NAME_LBCS == "RAP" else 0 }}'
-  FV3GFS_FILE_FMT_LBCS: "nemsio"
-  #
-  #-----------------------------------------------------------------------
-  #
-  # EXTRN_MDL_SYSBASEDIR_LBCS:
-  # Same as EXTRN_MDL_SYSBASEDIR_ICS but for LBCs.
-  #
-  # Note that this variable must be defined as a null string here so that if it is 
-  # specified by the user in the experiment configuration file, it remains 
-  # set to those values, and if not, it gets set to machine-dependent 
-  # values.
-  #
-  #-----------------------------------------------------------------------
-  #
-  EXTRN_MDL_SYSBASEDIR_LBCS: ''
-  #
-  #-----------------------------------------------------------------------
-  #
-  # User-staged external model directories and files.  Definitions:
-  #
-  # USE_USER_STAGED_EXTRN_FILES:
-  # Analogous to USE_USER_STAGED_EXTRN_FILES in ICS but for LBCs.
-  #
-  # EXTRN_MDL_SOURCE_BASEDIR_LBCS:
-  # Analogous to EXTRN_MDL_SOURCE_BASEDIR_ICS but for LBCs instead of ICs.
-  #
-  # EXTRN_MDL_FILES_LBCS:
-  # Analogous to EXTRN_MDL_FILES_ICS but for LBCs instead of ICs.
-  #
-  #-----------------------------------------------------------------------
-  #
-  USE_USER_STAGED_EXTRN_FILES: false
-  EXTRN_MDL_SOURCE_BASEDIR_LBCS: ""
-  EXTRN_MDL_FILES_LBCS: ""
+  envars:
+    EXTRN_MDL_NAME_LBCS: "FV3GFS"
+    LBC_SPEC_INTVL_HRS: 6
+    EXTRN_MDL_LBCS_OFFSET_HRS: '{{ 3 if task_get_extrn_lbcs.envars.EXTRN_MDL_NAME_LBCS == "RAP" else 0 }}'
+    FV3GFS_FILE_FMT_LBCS: "nemsio"
+    #
+    #-----------------------------------------------------------------------
+    #
+    # EXTRN_MDL_SYSBASEDIR_LBCS:
+    # Same as EXTRN_MDL_SYSBASEDIR_ICS but for LBCs.
+    #
+    # Note that this variable must be defined as a null string here so that if it is 
+    # specified by the user in the experiment configuration file, it remains 
+    # set to those values, and if not, it gets set to machine-dependent 
+    # values.
+    #
+    #-----------------------------------------------------------------------
+    #
+    EXTRN_MDL_SYSBASEDIR_LBCS: ''
+    #
+    #-----------------------------------------------------------------------
+    #
+    # User-staged external model directories and files.  Definitions:
+    #
+    # USE_USER_STAGED_EXTRN_FILES:
+    # Analogous to USE_USER_STAGED_EXTRN_FILES in ICS but for LBCs.
+    #
+    # EXTRN_MDL_SOURCE_BASEDIR_LBCS:
+    # Analogous to EXTRN_MDL_SOURCE_BASEDIR_ICS but for LBCs instead of ICs.
+    #
+    # EXTRN_MDL_FILES_LBCS:
+    # Analogous to EXTRN_MDL_FILES_ICS but for LBCs instead of ICs.
+    #
+    #-----------------------------------------------------------------------
+    #
+    USE_USER_STAGED_EXTRN_FILES: false
+    EXTRN_MDL_SOURCE_BASEDIR_LBCS: ""
+    EXTRN_MDL_FILES_LBCS: ""
 
 #----------------------------
 # MAKE ICS config parameters
@@ -1706,46 +1716,47 @@ task_make_ics:
   # Controls the size of the stack for threads created by the OpenMP 
   # implementation.
   #-----------------------------------------------------------------------
-  KMP_AFFINITY_MAKE_ICS: "scatter"
-  OMP_NUM_THREADS_MAKE_ICS: 1
-  OMP_STACKSIZE_MAKE_ICS: "1024m"
-  #
-  #-----------------------------------------------------------------------
-  #
-  # USE_FVCOM:
-  # Flag set to update surface conditions in FV3-LAM with fields generated
-  # from the Finite Volume Community Ocean Model (FVCOM). This will
-  # replace lake/sea surface temperature, ice surface temperature, and ice
-  # placement. This flag will be used in make_ics to modify sfc_data.nc
-  # after chgres_cube is run by running the routine process_FVCOM.exe 
-  # FVCOM data must already be interpolated to the desired FV3-LAM grid. 
-  #
-  # FVCOM_WCSTART:
-  # Define whether this is a "warm" start or a "cold" start. Setting this to 
-  # "warm" will read in the sfc_data.nc file generated in a RESTART directory.
-  # Setting this to "cold" will read in the sfc_data.nc file generated from 
-  # chgres_cube in the make_ics portion of the workflow.
-  #
-  # FVCOM_DIR:
-  # User defined directory where FVCOM data already interpolated to FV3-LAM
-  # grid is located. The file in this directory must be named fvcom.nc
-  #
-  # FVCOM_FILE:
-  # Name of file located in FVCOM_DIR that has FVCOM data interpolated to 
-  # FV3-LAM grid. This file will be copied later to a new location and name
-  # changed to fvcom.nc
-  #
-  # VCOORD_FILE:
-  # Full path to the file used to set the vertical coordinate in FV3.
-  # This file should be the same in both make_ics and make_lbcs.
-  #
-  #------------------------------------------------------------------------
-  #
-  USE_FVCOM: false
-  FVCOM_WCSTART: "cold"
-  FVCOM_DIR: ""
-  FVCOM_FILE: "fvcom.nc"
-  VCOORD_FILE: "{{ workflow.FIXam }}/global_hyblev.l65.txt"
+  envars:
+    KMP_AFFINITY_MAKE_ICS: "scatter"
+    OMP_NUM_THREADS_MAKE_ICS: 1
+    OMP_STACKSIZE_MAKE_ICS: "1024m"
+    #
+    #-----------------------------------------------------------------------
+    #
+    # USE_FVCOM:
+    # Flag set to update surface conditions in FV3-LAM with fields generated
+    # from the Finite Volume Community Ocean Model (FVCOM). This will
+    # replace lake/sea surface temperature, ice surface temperature, and ice
+    # placement. This flag will be used in make_ics to modify sfc_data.nc
+    # after chgres_cube is run by running the routine process_FVCOM.exe 
+    # FVCOM data must already be interpolated to the desired FV3-LAM grid. 
+    #
+    # FVCOM_WCSTART:
+    # Define whether this is a "warm" start or a "cold" start. Setting this to 
+    # "warm" will read in the sfc_data.nc file generated in a RESTART directory.
+    # Setting this to "cold" will read in the sfc_data.nc file generated from 
+    # chgres_cube in the make_ics portion of the workflow.
+    #
+    # FVCOM_DIR:
+    # User defined directory where FVCOM data already interpolated to FV3-LAM
+    # grid is located. The file in this directory must be named fvcom.nc
+    #
+    # FVCOM_FILE:
+    # Name of file located in FVCOM_DIR that has FVCOM data interpolated to 
+    # FV3-LAM grid. This file will be copied later to a new location and name
+    # changed to fvcom.nc
+    #
+    # VCOORD_FILE:
+    # Full path to the file used to set the vertical coordinate in FV3.
+    # This file should be the same in both make_ics and make_lbcs.
+    #
+    #------------------------------------------------------------------------
+    #
+    USE_FVCOM: false
+    FVCOM_WCSTART: "cold"
+    FVCOM_DIR: ""
+    FVCOM_FILE: "fvcom.nc"
+    VCOORD_FILE: "{{ workflow.FIXam }}/global_hyblev.l65.txt"
 
 #----------------------------
 # MAKE LBCS config parameters
@@ -1770,10 +1781,11 @@ task_make_lbcs:
   # This file should be the same in both make_ics and make_lbcs.
   #
   #------------------------------------------------------------------------
-  KMP_AFFINITY_MAKE_LBCS: "scatter"
-  OMP_NUM_THREADS_MAKE_LBCS: 1
-  OMP_STACKSIZE_MAKE_LBCS: "1024m"
-  VCOORD_FILE: "{{ workflow.FIXam }}/global_hyblev.l65.txt"
+  envars:
+    KMP_AFFINITY_MAKE_LBCS: "scatter"
+    OMP_NUM_THREADS_MAKE_LBCS: 1
+    OMP_STACKSIZE_MAKE_LBCS: "1024m"
+    VCOORD_FILE: "{{ workflow.FIXam }}/global_hyblev.l65.txt"
 
 #----------------------------
 # IO_LAYOUT_Y FORECAST config parameters
@@ -2144,39 +2156,40 @@ task_run_prdgen:
   # OMP_STACKSIZE_RUN_PRDGEN: 
   # Controls the size of the stack for threads created by the OpenMP implementation.
   #-----------------------------------------------------------------------
-  KMP_AFFINITY_RUN_PRDGEN: "scatter"
-  OMP_NUM_THREADS_RUN_PRDGEN: 1
-  OMP_STACKSIZE_RUN_PRDGEN: "1024m"
-  #-----------------------------------------------------------------------
-  # DO_PARALLEL_PRDGEN:
-  # Flag that determines whether to use CFP to run the product generation
-  # job in parallel. This should be used with the RRFS_NA_3km grid.
-  #
-  #-----------------------------------------------------------------------
-  DO_PARALLEL_PRDGEN: false
-  #
-  #
-  #-----------------------------------------------------------------------
-  #
-  # Set additional output grids for wgrib2 remapping, if any.
-  # Space-separated list of strings, e.g., ( "130" "242" "clue" )
-  # Default is no additional grids
-  #
-  # Current options as of 23 Apr 2021:
-  #  "130"   (CONUS 13.5 km)
-  #  "200"   (Puerto Rico 16 km)
-  #  "221"   (North America 32 km)
-  #  "242"   (Alaska 11.25 km)
-  #  "243"   (Pacific 0.4-deg)
-  #  "clue"  (NSSL/SPC 3-km CLUE grid for 2020/2021)
-  #  "hrrr"  (HRRR 3-km CONUS grid)
-  #  "hrrre" (HRRRE 3-km CONUS grid)
-  #  "rrfsak" (RRFS 3-km Alaska grid)
-  #  "hrrrak" (HRRR 3-km Alaska grid)
-  #
-  #-----------------------------------------------------------------------
-  #
-  ADDNL_OUTPUT_GRIDS: []
+  envars:
+    KMP_AFFINITY_RUN_PRDGEN: "scatter"
+    OMP_NUM_THREADS_RUN_PRDGEN: 1
+    OMP_STACKSIZE_RUN_PRDGEN: "1024m"
+    #-----------------------------------------------------------------------
+    # DO_PARALLEL_PRDGEN:
+    # Flag that determines whether to use CFP to run the product generation
+    # job in parallel. This should be used with the RRFS_NA_3km grid.
+    #
+    #-----------------------------------------------------------------------
+    DO_PARALLEL_PRDGEN: false
+    #
+    #
+    #-----------------------------------------------------------------------
+    #
+    # Set additional output grids for wgrib2 remapping, if any.
+    # Space-separated list of strings, e.g., ( "130" "242" "clue" )
+    # Default is no additional grids
+    #
+    # Current options as of 23 Apr 2021:
+    #  "130"   (CONUS 13.5 km)
+    #  "200"   (Puerto Rico 16 km)
+    #  "221"   (North America 32 km)
+    #  "242"   (Alaska 11.25 km)
+    #  "243"   (Pacific 0.4-deg)
+    #  "clue"  (NSSL/SPC 3-km CLUE grid for 2020/2021)
+    #  "hrrr"  (HRRR 3-km CONUS grid)
+    #  "hrrre" (HRRRE 3-km CONUS grid)
+    #  "rrfsak" (RRFS 3-km Alaska grid)
+    #  "hrrrak" (HRRR 3-km Alaska grid)
+    #
+    #-----------------------------------------------------------------------
+    #
+    ADDNL_OUTPUT_GRIDS: []
 
 #----------------------------
 # PLOT_ALLVARS config parameters
@@ -2194,20 +2207,21 @@ task_plot_allvars:
   #    community mode: $PDY$cyc/postprd
   # We don't do this inside the code, so that we can compare nco vs com runs.
   #-------------------------------------------------------------------------
-  COMOUT_REF: ""
-  #------------------------------
-  # Plot fcts start and increment
-  #------------------------------
-  PLOT_FCST_START: 0
-  PLOT_FCST_INC: 3
-  #-----------------------------------
-  # By default the end is FCST_LEN_HRS
-  #-----------------------------------
-  PLOT_FCST_END: ""
-  #------------------------------------------------------------------------------
-  # Domains to plot. Currently supported are either "conus" or "regional" or both
-  #-------------------------------------------------------------------------------
-  PLOT_DOMAINS: ["conus"]
+  envars:
+    COMOUT_REF: ""
+    #------------------------------
+    # Plot fcts start and increment
+    #------------------------------
+    PLOT_FCST_START: 0
+    PLOT_FCST_INC: 3
+    #-----------------------------------
+    # By default the end is FCST_LEN_HRS
+    #-----------------------------------
+    PLOT_FCST_END: ""
+    #------------------------------------------------------------------------------
+    # Domains to plot. Currently supported are either "conus" or "regional" or both
+    #-------------------------------------------------------------------------------
+    PLOT_DOMAINS: ["conus"]
 
 #-----------------------------
 # NEXUS_EMISSION config parameters
@@ -2472,12 +2486,14 @@ verification_resources:
     ensemble:
       genensprod:
         default:
-          walltim: 01:00:00
+          walltime: 01:00:00
         ndas:
           walltime: 02:30:00
       ensemblestat:
         walltime: 01:00:00
       gridstat:
+        walltime: 01:00:00
+      pointstat:
         walltime: 01:00:00
     get_obs:
       ccpa:

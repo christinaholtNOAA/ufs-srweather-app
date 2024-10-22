@@ -20,11 +20,6 @@ workflow:
     - parm/wflow/verify_pre.yaml
     - parm/wflow/verify_det.yaml
     - parm/wflow/test.yaml
-rocoto:
-  tasks:
-    metatask_run_ensemble:
-      task_run_fcst_mem#mem#:
-        walltime: 01:00:00
 task_make_grid:
   ESGgrid_LON_CTR: -82.0
   ESGgrid_LAT_CTR: 47.0
@@ -35,11 +30,14 @@ task_make_grid:
   ESGgrid_WIDE_HALO_WIDTH: 6
   ESGgrid_PAZI: 0.0
 task_get_extrn_ics:
-  EXTRN_MDL_NAME_ICS: RAP
+  envars:
+    EXTRN_MDL_NAME_ICS: RAP
 task_get_extrn_lbcs:
-  EXTRN_MDL_NAME_LBCS: RAP
-  LBC_SPEC_INTVL_HRS: 3
+  envars:
+    EXTRN_MDL_NAME_LBCS: RAP
+    LBC_SPEC_INTVL_HRS: 3
 task_run_fcst:
+  walltime: 01:00:00
   DT_ATMOS: 90
   LAYOUT_X: 8
   LAYOUT_Y: 10

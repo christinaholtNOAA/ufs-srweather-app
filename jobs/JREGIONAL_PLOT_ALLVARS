@@ -52,21 +52,10 @@ sections=(
   user
   nco
   workflow
-  task_plot_allvars
-  task_run_fcst
+  task_plot_allvars.envars
 )
 for sect in ${sections[*]} ; do
   source_yaml ${GLOBAL_VAR_DEFNS_FP} ${sect}
-done
-items=(
-  task_plot_allvars.COMOUT_REF
-  task_plot_allvars.PLOT_DOMAINS
-  task_plot_allvars.PLOT_FCST_END
-  task_plot_allvars.PLOT_FCST_INC
-  task_plot_allvars.PLOT_FCST_START
-)
-for item in ${items[*]} ; do
-  export_env ${GLOBAL_VAR_DEFNS_FP} ${item}
 done
 #
 . $USHdir/job_preamble.sh
@@ -133,6 +122,7 @@ if [ -n "${SRW_GRAPHICS_ENV:-}" ] ; then
   set -u
 fi
 # plot all variables
+set -x
 $SCRIPTSdir/exregional_plot_allvars.py \
            --cycle ${CDATE} \
            --start ${PLOT_FCST_START} \
@@ -140,7 +130,7 @@ $SCRIPTSdir/exregional_plot_allvars.py \
            --inc ${PLOT_FCST_INC:-1} \
            --comout ${COMOUT} \
            --cartopy-dir ${FIXshp} \
-           --plot-domains "${PLOT_DOMAINS[@]}" \
+           --plot-domains ${PLOT_DOMAINS} \
            --domain ${GRID_NAME} || \
 print_err_msg_exit "\
 Call to ex-script corresponding to J-job \"${scrfunc_fn}\" failed."
@@ -155,7 +145,7 @@ if [ ! -z $COMOUT_REF ]; then
            --comout-1 ${COMOUT} \
            --comout-2 ${COMOUT_REF} \
            --cartopy-dir ${FIXshp} \
-           --plot-domains "${PLOT_DOMAINS[@]}" \
+           --plot-domains ${PLOT_DOMAINS} \
            --domain ${GRID_NAME} || \
   print_err_msg_exit "\
   Call to ex-script corresponding to J-job \"${scrfunc_fn}\" failed."

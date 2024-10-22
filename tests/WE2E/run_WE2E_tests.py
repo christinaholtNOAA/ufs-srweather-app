@@ -1,26 +1,24 @@
 #!/usr/bin/env python3
 # pylint: disable=logging-fstring-interpolation
+import argparse
+import glob
+import logging
 import os
 import sys
-import glob
-import argparse
-import logging
-from textwrap import dedent
 from datetime import datetime
+from pathlib import Path
+from textwrap import dedent
 
-sys.path.insert(1, "../../ush")
-
-from generate_FV3LAM_wflow import generate_FV3LAM_wflow
-from python_utils import (
-    cfg_to_yaml_str,
-    load_config_file,
-)
-
-from check_python_version import check_python_version
-
+# From test/WE2E
 from monitor_jobs import monitor_jobs, write_monitor_file
 from utils import print_test_info
+
 from uwtools.api.config import get_yaml_config
+
+sys.path.insert(1, "../../ush")
+from generate_FV3LAM_wflow import generate_FV3LAM_wflow
+from check_python_version import check_python_version
+
 
 def run_we2e_tests(homedir, args) -> None:
     """Function to run the WE2E tests selected by the user
@@ -42,11 +40,6 @@ def run_we2e_tests(homedir, args) -> None:
     # Set some variables based on input arguments
     run_envir = args.run_envir
     machine = args.machine.lower()
-
-    # Check for invalid input
-    if run_envir:
-        if run_envir not in ['nco', 'community']:
-            raise KeyError(f"Invalid 'run_envir' provided: {run_envir}")
 
     alltests = glob.glob('test_configs/**/config*.yaml', recursive=True)
     testdirs = next(os.walk('test_configs'))[1]
@@ -149,7 +142,7 @@ def run_we2e_tests(homedir, args) -> None:
 
     machine_file = os.path.join(ushdir, 'machine', f'{machine}.yaml')
     logging.debug(f"Loading machine defaults file {machine_file}")
-    machine_defaults = load_config_file(machine_file)
+    machine_defaults = get_yaml_config(machine_file)
 
     # Set up dictionary for job monitoring yaml
     if args.launch != "cron":
@@ -162,32 +155,37 @@ def run_we2e_tests(homedir, args) -> None:
         starttime_string = starttime.strftime("%Y%m%d%H%M%S")
         test_name = os.path.basename(test).split('.')[1]
         logging.debug(f"For test {test_name}, constructing config.yaml")
-        test_cfg = load_config_file(test)
+        test_cfg = get_yaml_config(test)
 
-        if test_cfg.get('user') is None:
-            test_cfg['user'] = {}
-        test_cfg['user'].update({"MACHINE": machine})
-        test_cfg['user'].update({"ACCOUNT": args.account})
+        test_config_updates = {
+             "user": {
+                "MACHINE": machine,
+                "ACCOUNT": args.account,
+                 },
+             "platform": {
+                 "BUILD_MOD_FN": args.modulefile,
+                 },
+             "workflow": {
+                 "COMPILER": args.compiler,
+                 "EXPT_SUBDIR": test_name
+                 },
+             }
         if run_envir:
-            test_cfg['user'].update({"RUN_ENVIR": run_envir})
-        # if platform section was not in input config, initialize as empty dict
-        if 'platform' not in test_cfg:
-            test_cfg['platform'] = dict()
-        test_cfg['platform'].update({"BUILD_MOD_FN": args.modulefile})
-        test_cfg['workflow'].update({"COMPILER": args.compiler})
+            test_config_updates['user'].update({"RUN_ENVIR": run_envir})
         if args.expt_basedir:
-            test_cfg['workflow'].update({"EXPT_BASEDIR": args.expt_basedir})
-        test_cfg['workflow'].update({"EXPT_SUBDIR": test_name})
+            test_config_updates['workflow'].update({"EXPT_BASEDIR": args.expt_basedir})
         if args.exec_subdir:
-            test_cfg['workflow'].update({"EXEC_SUBDIR": args.exec_subdir})
+            test_config_updates['workflow'].update({"EXEC_SUBDIR": args.exec_subdir})
         if args.launch == "cron":
-            test_cfg['workflow'].update({"USE_CRON_TO_RELAUNCH": True})
+            test_config_updates['workflow'].update({"USE_CRON_TO_RELAUNCH": True})
         if args.cron_relaunch_intvl_mnts:
-            test_cfg['workflow'].update({"CRON_RELAUNCH_INTVL_MNTS": args.cron_relaunch_intvl_mnts})
+            test_config_updates['workflow'].update({"CRON_RELAUNCH_INTVL_MNTS": args.cron_relaunch_intvl_mnts})
         if args.debug_tests:
-            test_cfg['workflow'].update({"DEBUG": args.debug_tests})
+            test_config_updates['workflow'].update({"DEBUG": args.debug_tests})
         if args.verbose_tests:
-            test_cfg['workflow'].update({"VERBOSE": args.verbose_tests})
+            test_config_updates['workflow'].update({"VERBOSE": args.verbose_tests})
+
+        test_cfg.update_from(test_config_updates)
 
         logging.debug(f"Overwriting WE2E-test-specific settings for test \n{test_name}\n")
 
@@ -214,7 +212,19 @@ def run_we2e_tests(homedir, args) -> None:
         if args.compiler == "gnu":
             # 2D decomposition doesn't work with GNU compilers.  Deactivate 2D decomposition for GNU
             if 'task_run_post' in test_cfg:
-                test_cfg['task_run_post'].update({"NUMX": 1})
+                test_cfg.update_from({
+                    "task_run_post": {
+                        "upp": {
+                            "namelist": {
+                                "update_values": {
+                                    "nampgb": {
+                                        "numx": 1,
+                                    },
+                                },
+                            },
+                        },
+                    }
+                })
                 logging.info(f"NUMX has been reset to 1 due to issues encountered with GNU compilers")
             if 'task_run_fcst' in test_cfg:
                 test_cfg['task_run_fcst'].update({"ITASKS": 1})
@@ -222,9 +232,8 @@ def run_we2e_tests(homedir, args) -> None:
 
         logging.debug(f"Writing updated config.yaml for test {test_name}\n"\
                        "based on specified command-line arguments:\n")
-        logging.debug(cfg_to_yaml_str(test_cfg))
-        with open(os.path.join(ushdir,"config.yaml"),"w", encoding="utf-8") as f:
-            f.writelines(cfg_to_yaml_str(test_cfg))
+        logging.debug(test_cfg)
+        test_cfg.dump(Path(ushdir,"config.yaml"))
 
         logging.info(f"Calling workflow generation function for test {test_name}\n")
         if args.quiet:
@@ -383,22 +392,24 @@ def check_task_get_extrn_bcs(cfg: dict, mach: dict, dflt: dict, ics_or_lbcs: str
 
     I_OR_L = ics_or_lbcs.upper()
 
+    cfg_bcs_vars = cfg_bcs.get("envars", {})
+
     # If USE_USER_STAGED_EXTRN_FILES not specified or false, do nothing and return
-    if not cfg_bcs.get('USE_USER_STAGED_EXTRN_FILES'):
+    if not cfg_bcs_vars.get('USE_USER_STAGED_EXTRN_FILES'):
         logging.debug('USE_USER_STAGED_EXTRN_FILES not specified or False in '\
                       f'task_get_extrn_{ics_or_lbcs} section of config')
         return cfg_bcs
 
     # If EXTRN_MDL_SYSBASEDIR_* is "set_to_non_default_location_in_testing_script", replace with
     # test value from machine file
-    if cfg_bcs.get(f'EXTRN_MDL_SYSBASEDIR_{I_OR_L}') == \
+    if cfg_bcs_vars.get(f'EXTRN_MDL_SYSBASEDIR_{I_OR_L}') == \
                     "set_to_non_default_location_in_testing_script":
         if f'TEST_ALT_EXTRN_MDL_SYSBASEDIR_{I_OR_L}' in mach['platform']:
             if os.path.isdir(mach['platform'][f'TEST_ALT_EXTRN_MDL_SYSBASEDIR_{I_OR_L}']):
                 raise FileNotFoundError("Non-default input file location "\
                                         f"TEST_ALT_EXTRN_MDL_SYSBASEDIR_{I_OR_L} from machine "\
                                         "file does not exist or is not a directory")
-            cfg_bcs[f'EXTRN_MDL_SYSBASEDIR_{I_OR_L}'] = \
+            cfg_bcs_vars[f'EXTRN_MDL_SYSBASEDIR_{I_OR_L}'] = \
                     mach['platform'][f'TEST_ALT_EXTRN_MDL_SYSBASEDIR_{I_OR_L}']
         else:
             raise KeyError("Non-default input file location "\
@@ -418,18 +429,18 @@ def check_task_get_extrn_bcs(cfg: dict, mach: dict, dflt: dict, ics_or_lbcs: str
                 does not exist."""))
 
     # Different input data types have different directory structures; set data dir accordingly
-    if cfg_bcs[f'EXTRN_MDL_NAME_{I_OR_L}'] == 'FV3GFS':
-        if f'FV3GFS_FILE_FMT_{I_OR_L}' not in cfg_bcs:
-            cfg_bcs[f'FV3GFS_FILE_FMT_{I_OR_L}'] = \
-                    dflt[f'task_get_extrn_{ics_or_lbcs}'][f'FV3GFS_FILE_FMT_{I_OR_L}']
-        cfg_bcs[f'EXTRN_MDL_SOURCE_BASEDIR_{I_OR_L}'] = \
+    if cfg_bcs_vars[f'EXTRN_MDL_NAME_{I_OR_L}'] == 'FV3GFS':
+        if f'FV3GFS_FILE_FMT_{I_OR_L}' not in cfg_bcs_vars:
+            cfg_bcs_vars[f'FV3GFS_FILE_FMT_{I_OR_L}'] = \
+                    dflt[f'task_get_extrn_{ics_or_lbcs}']['envars'][f'FV3GFS_FILE_FMT_{I_OR_L}']
+        cfg_bcs_vars[f'EXTRN_MDL_SOURCE_BASEDIR_{I_OR_L}'] = \
                 os.path.join(f"{mach['platform']['TEST_EXTRN_MDL_SOURCE_BASEDIR']}",
-                f"{cfg_bcs[f'EXTRN_MDL_NAME_{I_OR_L}']}",f"{cfg_bcs[f'FV3GFS_FILE_FMT_{I_OR_L}']}",
+                f"{cfg_bcs_vars[f'EXTRN_MDL_NAME_{I_OR_L}']}",f"{cfg_bcs_vars[f'FV3GFS_FILE_FMT_{I_OR_L}']}",
                 f"${{yyyymmddhh}}")
     else:
-        cfg_bcs[f'EXTRN_MDL_SOURCE_BASEDIR_{I_OR_L}'] = \
+        cfg_bcs_vars[f'EXTRN_MDL_SOURCE_BASEDIR_{I_OR_L}'] = \
                 os.path.join(f"{mach['platform']['TEST_EXTRN_MDL_SOURCE_BASEDIR']}",
-                f"{cfg_bcs[f'EXTRN_MDL_NAME_{I_OR_L}']}/${{yyyymmddhh}}")
+                f"{cfg_bcs_vars[f'EXTRN_MDL_NAME_{I_OR_L}']}/${{yyyymmddhh}}")
 
     return cfg_bcs
 
@@ -507,7 +518,7 @@ if __name__ == "__main__":
     ap.add_argument('--modulefile', type=str, help='Modulefile used for building the app')
     ap.add_argument('--run_envir', type=str,
                     help='Overrides RUN_ENVIR variable to a new value ("nco" or "community") '\
-                         'for all experiments', default='')
+                         'for all experiments', default='', choices=["nco", "community"])
     ap.add_argument('--expt_basedir', type=str,
                     help='Explicitly set EXPT_BASEDIR for all experiments')
     ap.add_argument('--exec_subdir', type=str,

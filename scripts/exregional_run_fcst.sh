@@ -118,7 +118,7 @@ sections=(
   cpl_aqm_parm
   constants
   fixed_files
-  task_get_extrn_lbcs
+  task_get_extrn_lbcs.envars
   task_run_fcst
 )
 for sect in ${sections[*]} ; do

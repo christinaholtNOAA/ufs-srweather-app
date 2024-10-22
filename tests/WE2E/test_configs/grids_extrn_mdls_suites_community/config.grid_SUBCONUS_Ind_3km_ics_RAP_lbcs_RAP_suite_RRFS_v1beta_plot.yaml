@@ -19,17 +19,19 @@ workflow:
     - parm/wflow/plot.yaml
     - parm/wflow/test.yaml
 task_get_extrn_ics:
-  EXTRN_MDL_NAME_ICS: RAP
-  EXTRN_MDL_ICS_OFFSET_HRS: 6
-  USE_USER_STAGED_EXTRN_FILES: true
-  EXTRN_MDL_FILES_ICS:
-    - '{yy}{jjj}{hh}00{fcst_hr:02d}00'
+  envars:
+    EXTRN_MDL_NAME_ICS: RAP
+    EXTRN_MDL_ICS_OFFSET_HRS: 6
+    USE_USER_STAGED_EXTRN_FILES: true
+    EXTRN_MDL_FILES_ICS:
+      - '{yy}{jjj}{hh}00{fcst_hr:02d}00'
 task_get_extrn_lbcs:
-  EXTRN_MDL_NAME_LBCS: RAP
-  LBC_SPEC_INTVL_HRS: 3
-  EXTRN_MDL_LBCS_OFFSET_HRS: 6
-  USE_USER_STAGED_EXTRN_FILES: true
-  EXTRN_MDL_FILES_LBCS:
-    - '{yy}{jjj}{hh}00{fcst_hr:02d}00'
+  envars:
+    EXTRN_MDL_NAME_LBCS: RAP
+    LBC_SPEC_INTVL_HRS: 3
+    EXTRN_MDL_LBCS_OFFSET_HRS: 6
+    USE_USER_STAGED_EXTRN_FILES: true
+    EXTRN_MDL_FILES_LBCS:
+      - '{yy}{jjj}{hh}00{fcst_hr:02d}00'
 task_plot_allvars:
   PLOT_DOMAINS: ["regional"]

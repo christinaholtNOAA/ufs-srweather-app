@@ -531,7 +531,7 @@ def setup(USHdir, user_config_fn="config.yaml", debug: bool = False):
             return ""
 
     # Get the paths to any platform-supported data streams
-    get_extrn_ics = expt_config.get("task_get_extrn_ics", {})
+    get_extrn_ics = expt_config.get("task_get_extrn_ics", {}).get("envars")
     extrn_mdl_sysbasedir_ics = get_location(
         get_extrn_ics.get("EXTRN_MDL_NAME_ICS"),
         get_extrn_ics.get("FV3GFS_FILE_FMT_ICS"),
@@ -539,7 +539,7 @@ def setup(USHdir, user_config_fn="config.yaml", debug: bool = False):
     )
     get_extrn_ics["EXTRN_MDL_SYSBASEDIR_ICS"] = extrn_mdl_sysbasedir_ics
 
-    get_extrn_lbcs = expt_config.get("task_get_extrn_lbcs", {})
+    get_extrn_lbcs = expt_config.get("task_get_extrn_lbcs", {}).get("envars")
     extrn_mdl_sysbasedir_lbcs = get_location(
         get_extrn_lbcs.get("EXTRN_MDL_NAME_LBCS"),
         get_extrn_lbcs.get("FV3GFS_FILE_FMT_LBCS"),
@@ -579,8 +579,8 @@ def setup(USHdir, user_config_fn="config.yaml", debug: bool = False):
 
     # Make sure the vertical coordinate file for both make_lbcs and
     # make_ics is the same.
-    if ics_vcoord := expt_config.get("task_make_ics", {}).get("VCOORD_FILE") != \
-            (lbcs_vcoord := expt_config.get("task_make_lbcs", {}).get("VCOORD_FILE")):
+    if ics_vcoord := expt_config.get("task_make_ics", {}).get("envars").get("VCOORD_FILE") != \
+            (lbcs_vcoord := expt_config.get("task_make_lbcs", {}).get("envars").get("VCOORD_FILE")):
          raise ValueError(
              f"""
              The VCOORD_FILE must be set to the same value for both the
@@ -729,7 +729,7 @@ def setup(USHdir, user_config_fn="config.yaml", debug: bool = False):
         else:
             restart_hrs.append(str(restart_interval))
 
-        lbc_spec_intvl_hrs = expt_config["task_get_extrn_lbcs"]["LBC_SPEC_INTVL_HRS"]
+        lbc_spec_intvl_hrs = get_extrn_lbcs["LBC_SPEC_INTVL_HRS"]
         for irst in restart_hrs:
             rem_rst = int(irst) % lbc_spec_intvl_hrs
             if rem_rst != 0:

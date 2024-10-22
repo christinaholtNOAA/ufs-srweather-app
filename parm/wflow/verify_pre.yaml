@@ -127,7 +127,7 @@ metatask_PcpCombine_obs:
       OBTYPE: CCPA
       OBS_DIR: '&CCPA_OBS_DIR;'
       METPLUSTOOLNAME: 'PCPCOMBINE'
-    walltime: "{{ verification_resources.execution.pcpcombine.obs..walltime }}"
+    walltime: "{{ verification_resources.execution.pcpcombine.obs.walltime }}"
     dependency:
       and:
         datadep:

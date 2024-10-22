@@ -144,7 +144,7 @@ metatask_PointStat_NDAS_all_mems:
         SLASH_ENSMEM_SUBDIR_OR_NULL: '{{ "/mem#mem#" if global.DO_ENSEMBLE }}'
         FCST_LEVEL: 'all'
         FCST_THRESH: 'all'
-      walltime: "{{ verification_resources.execution.pointstat.walltime }}"
+      walltime: "{{ verification_resources.execution.deterministic.pointstat.walltime }}"
       dependency:
         and:
           taskdep_pb2nc:
