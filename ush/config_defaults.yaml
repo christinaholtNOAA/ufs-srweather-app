@@ -3,8 +3,8 @@
 #----------------------------
 metadata:
   description: >-
-    Default configuration for an experiment. The valid values for most of the
-    parameters are specified in valid_param_vals.yaml
+    Default configuration for an experiment. Valid values are
+    schema-checked against experiment.jsonschema.
 #----------------------------
 # USER config parameters
 #----------------------------
@@ -44,7 +44,7 @@ user:
   # supported platform, and you want to use the Rocoto workflow manager,
   # you will need set MACHINE: "linux" and WORKFLOW_MANAGER: "rocoto". This
   # combination will assume a Slurm batch manager when generating the XML.
-  # Please see ush/valid_param_vals.yaml for a full list of supported
+  # Please see ush/experiment.jsonschema for a full list of supported
   # platforms.
   #
   # ACCOUNT:

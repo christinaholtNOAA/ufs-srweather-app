@@ -1333,7 +1333,6 @@ def setup(USHdir, user_config_fn="config.yaml", debug: bool = False):
         var_defns_cfg["workflow"][dates] = date_to_str(var_defns_cfg["workflow"][dates])
     var_defns_cfg.dump(Path(global_var_defns_fp))
 
-
     #
     # -----------------------------------------------------------------------
     #
@@ -1341,32 +1340,14 @@ def setup(USHdir, user_config_fn="config.yaml", debug: bool = False):
     #
     # -----------------------------------------------------------------------
     #
+    # Validate experiment config against schema
+    schema = Path(USHdir) / "experiment.jsonschema"
+    valid = validate(schema_file=schema, config=var_defns_cfg)
 
-    # loop through the flattened expt_config and check validity of params
-    cfg_v = load_config_file(os.path.join(USHdir, "valid_param_vals.yaml"))
-    for k, v in flatten_dict(var_defns_cfg).items():
-        if v is None or v == "":
-            continue
-        vkey = "valid_vals_" + k
-        if (vkey in cfg_v):
-            if (type(v) == list):
-                if not(all(ele in cfg_v[vkey] for ele in v)):
-                    raise Exception(
-                        dedent(f"""
-                        The variable
-                            {k} = {v}
-                        in the user's configuration has at least one invalid value.  Possible values are:
-                            {k} = {cfg_v[vkey]}"""
-                    ))
-            else:
-                if not (v in cfg_v[vkey]):
-                    raise Exception(
-                        dedent(f"""
-                        The variable
-                            {k} = {v} ({type(v)})
-                        in the user's configuration does not have a valid value.  Possible values are:
-                            {k} = {cfg_v[vkey]}"""
-                    ))
+    if not valid:
+        logging.error(f"Experiment configuration is not valid against schema")
+        sys.exit(1)
+
 
     return expt_config
 

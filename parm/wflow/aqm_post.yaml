@@ -59,7 +59,6 @@ task_post_stat_o3:
   memory: 120G
   walltime: '{{ task_post_stat_o3.execution.walltime }}'
   dependency:
-  dependency:
     taskdep:
       attrs:
         task: pre_post_stat
