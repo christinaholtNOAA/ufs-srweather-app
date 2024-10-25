@@ -23,11 +23,11 @@ workflow:
     - parm/wflow/verify_ens.yaml
     - parm/wflow/test.yaml
 task_get_extrn_ics:
-  envars:
+  envvars:
     EXTRN_MDL_NAME_ICS: NAM
     USE_USER_STAGED_EXTRN_FILES: true
 task_get_extrn_lbcs:
-  envars:
+  envvars:
     EXTRN_MDL_NAME_LBCS: NAM
     LBC_SPEC_INTVL_HRS: 3
     USE_USER_STAGED_EXTRN_FILES: true

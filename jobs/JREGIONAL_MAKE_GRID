@@ -39,7 +39,7 @@ sections=(
   user
   nco
   workflow
-  task_make_grid.envars
+  task_make_grid.envvars
 )
 for sect in ${sections[*]} ; do
   source_yaml ${GLOBAL_VAR_DEFNS_FP} ${sect}

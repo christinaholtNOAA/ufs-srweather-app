@@ -16,11 +16,11 @@ workflow:
   FCST_LEN_HRS: 6
   PREEXISTING_DIR_METHOD: rename
 task_get_extrn_ics:
-  envars:
+  envvars:
     EXTRN_MDL_NAME_ICS: FV3GFS
     USE_USER_STAGED_EXTRN_FILES: true
 task_get_extrn_lbcs:
-  envars:
+  envvars:
     EXTRN_MDL_NAME_LBCS: FV3GFS
     LBC_SPEC_INTVL_HRS: 6
     USE_USER_STAGED_EXTRN_FILES: true
@@ -37,7 +37,7 @@ task_make_lbcs:
         nodes: 12
         tasks_per_node: 4
         walltime: 01:00:00
-  envars:
+  envvars:
     OMP_STACKSIZE_MAKE_ICS: 2048m
 task_run_fcst:
   OMP_STACKSIZE_RUN_FCST: 2048m

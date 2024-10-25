@@ -28,12 +28,12 @@ rocoto:
       task_run_fcst_mem#mem#:
         walltime: 01:00:00
 task_get_extrn_ics:
-  envars:
+  envvars:
     EXTRN_MDL_NAME_ICS: FV3GFS
     FV3GFS_FILE_FMT_ICS: grib2
     USE_USER_STAGED_EXTRN_FILES: true
 task_get_extrn_lbcs:
-  envars:
+  envvars:
     EXTRN_MDL_NAME_LBCS: RAP
     LBC_SPEC_INTVL_HRS: 1
     EXTRN_MDL_LBCS_OFFSET_HRS: 0

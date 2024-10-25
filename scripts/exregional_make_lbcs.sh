@@ -91,8 +91,8 @@ sections=(
   global
   cpl_aqm_parm
   constants
-  task_get_extrn_lbcs.envars
-  task_make_lbcs.envars
+  task_get_extrn_lbcs.envvars
+  task_make_lbcs.envvars
 )
 for sect in ${sections[*]} ; do
   source_yaml ${GLOBAL_VAR_DEFNS_FP} ${sect}

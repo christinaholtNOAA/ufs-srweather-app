@@ -1188,7 +1188,7 @@ task_make_grid:
     cores: 24
     walltime: 00:20:00
   # Variables used in run script
-  envars:
+  envvars:
     GRID_DIR: '{{ task_make_grid.GRID_DIR }}'
     GFDLgrid_NUM_CELLS: '{{ task_make_grid.GFDLgrid_NUM_CELLS }}'
     GFDLgrid_USE_NUM_CELLS_IN_FILENAMES: '{{ task_make_grid.GFDLgrid_USE_NUM_CELLS_IN_FILENAMES }}'
@@ -1546,7 +1546,7 @@ task_get_extrn_ics:
   #
   #-----------------------------------------------------------------------
   #
-  envars:
+  envvars:
     EXTRN_MDL_NAME_ICS: "FV3GFS"
     EXTRN_MDL_ICS_OFFSET_HRS: 0
     FV3GFS_FILE_FMT_ICS: "nemsio"
@@ -1654,10 +1654,10 @@ task_get_extrn_lbcs:
   #
   #-----------------------------------------------------------------------
   #
-  envars:
+  envvars:
     EXTRN_MDL_NAME_LBCS: "FV3GFS"
     LBC_SPEC_INTVL_HRS: 6
-    EXTRN_MDL_LBCS_OFFSET_HRS: '{{ 3 if task_get_extrn_lbcs.envars.EXTRN_MDL_NAME_LBCS == "RAP" else 0 }}'
+    EXTRN_MDL_LBCS_OFFSET_HRS: '{{ 3 if task_get_extrn_lbcs.envvars.EXTRN_MDL_NAME_LBCS == "RAP" else 0 }}'
     FV3GFS_FILE_FMT_LBCS: "nemsio"
     #
     #-----------------------------------------------------------------------
@@ -1716,7 +1716,7 @@ task_make_ics:
   # Controls the size of the stack for threads created by the OpenMP 
   # implementation.
   #-----------------------------------------------------------------------
-  envars:
+  envvars:
     KMP_AFFINITY_MAKE_ICS: "scatter"
     OMP_NUM_THREADS_MAKE_ICS: 1
     OMP_STACKSIZE_MAKE_ICS: "1024m"
@@ -1781,7 +1781,7 @@ task_make_lbcs:
   # This file should be the same in both make_ics and make_lbcs.
   #
   #------------------------------------------------------------------------
-  envars:
+  envvars:
     KMP_AFFINITY_MAKE_LBCS: "scatter"
     OMP_NUM_THREADS_MAKE_LBCS: 1
     OMP_STACKSIZE_MAKE_LBCS: "1024m"
@@ -2156,7 +2156,7 @@ task_run_prdgen:
   # OMP_STACKSIZE_RUN_PRDGEN: 
   # Controls the size of the stack for threads created by the OpenMP implementation.
   #-----------------------------------------------------------------------
-  envars:
+  envvars:
     KMP_AFFINITY_RUN_PRDGEN: "scatter"
     OMP_NUM_THREADS_RUN_PRDGEN: 1
     OMP_STACKSIZE_RUN_PRDGEN: "1024m"
@@ -2207,7 +2207,7 @@ task_plot_allvars:
   #    community mode: $PDY$cyc/postprd
   # We don't do this inside the code, so that we can compare nco vs com runs.
   #-------------------------------------------------------------------------
-  envars:
+  envvars:
     COMOUT_REF: ""
     #------------------------------
     # Plot fcts start and increment

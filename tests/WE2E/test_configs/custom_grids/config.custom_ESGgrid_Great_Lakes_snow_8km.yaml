@@ -30,10 +30,10 @@ task_make_grid:
   ESGgrid_WIDE_HALO_WIDTH: 6
   ESGgrid_PAZI: 0.0
 task_get_extrn_ics:
-  envars:
+  envvars:
     EXTRN_MDL_NAME_ICS: RAP
 task_get_extrn_lbcs:
-  envars:
+  envvars:
     EXTRN_MDL_NAME_LBCS: RAP
     LBC_SPEC_INTVL_HRS: 3
 task_run_fcst:

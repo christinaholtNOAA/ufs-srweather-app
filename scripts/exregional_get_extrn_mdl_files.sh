@@ -74,8 +74,8 @@ sections=(
   platform
   workflow
   global
-  task_get_extrn_ics.envars
-  task_get_extrn_lbcs.envars
+  task_get_extrn_ics.envvars
+  task_get_extrn_lbcs.envvars
 )
 for sect in ${sections[*]} ; do
   source_yaml ${GLOBAL_VAR_DEFNS_FP} ${sect}

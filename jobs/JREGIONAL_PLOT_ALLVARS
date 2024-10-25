@@ -52,7 +52,7 @@ sections=(
   user
   nco
   workflow
-  task_plot_allvars.envars
+  task_plot_allvars.envvars
 )
 for sect in ${sections[*]} ; do
   source_yaml ${GLOBAL_VAR_DEFNS_FP} ${sect}

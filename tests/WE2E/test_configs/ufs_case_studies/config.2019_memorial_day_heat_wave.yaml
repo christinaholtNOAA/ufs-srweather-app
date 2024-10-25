@@ -21,13 +21,13 @@ workflow:
 task_get_extrn_ics:
   execution:
     walltime: 06:00:00
-  envars:
+  envvars:
     EXTRN_MDL_NAME_ICS: UFS-CASE-STUDY
     FV3GFS_FILE_FMT_ICS: nemsio
 task_get_extrn_lbcs:
   execution:
     walltime: 06:00:00
-  envars:
+  envvars:
     EXTRN_MDL_NAME_LBCS: UFS-CASE-STUDY
     LBC_SPEC_INTVL_HRS: 6
     FV3GFS_FILE_FMT_LBCS: nemsio

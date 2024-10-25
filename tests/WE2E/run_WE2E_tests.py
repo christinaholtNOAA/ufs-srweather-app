@@ -392,7 +392,7 @@ def check_task_get_extrn_bcs(cfg: dict, mach: dict, dflt: dict, ics_or_lbcs: str
 
     I_OR_L = ics_or_lbcs.upper()
 
-    cfg_bcs_vars = cfg_bcs.get("envars", {})
+    cfg_bcs_vars = cfg_bcs.get("envvars", {})
 
     # If USE_USER_STAGED_EXTRN_FILES not specified or false, do nothing and return
     if not cfg_bcs_vars.get('USE_USER_STAGED_EXTRN_FILES'):
@@ -432,7 +432,7 @@ def check_task_get_extrn_bcs(cfg: dict, mach: dict, dflt: dict, ics_or_lbcs: str
     if cfg_bcs_vars[f'EXTRN_MDL_NAME_{I_OR_L}'] == 'FV3GFS':
         if f'FV3GFS_FILE_FMT_{I_OR_L}' not in cfg_bcs_vars:
             cfg_bcs_vars[f'FV3GFS_FILE_FMT_{I_OR_L}'] = \
-                    dflt[f'task_get_extrn_{ics_or_lbcs}']['envars'][f'FV3GFS_FILE_FMT_{I_OR_L}']
+                    dflt[f'task_get_extrn_{ics_or_lbcs}']['envvars'][f'FV3GFS_FILE_FMT_{I_OR_L}']
         cfg_bcs_vars[f'EXTRN_MDL_SOURCE_BASEDIR_{I_OR_L}'] = \
                 os.path.join(f"{mach['platform']['TEST_EXTRN_MDL_SOURCE_BASEDIR']}",
                 f"{cfg_bcs_vars[f'EXTRN_MDL_NAME_{I_OR_L}']}",f"{cfg_bcs_vars[f'FV3GFS_FILE_FMT_{I_OR_L}']}",
