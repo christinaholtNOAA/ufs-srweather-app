@@ -21,11 +21,6 @@ workflow:
     - parm/wflow/verify_ens.yaml
     - parm/wflow/test.yaml
 
-rocoto:
-  tasks:
-    metatask_run_ensemble:
-      task_run_fcst_mem#mem#:
-        walltime: 01:00:00
 task_get_extrn_ics:
   envvars:
     USE_USER_STAGED_EXTRN_FILES: true
@@ -37,6 +32,9 @@ task_get_extrn_lbcs:
     EXTRN_MDL_NAME_LBCS: FV3GFS
     FV3GFS_FILE_FMT_LBCS: netcdf
     LBC_SPEC_INTVL_HRS: 3
+task_run_fcst:
+  walltime: 01:00:00
+
 global:
   DO_ENSEMBLE: true
   NUM_ENS_MEMBERS: 10

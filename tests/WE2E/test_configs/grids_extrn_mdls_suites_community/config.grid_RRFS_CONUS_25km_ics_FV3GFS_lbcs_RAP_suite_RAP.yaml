@@ -22,11 +22,6 @@ workflow:
     - parm/wflow/verify_pre.yaml
     - parm/wflow/verify_det.yaml
     - parm/wflow/test.yaml
-rocoto:
-  tasks:
-    metatask_run_ensemble:
-      task_run_fcst_mem#mem#:
-        walltime: 01:00:00
 task_get_extrn_ics:
   envvars:
     EXTRN_MDL_NAME_ICS: FV3GFS
@@ -38,5 +33,7 @@ task_get_extrn_lbcs:
     LBC_SPEC_INTVL_HRS: 1
     EXTRN_MDL_LBCS_OFFSET_HRS: 0
     USE_USER_STAGED_EXTRN_FILES: true
+task_run_fcst:
+  walltime: 01:00:00
 verification:
   VX_FCST_MODEL_NAME: FV3_GFS_v15p2_CONUS_25km

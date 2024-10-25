@@ -1,7 +1,9 @@
 
 function source_yaml () {
 
-  local func_name="${FUNCNAME[0]}"
+  local func_name line section uw_exit_code uw_output yaml_file
+
+  func_name="${FUNCNAME[0]}"
 
   if [ "$#" -lt 1 ] ; then
     print_err_msg_exit "

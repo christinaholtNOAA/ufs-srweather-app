@@ -171,12 +171,6 @@ def load_config_for_setup(ushdir, default_config_path, user_config_path):
     # Dereference all Jinja expressions
     default_config.dereference()
 
-    ## Do any conversions of data types
-    #for sect, settings in default_config.items():
-    #    for k, v in settings.items():
-    #        if not (v is None or v == "") and isinstance(v, str):
-    #            default_config[sect][k] = str_to_list(v)
-
     # Validate experiment config against schema
     schema = ushdir / "experiment.jsonschema"
     valid = validate(schema_file=schema, config=default_config)
