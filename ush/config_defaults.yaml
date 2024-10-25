@@ -1765,7 +1765,7 @@ task_run_fcst:
     execution:
       batchargs:
         walltime: 00:10:00
-      executable: '{{ user.EXECdir }}/run_fcst' 
+      executable: '{{ user.EXECdir }}/{{ workflow.FV3_EXEC_FN }}' 
       mpiargs:
         - "--export=NONE"
       mpicmd: '{{ platform.BATCH_RUN_CMD }}' 
@@ -1785,15 +1785,61 @@ task_run_fcst:
       path: '{{ task_run_fcst.fv3.rundir }}/INPUT/{{ nco.NET_default }}.{{ cycle }}{{ "dot_ensmem" | env  }}.gfs_bndy.tile{{ constants.TILE_RGNL }}.f{{ task_run_fcst.fv3.lateral_boundary_conditions.offset }}.nc' 
     length: 12
     model_configure:
-      base_file: '{{ user.USHdir }}/create_model_configure_file.py' 
       update_values:
-        write_dopost: .false.
+        total_member: 1
+        start_year: !int '{{ cycle.year }}'
+        start_month: !int '{{ cycle.month }}'
+        start_day: !int '{{ cycle.day }}'
+        start_hour: !int '{{ cycle.hour }}'
+        start_minute: !int '{{ cycle.minute }}'
+        start_second: !int '{{ cycle.second }}'
+        nhours_fcst: !int '{{ workflow.FCST_LEN_HRS }}'
+        fhrot: 0
+        run_continue: false
+        ens_sps: false
+        dt_atmos: ""
+        calendar: julian
+        memuse_verbose: false
+        restart_interval: 0
+        output_1st_tstep_rst: false
+        write_dopost: false
+        ideflate: 0
+        nbits: 0
+        ichunk2d: -1
+        jchunk2d: -1
+        ichunk3d: -1
+        jchunk3d: -1
+        kchunk3d: -1
+        itasks: 1
+        quilting: true
+        write_groups: !int {{ task_run_fcst.WRTCMP_write_groups }}
+        write_tasks_per_group: !int {{ task_run_fcst.WRTCMP_write_tasks_per_group }}
+        num_files: 2
+        filename_base: 'dyn phy'
+        output_file: 'netcdf netcdf'
+        output_fh: '1  -1'
+        nsout: -1
+        output_grid: '{{ task_run_fcst.WRTCMP_output_grid }}'
     namelist:
-      base_file: /path/to/base/input.nml
+      base_file: "{{ workflow.FV3_NML_BASE_SUITE_FP }}"
       update_values:
+        atmos_model_nml:
+          blocksize: !int {{ task_run_fcst.BLOCKSIZE }}
+          ccpp_suite: '{{ workflow.CCPP_PHYS_SUITE }}'
         fv_core_nml:
-          k_split: 2
-          n_split: 6
+          target_lon: !int {{ grid_params.LON_CTR }}
+          target_lat: !int {{ grid_params.LAT_CTR }}
+          nrows_blend: !int {{ grid_params.HALO_BLEND }}
+          stretch_fac: !int {{ grid_params.STRETCH_FAC }}
+          npx: !int {{ grid_params.NX + 1 }}
+          npy: !int {{ grid_params.NY + 1 }}
+          layout:
+            - !int {{ task_run_fcst.LAYOUT_X }}
+            - !int {{ task_run_fcst.LAYOUT_Y }}
+          bc_update_interval: !int {{ task_get_extrn_lbcs.LBC_SPEC_INTVL_HRS }}
+        gfs_physics_nml:
+          kice: !int {{ 9 if workflow.SDF_USES_RUC_LSM else 2 }}
+          print_diff_pgr: false
       validate: true
     rundir: '{{ workflow.EXPTDIR }}/run_fcst'
   #------------------------------------------------------------------------
@@ -1816,7 +1862,6 @@ task_run_fcst:
   #------------------------------------------------------------------------
   NNODES_RUN_FCST: !int '{{ (task_run_fcst.PE_MEMBER01 + task_run_fcst.PPN_RUN_FCST - 1) // task_run_fcst.PPN_RUN_FCST }}'
   PPN_RUN_FCST: '{{ platform.NCORES_PER_NODE // task_run_fcst.OMP_NUM_THREADS_RUN_FCST }}'
-  FV3_EXEC_FP: '{{ user.EXECdir }}/{{ workflow.FV3_EXEC_FN }}'
   IO_LAYOUT_Y: 1
   #
   #-----------------------------------------------------------------------
@@ -1856,15 +1901,6 @@ task_run_fcst:
   #
   # Set model_configure parameters.  Definitions:
   #
-  # DT_ATMOS:
-  # The main forecast model integration time step.  As described in the 
-  # forecast model documentation, "It corresponds to the frequency with 
-  # which the top level routine in the dynamics is called as well as the 
-  # frequency with which the physics is called."
-  #
-  # FHROT:
-  # Forecast hour at restart
-  #
   # RESTART_INTERVAL:
   # frequency of the output restart files (unit:hour). 
   # Default=0: restart files are produced at the end of a forecast run
@@ -1889,10 +1925,7 @@ task_run_fcst:
   #
   #-----------------------------------------------------------------------
   #
-  DT_ATMOS: ""
-  FHROT: 0
   RESTART_INTERVAL: 0
-  WRITE_DOPOST: false
   ITASKS: 1
   #
   #-----------------------------------------------------------------------
@@ -1944,14 +1977,6 @@ task_run_fcst:
   #
   # Definitions:
   #
-  # QUILTING:
-  # Flag that determines whether or not to use the write component for 
-  # writing output files to disk. The regional grid requires the use of 
-  # the write component, so users should not change the default value. 
-  # When set to true, the forecast model will output files named dynf$HHH.nc 
-  # and phyf$HHH.nc (where HHH is the 3-digit forecast hour) containing dynamics 
-  # and physics fields, respectively, on the write-component grid. 
-  # 
   # PRINT_ESMF:
   # Flag that determines whether to output extra (debugging) information from
   # ESMF routines. Must be true or false. Note that the write
@@ -2042,10 +2067,9 @@ task_run_fcst:
   #
   #-----------------------------------------------------------------------
   #
-  QUILTING: true
   PRINT_ESMF: false
 
-  PE_MEMBER01: '{{ task_run_fcst.LAYOUT_Y * task_run_fcst.LAYOUT_X + task_run_fcst.WRTCMP_write_groups * task_run_fcst.WRTCMP_write_tasks_per_group if task_run_fcst.QUILTING else task_run_fcst.LAYOUT_Y * task_run_fcst.LAYOUT_X}}'
+  PE_MEMBER01: !int '{{ task_run_fcst.LAYOUT_Y * task_run_fcst.LAYOUT_X + task_run_fcst.WRTCMP_write_groups * task_run_fcst.WRTCMP_write_tasks_per_group }}'
   
   WRTCMP_write_groups: ""
   WRTCMP_write_tasks_per_group: ""
@@ -2454,16 +2478,6 @@ global:
   #-----------------------------------------------------------------------
   #
   HALO_BLEND: 10
-  #
-  #-----------------------------------------------------------------------
-  #
-  # PRINT_DIFF_PGR:
-  # Option to turn on/off the pressure tendency diagnostic.
-  #
-  #-----------------------------------------------------------------------
-  #
-  PRINT_DIFF_PGR: false
-
 #----------------------------
 # verification (vx) parameters
 #-----------------------------

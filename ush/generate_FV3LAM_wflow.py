@@ -338,112 +338,6 @@ def generate_FV3LAM_wflow(
         lsoil = 9
     if CCPP_PHYS_SUITE == "FV3_GFS_v15_thompson_mynn_lam3km":
         lsoil = ""
-    #
-    # Create a multiline variable that consists of a yaml-compliant string
-    # specifying the values that the namelist variables that are physics-
-    # suite-independent need to be set to.  Below, this variable will be
-    # passed to a python script that will in turn set the values of these
-    # variables in the namelist file.
-    #
-    # IMPORTANT:
-    # If we want a namelist variable to be removed from the namelist file,
-    # in the "settings" variable below, we need to set its value to the
-    # string "null".  This is equivalent to setting its value to
-    #    !!python/none
-    # in the base namelist file specified by FV3_NML_BASE_SUITE_FP or the
-    # suite-specific yaml settings file specified by FV3_NML_YAML_CONFIG_FP.
-    #
-    # It turns out that setting the variable to an empty string also works
-    # to remove it from the namelist!  Which is better to use??
-    #
-    settings = {}
-    settings["atmos_model_nml"] = {
-        "blocksize": BLOCKSIZE,
-        "ccpp_suite": CCPP_PHYS_SUITE,
-    }
-
-    fv_core_nml_dict = {}
-    fv_core_nml_dict.update({
-        "target_lon": LON_CTR,
-        "target_lat": LAT_CTR,
-        "nrows_blend": HALO_BLEND,
-        #
-        # Question:
-        # For a ESGgrid type grid, what should stretch_fac be set to?  This depends
-        # on how the FV3 code uses the stretch_fac parameter in the namelist file.
-        # Recall that for a ESGgrid, it gets set in the function set_gridparams_ESGgrid(.sh)
-        # to something like 0.9999, but is it ok to set it to that here in the
-        # FV3 namelist file?
-        #
-        "stretch_fac": STRETCH_FAC,
-        "npx": npx,
-        "npy": npy,
-        "layout": [LAYOUT_X, LAYOUT_Y],
-        "bc_update_interval": LBC_SPEC_INTVL_HRS,
-    })
-    if CCPP_PHYS_SUITE == "FV3_GFS_v15p2":
-        if CPL_AQM:
-            fv_core_nml_dict.update({
-                "dnats": 5
-            })
-        else:
-            fv_core_nml_dict.update({
-                "dnats": 1
-            })
-    elif CCPP_PHYS_SUITE == "FV3_GFS_v16":
-        if CPL_AQM:
-            fv_core_nml_dict.update({
-                "hord_tr": 8,
-                "dnats": 5,
-                "nord": 2
-            })
-        else:
-            fv_core_nml_dict.update({
-                "dnats": 1
-            })
-    elif CCPP_PHYS_SUITE == "FV3_GFS_v17_p8":
-        if CPL_AQM:
-            fv_core_nml_dict.update({
-                "dnats": 4
-            })
-        else:
-            fv_core_nml_dict.update({
-                "dnats": 0
-            })
-
-    settings["fv_core_nml"] = fv_core_nml_dict
-
-    gfs_physics_nml_dict = {}
-    gfs_physics_nml_dict.update({
-        "kice": kice or None,
-        "lsoil": lsoil or None,
-        "print_diff_pgr": PRINT_DIFF_PGR,
-    })
-
-    if CPL_AQM:
-        gfs_physics_nml_dict.update({
-            "cplaqm": True,
-            "cplocn2atm": False,
-            "fscav_aero": [
-                "aacd:0.0", "acet:0.0", "acrolein:0.0", "acro_primary:0.0", "ald2:0.0",
-                "ald2_primary:0.0", "aldx:0.0", "benzene:0.0", "butadiene13:0.0", "cat1:0.0",
-                "cl2:0.0", "clno2:0.0", "co:0.0", "cres:0.0", "cron:0.0",
-                "ech4:0.0", "epox:0.0", "eth:0.0", "etha:0.0", "ethy:0.0",
-                "etoh:0.0", "facd:0.0", "fmcl:0.0", "form:0.0", "form_primary:0.0",
-                "gly:0.0", "glyd:0.0", "h2o2:0.0", "hcl:0.0", "hg:0.0",
-                "hgiigas:0.0", "hno3:0.0", "hocl:0.0", "hono:0.0", "hpld:0.0",
-                "intr:0.0", "iole:0.0", "isop:0.0", "ispd:0.0", "ispx:0.0",
-                "ket:0.0", "meoh:0.0", "mepx:0.0", "mgly:0.0", "n2o5:0.0",
-                "naph:0.0", "no:0.0", "no2:0.0", "no3:0.0", "ntr1:0.0",
-                "ntr2:0.0", "o3:0.0", "ole:0.0", "opan:0.0", "open:0.0",
-                "opo3:0.0", "pacd:0.0", "pan:0.0", "panx:0.0", "par:0.0",
-                "pcvoc:0.0", "pna:0.0", "prpa:0.0", "rooh:0.0", "sesq:0.0",
-                "so2:0.0", "soaalk:0.0", "sulf:0.0", "terp:0.0", "tol:0.0",
-                "tolu:0.0", "vivpo1:0.0", "vlvoo1:0.0", "vlvoo2:0.0", "vlvpo1:0.0",
-                "vsvoo1:0.0", "vsvoo2:0.0", "vsvoo3:0.0", "vsvpo1:0.0", "vsvpo2:0.0",
-                "vsvpo3:0.0", "xopn:0.0", "xylmn:0.0", "*:0.2" ]
-        })
-    settings["gfs_physics_nml"] = gfs_physics_nml_dict
 
     #
     # Add to "settings" the values of those namelist variables that specify
@@ -462,6 +356,7 @@ def generate_FV3LAM_wflow(
     regex_search = "^[ ]*([^| ]+)[ ]*[|][ ]*([^| ]+)[ ]*$"
     num_nml_vars = len(FV3_NML_VARNAME_TO_FIXam_FILES_MAPPING)
     namsfc_dict = {}
+    settings = {}
     for i in range(num_nml_vars):
 
         mapping = f"{FV3_NML_VARNAME_TO_FIXam_FILES_MAPPING[i]}"
@@ -495,8 +390,6 @@ def generate_FV3LAM_wflow(
     if PREDEF_GRID_NAME == "RRFS_NA_3km":
         settings["fms2_io_nml"] = {"netcdf_default_format": "netcdf4"}
 
-    settings_str = cfg_to_yaml_str(settings)
-
     log_info(
         """
         The variable 'settings' specifying values of the weather model's
@@ -507,23 +400,13 @@ def generate_FV3LAM_wflow(
     #
     # -----------------------------------------------------------------------
     #
-    # Create a new FV3 namelist file
+    # Update the fv3 namelist config with relevant settings
     #
     # -----------------------------------------------------------------------
     #
+    fcst_nml_config = get_yaml_config(expt_config["task_run_fcst"]["namelist"]["update_values"])
+    fcst_nml_config.update_from(settings)
 
-    physics_cfg = get_yaml_config(FV3_NML_YAML_CONFIG_FP)
-    base_namelist = get_nml_config(FV3_NML_BASE_SUITE_FP)
-    base_namelist.update_from(physics_cfg[CCPP_PHYS_SUITE])
-    base_namelist.update_from(settings)
-    for sect, values in base_namelist.copy().items():
-        if not values:
-            del base_namelist[sect]
-            continue
-        for k, v in values.copy().items():
-            if v is None:
-                del base_namelist[sect][k]
-    base_namelist.dump(Path(FV3_NML_FP))
     #
     # If not running the TN_MAKE_GRID task (which implies the workflow will
     # use pregenerated grid files), set the namelist variables specifying
@@ -550,115 +433,108 @@ def generate_FV3LAM_wflow(
     #
     # -----------------------------------------------------------------------
     #
-    settings = {}
-    settings["gfs_physics_nml"] = {
-        "do_shum": DO_SHUM,
-        "do_sppt": DO_SPPT,
-        "do_skeb": DO_SKEB,
-        "do_spp": DO_SPP,
-        "n_var_spp": N_VAR_SPP,
-        "n_var_lndp": N_VAR_LNDP,
-        "lndp_type": LNDP_TYPE,
-        "fhcyc": FHCYC_LSM_SPP_OR_NOT,
-    }
-    nam_stochy_dict = {}
-    if DO_SPPT:
-        nam_stochy_dict.update(
-            {
-                "iseed_sppt": ISEED_SPPT,
-                "new_lscale": NEW_LSCALE,
-                "sppt": SPPT_MAG,
-                "sppt_logit": SPPT_LOGIT,
-                "sppt_lscale": SPPT_LSCALE,
-                "sppt_sfclimit": SPPT_SFCLIMIT,
-                "sppt_tau": SPPT_TSCALE,
-                "spptint": SPPT_INT,
-                "use_zmtnblck": USE_ZMTNBLCK,
-            }
-        )
-
-    if DO_SHUM:
-        nam_stochy_dict.update(
-            {
-                "iseed_shum": ISEED_SHUM,
-                "new_lscale": NEW_LSCALE,
-                "shum": SHUM_MAG,
-                "shum_lscale": SHUM_LSCALE,
-                "shum_tau": SHUM_TSCALE,
-                "shumint": SHUM_INT,
-            }
-        )
-
-    if DO_SKEB:
-        nam_stochy_dict.update(
-            {
-                "iseed_skeb": ISEED_SKEB,
-                "new_lscale": NEW_LSCALE,
-                "skeb": SKEB_MAG,
-                "skeb_lscale": SKEB_LSCALE,
-                "skebnorm": SKEBNORM,
-                "skeb_tau": SKEB_TSCALE,
-                "skebint": SKEB_INT,
-                "skeb_vdof": SKEB_VDOF,
-            }
-        )
-
-    if DO_SPP or DO_LSM_SPP:
-        nam_stochy_dict.update({"new_lscale": NEW_LSCALE})
-
-    settings["nam_stochy"] = nam_stochy_dict
-    #
-    # Add the relevant SPP namelist variables to "settings" when running with
-    # SPP turned on.  Otherwise only include an empty "nam_sppperts" stanza.
-    #
-    nam_sppperts_dict = {}
-    if DO_SPP:
-        nam_sppperts_dict = {
-            "iseed_spp": ISEED_SPP,
-            "spp_lscale": SPP_LSCALE,
-            "spp_prt_list": SPP_MAG_LIST,
-            "spp_sigtop1": SPP_SIGTOP1,
-            "spp_sigtop2": SPP_SIGTOP2,
-            "spp_stddev_cutoff": SPP_STDDEV_CUTOFF,
-            "spp_tau": SPP_TSCALE,
-            "spp_var_list": SPP_VAR_LIST,
-        }
-
-    settings["nam_sppperts"] = nam_sppperts_dict
-    #
-    # Add the relevant LSM SPP namelist variables to "settings" when running with
-    # LSM SPP turned on.
-    #
-    nam_sfcperts_dict = {}
-    if DO_LSM_SPP:
-        nam_sfcperts_dict = {
-            "lndp_type": LNDP_TYPE,
-            "lndp_model_type": LNDP_MODEL_TYPE,
-            "lndp_tau": LSM_SPP_TSCALE,
-            "lndp_lscale": LSM_SPP_LSCALE,
-            "iseed_lndp": ISEED_LSM_SPP,
-            "lndp_var_list": LSM_SPP_VAR_LIST,
-            "lndp_prt_list": LSM_SPP_MAG_LIST,
-        }
-
-    settings["nam_sfcperts"] = nam_sfcperts_dict
-
-    settings_str = cfg_to_yaml_str(settings)
     #
     #-----------------------------------------------------------------------
     #
-    # Generate namelist files with stochastic physics if needed
+    # Update the stochastic parameters, if needed
     #
     #-----------------------------------------------------------------------
     #
     if any((DO_SPP, DO_SPPT, DO_SHUM, DO_SKEB, DO_LSM_SPP)):
-        realize(
-            input_config=FV3_NML_FP,
-            input_format="nml",
-            output_file=FV3_NML_STOCH_FP,
-            output_format="nml",
-            update_config=get_nml_config(settings),
+        settings = {}
+        settings["gfs_physics_nml"] = {
+            "do_shum": DO_SHUM,
+            "do_sppt": DO_SPPT,
+            "do_skeb": DO_SKEB,
+            "do_spp": DO_SPP,
+            "n_var_spp": N_VAR_SPP,
+            "n_var_lndp": N_VAR_LNDP,
+            "lndp_type": LNDP_TYPE,
+            "fhcyc": FHCYC_LSM_SPP_OR_NOT,
+        }
+        nam_stochy_dict = {}
+        if DO_SPPT:
+            nam_stochy_dict.update(
+                {
+                    "iseed_sppt": ISEED_SPPT,
+                    "new_lscale": NEW_LSCALE,
+                    "sppt": SPPT_MAG,
+                    "sppt_logit": SPPT_LOGIT,
+                    "sppt_lscale": SPPT_LSCALE,
+                    "sppt_sfclimit": SPPT_SFCLIMIT,
+                    "sppt_tau": SPPT_TSCALE,
+                    "spptint": SPPT_INT,
+                    "use_zmtnblck": USE_ZMTNBLCK,
+                }
             )
+
+        if DO_SHUM:
+            nam_stochy_dict.update(
+                {
+                    "iseed_shum": ISEED_SHUM,
+                    "new_lscale": NEW_LSCALE,
+                    "shum": SHUM_MAG,
+                    "shum_lscale": SHUM_LSCALE,
+                    "shum_tau": SHUM_TSCALE,
+                    "shumint": SHUM_INT,
+                }
+            )
+
+        if DO_SKEB:
+            nam_stochy_dict.update(
+                {
+                    "iseed_skeb": ISEED_SKEB,
+                    "new_lscale": NEW_LSCALE,
+                    "skeb": SKEB_MAG,
+                    "skeb_lscale": SKEB_LSCALE,
+                    "skebnorm": SKEBNORM,
+                    "skeb_tau": SKEB_TSCALE,
+                    "skebint": SKEB_INT,
+                    "skeb_vdof": SKEB_VDOF,
+                }
+            )
+
+        if DO_SPP or DO_LSM_SPP:
+            nam_stochy_dict.update({"new_lscale": NEW_LSCALE})
+
+        settings["nam_stochy"] = nam_stochy_dict
+        #
+        # Add the relevant SPP namelist variables to "settings" when running with
+        # SPP turned on.  Otherwise only include an empty "nam_sppperts" stanza.
+        #
+        nam_sppperts_dict = {}
+        if DO_SPP:
+            nam_sppperts_dict = {
+                "iseed_spp": ISEED_SPP,
+                "spp_lscale": SPP_LSCALE,
+                "spp_prt_list": SPP_MAG_LIST,
+                "spp_sigtop1": SPP_SIGTOP1,
+                "spp_sigtop2": SPP_SIGTOP2,
+                "spp_stddev_cutoff": SPP_STDDEV_CUTOFF,
+                "spp_tau": SPP_TSCALE,
+                "spp_var_list": SPP_VAR_LIST,
+            }
+
+        settings["nam_sppperts"] = nam_sppperts_dict
+        #
+        # Add the relevant LSM SPP namelist variables to "settings" when running with
+        # LSM SPP turned on.
+        #
+        nam_sfcperts_dict = {}
+        if DO_LSM_SPP:
+            nam_sfcperts_dict = {
+                "lndp_type": LNDP_TYPE,
+                "lndp_model_type": LNDP_MODEL_TYPE,
+                "lndp_tau": LSM_SPP_TSCALE,
+                "lndp_lscale": LSM_SPP_LSCALE,
+                "iseed_lndp": ISEED_LSM_SPP,
+                "lndp_var_list": LSM_SPP_VAR_LIST,
+                "lndp_prt_list": LSM_SPP_MAG_LIST,
+            }
+
+        settings["nam_sfcperts"] = nam_sfcperts_dict
+
+        fcst_nml_config.update_from(settings)
 
     #
     # -----------------------------------------------------------------------

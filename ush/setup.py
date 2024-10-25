@@ -722,12 +722,13 @@ def setup(USHdir, user_config_fn="config.yaml", debug: bool = False):
                     """
                 ))
 
+    quilting = fcst_config["model_configure"]["update_values"]["quilting"]
     # Gather the pre-defined grid parameters, if needed
     if workflow_config.get("PREDEF_GRID_NAME"):
         grid_params = set_predef_grid_params(
             USHdir,
             workflow_config["PREDEF_GRID_NAME"],
-            fcst_config["QUILTING"],
+            quilting,
         )
 
         # Users like to change these variables, so don't overwrite them
@@ -761,6 +762,14 @@ def setup(USHdir, user_config_fn="config.yaml", debug: bool = False):
                 workflow_config[param] = value
             else:
                 grid_config[param] = value
+
+    # Load model write component grid settings
+    quilting_cfg = get_yaml_config(Path(USHdir, "quilting.yaml"))
+    if not quilting:
+        update_dict(quilting_cfg["no_quilting"], expt_config)
+    else:
+        write_grid = expt_config["task_run_fcst"]["WRTCMP_output_grid"]
+        update_dict(quilting_cfg[write_grid], expt_config)
 
     run_envir = expt_config["user"].get("RUN_ENVIR", "")
 
@@ -1027,6 +1036,11 @@ def setup(USHdir, user_config_fn="config.yaml", debug: bool = False):
               LBC_SPEC_INTVL_HRS = {lbc_spec_intvl_hrs}
               rem = FCST_LEN_HRS%%LBC_SPEC_INTVL_HRS = {rem}"""
         )
+
+    # Configure the model namelist
+
+
+
 
     #
     # -----------------------------------------------------------------------
