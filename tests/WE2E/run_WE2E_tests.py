@@ -170,20 +170,19 @@ def run_we2e_tests(homedir, args) -> None:
                  "EXPT_SUBDIR": test_name
                  },
              }
+
         if run_envir:
             test_config_updates['user'].update({"RUN_ENVIR": run_envir})
-        if args.expt_basedir:
-            test_config_updates['workflow'].update({"EXPT_BASEDIR": args.expt_basedir})
-        if args.exec_subdir:
-            test_config_updates['workflow'].update({"EXEC_SUBDIR": args.exec_subdir})
+
+        workflow = test_config_updates['workflow']
+        update = lambda k, v: v and workflow.update({k: v})
+        update("EXPT_BASEDIR", args.expt_basedir)
+        update("EXEC_SUBDIR", args.exec_subdir)
+        update("CRON_RELAUNCH_INTVL_MNTS", args.cron_relaunch_intvl_mnts)
+        update("DEBUG", args.debug_tests)
+        update("VERBOSE", args.verbose_tests)
         if args.launch == "cron":
-            test_config_updates['workflow'].update({"USE_CRON_TO_RELAUNCH": True})
-        if args.cron_relaunch_intvl_mnts:
-            test_config_updates['workflow'].update({"CRON_RELAUNCH_INTVL_MNTS": args.cron_relaunch_intvl_mnts})
-        if args.debug_tests:
-            test_config_updates['workflow'].update({"DEBUG": args.debug_tests})
-        if args.verbose_tests:
-            test_config_updates['workflow'].update({"VERBOSE": args.verbose_tests})
+            workflow["USE_CRON_TO_RELAUNCH"] = True
 
         test_cfg.update_from(test_config_updates)
 
