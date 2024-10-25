@@ -21,10 +21,8 @@ from uwtools.api.logging import use_uwtools_logger
 def _parse_var_defns(file):
     var_dict = {}
     with open(file, "r", encoding="utf-8") as f:
-        lines = f.readlines()
-        for line in lines:
-            line = line.strip()
-            if "=" in line:
+        for line in f:
+            if "=" in line.strip():
                 key, value = line.split("=", 1)
                 key = key.strip()
                 value = value.strip()
