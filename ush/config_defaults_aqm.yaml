@@ -9,3 +9,43 @@ task_run_post:
           aqf_on: true
   output_file_labels:
     - cmaq
+
+task_pre_post_stat:
+  execution: &default_aqm_execution
+    cores: 1
+    walltime: 00:30:00
+
+task_post_stat_o3:
+  execution:
+    <<: *default_aqm_execution
+
+task_post_stat_pm25:
+  execution:
+    <<: *default_aqm_execution
+
+task_aqm_lbcs:
+  execution:
+    <<: *default_aqm_execution
+    nodes: 1
+    cores: 24
+
+task_nexus_post_split:
+  execution:
+    <<: *default_aqm_execution
+
+task_fire_emission:
+  execution:
+    <<: *default_aqm_execution
+
+task_point_source:
+  execution:
+    <<: *default_aqm_execution
+    walltime: 01:00:00
+
+task_aqm_ics_ext:
+  execution:
+    <<: *default_aqm_execution
+
+task_aqm_ics:
+  execution:
+    <<: *default_aqm_execution

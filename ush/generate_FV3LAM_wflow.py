@@ -38,6 +38,7 @@ from set_fv3nml_sfc_climo_filenames import set_fv3nml_sfc_climo_filenames
 
 from uwtools.api.config import get_nml_config, get_yaml_config, realize
 from uwtools.api.template import render
+from uwtools.api import rocoto as uwrocoto
 
 
 # pylint: disable=too-many-locals,too-many-branches, too-many-statements
@@ -101,25 +102,16 @@ def generate_FV3LAM_wflow(
     #
     if expt_config["platform"]["WORKFLOW_MANAGER"] == "rocoto":
 
-        template_xml_fp = os.path.join(
-            expt_config["user"]["PARMdir"],
-            wflow_xml_fn,
-        )
-
         log_info(
             f"""
             Creating rocoto workflow XML file (WFLOW_XML_FP):
               WFLOW_XML_FP = '{wflow_xml_fp}'"""
         )
 
-        #
-        # Call the python script to generate the experiment's XML file
-        #
         rocoto_yaml_fp = expt_config["workflow"]["ROCOTO_YAML_FP"]
-        render(
-            input_file = template_xml_fp,
-            output_file = wflow_xml_fp,
-            values_src = rocoto_yaml_fp,
+        uwrocoto.realize(
+            config=rocoto_yaml_fp,
+            output_file=wflow_xml_fp,
             )
     #
     # -----------------------------------------------------------------------

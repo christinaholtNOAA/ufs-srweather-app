@@ -34,16 +34,19 @@
 #-----------------------------------------------------------------------
 #
 . $USHdir/source_util_funcs.sh
+
 sections=(
   user
   nco
   workflow
-  task_make_grid
+  task_make_grid.envvars
 )
 for sect in ${sections[*]} ; do
   source_yaml ${GLOBAL_VAR_DEFNS_FP} ${sect}
 done
+
 . $USHdir/job_preamble.sh
+
 #
 #-----------------------------------------------------------------------
 #
