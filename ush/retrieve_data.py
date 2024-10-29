@@ -742,18 +742,16 @@ def write_summary_file(cla, data_store, file_templates):
         output_path = fill_template(cla.output_path, cla.cycle_date, mem=mem)
         summary_fp = os.path.join(output_path, cla.summary_file)
         logging.info(f"Writing a summary file to {summary_fp}")
-        file_contents = dedent(
-            f"""
-            DATA_SRC={data_store}
-            EXTRN_MDL_CDATE={cla.cycle_date.strftime('%Y%m%d%H')}
-            EXTRN_MDL_STAGING_DIR={output_path}
-            EXTRN_MDL_FNS=( {' '.join(files)} )
-            EXTRN_MDL_FHRS=( {' '.join([str(i) for i in cla.fcst_hrs])} )
-            """
-        )
+        file_contents = {
+	    "data_source": data_store, 
+	    "external_model_cdate": cla.cycle_date.strftime('%Y%m%d%H'),
+            "external_model_staging_dir": output_path,
+            "external_model_fns": files,
+            "external_model_fhrs": [str(i) for i in cla.fcst_hrs]
+        }
         logging.info(f"Contents: {file_contents}")
-        with open(summary_fp, "w") as summary:
-            summary.write(file_contents)
+        with open(summary_fp, "w") as f:
+            yaml.dump(file_contents, f)
 
 
 def to_datetime(arg):

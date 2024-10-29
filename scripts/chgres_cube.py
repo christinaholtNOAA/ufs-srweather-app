@@ -18,23 +18,6 @@ from uwtools.api.fs import link as uwlink
 from uwtools.api.logging import use_uwtools_logger
 
 
-def _parse_var_defns(file):
-    var_dict = {}
-    with open(file, "r", encoding="utf-8") as f:
-        for line in f:
-            if "=" in line.strip():
-                key, value = line.split("=", 1)
-                key = key.strip()
-                value = value.strip()
-
-                if value.startswith("(") and value.endswith(")"):
-                    items = re.findall(r"\((.*?)\)", value)
-                    if items:
-                        value = [item.strip() for item in items[0].split()]
-                        var_dict[key] = value
-    return var_dict
-
-
 def _walk_key_path(config, key_path):
     """
     Navigate to the sub-config at the end of the path of given keys.
@@ -105,16 +88,8 @@ def run_chgres_cube(config_file, cycle, key_path, member):
     os.environ["MEMBER"] = member
 
     # set universal variables
-    cyc = str(expt_config["workflow"]["DATE_FIRST_CYCL"])[8:10]
-    dot_ensmem = (
-        f".mem{member}"
-        if (
-            expt_config["user"]["RUN_ENVIR"] == "nco"
-            and expt_config["global"]["DO_ENSEMBLE"]
-            and member
-        )
-        else ""
-    )
+    cyc = str(cycle.strftime("%H")]
+    dot_ensmem = f".mem{member}" if  expt_config["global"]["DO_ENSEMBLE"] else ""
     nco_net = expt_config["nco"]["NET_default"]
 
     # Extract driver config from experiment config
@@ -138,42 +113,29 @@ def run_chgres_cube(config_file, cycle, key_path, member):
     input_type = chgres_cube_config["chgres_cube"]["namelist"]["update_values"][
         "config"
     ].get("input_type")
+    varsfilepath = chgres_cube_config["input_files_metadata_path"]
+    external_config = get_yaml_config(varsfilepath)
+    external_config_fns = external_config["external_model_fns"]
+    external_config_fhrs = external_config["external_model_fhrs"]
 
     # update config for ics task, run and stage data
     if "task_make_ics" in key_path:
-        varsfilepath = chgres_cube_config["input_files_metadata_path"]
-        shconfig = _parse_var_defns(varsfilepath)
-        extrn_config_fns = shconfig["EXTRN_MDL_FNS"]
-        extrn_config_fhrs = shconfig["EXTRN_MDL_FHRS"]
 
         if input_type == "grib2":
             fn_grib2 = extrn_config_fns[0]
-            update = {"grib2_file_input_grid": fn_grib2}
         else:
-            fn_atm = extrn_config_fns[0]
-            fn_sfc = extrn_config_fns[1]
-            update = {"atm_files_input_grid": fn_atm, "sfc_files_input_grid": fn_sfc}
-        if expt_config["task_get_extrn_ics"]["EXTRN_MDL_NAME_ICS"] in [
-            "HRRR",
-            "RAP",
-        ]:
-            if expt_config["workflow"]["SDF_USES_RUC_LSM"] is True:
-                update["nsoill_out"] = 9
-        else:
-            if expt_config["workflow"]["SDF_USES_THOMPSON_MP"] is True:
-                update["thomp_mp_climo_file"] = expt_config["workflow"][
-                    "THOMPSON_MP_CLIMO_FP"
+            fn_atm = external_config_fns[0]
+            fn_sfc = external_config_fns[1]
 
-                ]
-
-        update_cfg = {
-            "task_make_ics": {
-                "chgres_cube": {"namelist": {"update_values": {"config": update}}}
-            }
-        }
         expt_config_cp.update_from(update_cfg)
 
         # reinstantiate driver
+        expt_config_cp.dereference(
+            context={
+                "cycle": cycle,
+                **expt_config_cp,
+            }
+        )
         chgres_cube_driver = ChgresCube(
             config=expt_config_cp,
             cycle=cycle,
@@ -183,30 +145,18 @@ def run_chgres_cube(config_file, cycle, key_path, member):
 
         # Deliver output data to a common location above the rundir.
         links = {}
-        tile_rgnl = expt_config["constants"]["TILE_RGNL"]
-        nh0 = expt_config["constants"]["NH0"]
 
         output_dir = os.path.join(rundir.parent, "INPUT")
         os.makedirs(output_dir, exist_ok=True)
-        links[
-            f"{nco_net}.t{cyc}z{dot_ensmem}.gfs_data.tile{tile_rgnl}.halo{nh0}.nc"
-        ] = str(rundir / f"out.atm.tile{tile_rgnl}.nc")
-        links[
-            f"{nco_net}.t{cyc}z{dot_ensmem}.sfc_data.tile{tile_rgnl}.halo{nh0}.nc"
-        ] = str(rundir / f"out.sfc.tile{tile_rgnl}.nc")
-        links[f"{nco_net}.t{cyc}z.gfs_ctrl.nc"] = str(rundir / f"gfs_ctrl.nc")
-        links[f"{nco_net}.t{cyc}z{dot_ensmem}.gfs_bndy.tile{tile_rgnl}.f000.nc"] = str(
-            rundir / f"gfs.bndy.nc"
-        )
+        for i, label in enumerate(chgres_cube_config["output_file_labels"]):
+            input_fn = expt_config["task_get_extrn_ics"]["output_files"][i]
+            links[input_fn] = str(label)
+
         uwlink(target_dir=output_dir, config=links)
 
     #  update config for lbcs task, loop run and stage data
     else:
         fn_sfc = ""
-        varsfilepath = chgres_cube_config["input_files_metadata_path"]
-        shconfig = _parse_var_defns(varsfilepath)
-        extrn_config_fns = shconfig["EXTRN_MDL_FNS"]
-        extrn_config_fhrs = shconfig["EXTRN_MDL_FHRS"]
         num_fhrs = len(extrn_config_fhrs)
 
         bcgrp10 = 0
@@ -217,29 +167,16 @@ def run_chgres_cube(config_file, cycle, key_path, member):
                 print(f"group {bcgrp10} processes member {i}")
                 if input_type == "grib2":
                     fn_grib2 = extrn_config_fns[i]
-                    update = {"grib2_file_input_grid": fn_grib2}
                 else:
                     fn_atm = extrn_config_fns[i]
-                    update = {"atm_files_input_grid": fn_atm}
-                if expt_config["task_get_extrn_lbcs"]["EXTRN_MDL_NAME_LBCS"] not in [
-                    "HRRR",
-                    "RAP",
-                ]:
-                    if expt_config["workflow"]["SDF_USES_THOMPSON_MP"] is True:
-                        update["thomp_mp_climo_file"] = expt_config["workflow"][
-                            "THOMPSON_MP_CLIMO_FP"
-                        ]
-
-                update_cfg = {
-                    "task_make_lbcs": {
-                        "chgres_cube": {
-                            "namelist": {"update_values": {"config": update}}
-                        }
-                    }
-                }
-                expt_config_cp.update_from(update_cfg)
 
                 # reinstantiate driver
+                expt_config_cp.dereference(
+                    context={
+                        "cycle": cycle,
+                        **expt_config_cp,
+                    }
+                )
                 chgres_cube_driver = ChgresCube(
                     config=expt_config_cp,
                     cycle=cycle,
@@ -257,13 +194,11 @@ def run_chgres_cube(config_file, cycle, key_path, member):
                 fcst_hhh = int(lbc_spec_fhrs) - int(lbc_offset_fhrs)
                 fcst_hhh_FV3LAM = f"{fcst_hhh:03d}"
 
-                lbc_input_fn = rundir / f"gfs.bndy.nc"
                 output_dir = os.path.join(rundir.parent, "INPUT")
                 os.makedirs(output_dir, exist_ok=True)
-                lbc_output_fn = str(
-                    f"{nco_net}.t{cyc}z{dot_ensmem}"
-                    f".gfs_bndy.tile7.f{fcst_hhh_FV3LAM}.nc"
-                )
+
+                lbc_input_fn = expt_config["task_get_extrn_lbcs"]["output_file_labels"][0]
+                lbc_output_fn = chgres_cube_config["output_file_labels"][0]
                 links[lbc_output_fn] = str(lbc_input_fn)
                 uwlink(target_dir=output_dir, config=links)
 

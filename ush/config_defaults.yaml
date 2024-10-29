@@ -1612,6 +1612,11 @@ task_get_extrn_ics:
     EXTRN_MDL_SOURCE_BASEDIR_ICS: ""
     EXTRN_MDL_FILES_ICS: ""
     rundir: '{{ workflow.EXPTDIR }}/{{ timevars.yyyymmddhh }}/for_ICS{{ "/mem%s" % ("MEMBER"|env) if global.DO_ENSEMBLE }}'
+  output_file_labels:
+    - "out.atm.tile{{{ constants.TILE_RGNL }}.nc"
+    - "out.sfc.tile{{ constants.TILE_RGNL }}.nc"
+    - "gfs_ctrl.nc"
+    - "gfs.bndy.nc"
 
 #----------------------------
 # EXTRN LBCS config parameters
@@ -1694,6 +1699,8 @@ task_get_extrn_lbcs:
     USE_USER_STAGED_EXTRN_FILES: false
     EXTRN_MDL_SOURCE_BASEDIR_LBCS: ""
     EXTRN_MDL_FILES_LBCS: ""
+  output_file_labels:
+    - "gfs.bndy.nc"
 
 #----------------------------
 # MAKE ICS config parameters
@@ -1760,7 +1767,7 @@ task_make_ics:
     FVCOM_FILE: "fvcom.nc"
     VCOORD_FILE: "{{ workflow.FIXam }}/global_hyblev.l65.txt"
   #------------------------------------------------------------------------
-  input_files_metadata_path: '{{ workflow.EXPTDIR }}/{{ timevars.yyyymmddhh }}/{{ task_get_extrn_ics.EXTRN_MDL_NAME_ICS }}/for_ICS{{ "/mem%s" % ("MEMBER"|env) if global.DO_ENSEMBLE }}/{{ workflow.EXTRN_MDL_VAR_DEFNS_FN }}.sh'
+  input_files_metadata_path: '{{ task_get_extrn_ics.envvars.rundir }}/{{ workflow.EXTRN_MDL_VAR_DEFNS_FN }}.sh'
   chgres_cube:
     execution:
       executable: "{{ user.EXECdir }}/chgres_cube"
@@ -1780,7 +1787,7 @@ task_make_ics:
           orog_files_target_grid: "{{ 'CRES' | env }}{{ workflow.DOT_OR_USCORE }}oro_data.tile{{ constants.TILE_RGNL }}.halo{{ constants.NH4 }}.nc"
           vcoord_file_target_grid: "{{ workflow.FIXam }}/global_hyblev.l65.txt"
           varmap_file: "{{ user.PARMdir }}/ufs_utils/varmap_tables/GFSphys_var_map.txt"
-          data_dir_input_grid: '{{workflow.EXPTDIR }}/{{ timevars.yyyymmddhh }}/{{ task_get_extrn_ics.EXTRN_MDL_NAME_ICS }}/for_ICS{{ "/mem%s" % ("MEMBER"|env) if global.DO_ENSEMBLE  }}'
+          data_dir_input_grid: '{{ task_get_extrn_ics.envvars.rundir }}'
           cycle_mon: !int "{{ cycle.strftime('%m') }}"
           cycle_day: !int "{{ cycle.strftime('%d') }}"
           cycle_hour: !int "{{ cycle.strftime('%H') }}"
@@ -1800,6 +1807,11 @@ task_make_ics:
           lai_from_climo: true
           tg3_from_soil: false
     rundir: '{{ task_run_fcst.rundir }}/tmp_MAKE_ICS'
+  output_file_labels:
+    - '{{ nco.NET_DEFAULT }}.t{{ cycle.hh }}z{{ ".mem%s" % ("MEMBER"|env) if global.DO_ENSEMBLE }}.sfc_data.tile{{ constants.TILE_RGNL }}.halo{{ constants.NH0 }}.nc'
+    - '{{ nco.NET_DEFAULT }}.t{{ cycle.hh }}z{{ ".mem%s" % ("MEMBER"|env) if global.DO_ENSEMBLE }}.gfs_data.tile{{ constants.TILE_RGNL }}.halo{{ constants.NH0 }}.nc'
+    - '{{ nco.NET_DEFAULT }}.t{{ cycle.hh }}z.gfs_ctrl.nc'
+    - '{{ nco.NET_DEFAULT }}.t{{ cycle.hh }}z{{ ".mem%s" % ("MEMBER"|env) if global.DO_ENSEMBLE }}.gfs_bndy.tile{{ constants.TILE_RGNL }}.f000.nc'
 
 #----------------------------
 # MAKE LBCS config parameters
@@ -1830,7 +1842,7 @@ task_make_lbcs:
     OMP_STACKSIZE_MAKE_LBCS: "1024m"
     VCOORD_FILE: "{{ workflow.FIXam }}/global_hyblev.l65.txt"
   #------------------------------------------------------------------------
-  input_files_metadata_path: '{{ workflow.EXPTDIR }}/{{ timevars.yyyymmddhh }}/{{ task_get_extrn_lbcs.EXTRN_MDL_NAME_LBCS }}/for_LBCS{{ "/mem%s" % ("MEMBER"|env) if global.DO_ENSEMBLE }}/{{ workflow.EXTRN_MDL_VAR_DEFNS_FN }}.sh'
+  input_files_metadata_path: '{{ task_get_extrn_lbcs.envvars.rundir }}/{{ workflow.EXTRN_MDL_VAR_DEFNS_FN }}.yaml'
   chgres_cube:
     execution:
       executable: "{{ user.EXECdir }}/chgres_cube"
@@ -1850,7 +1862,7 @@ task_make_lbcs:
           orog_files_target_grid: "{{ 'CRES' | env }}{{ workflow.DOT_OR_USCORE }}oro_data.tile{{ constants.TILE_RGNL }}.halo{{ constants.NH4 }}.nc"
           vcoord_file_target_grid: "{{ workflow.FIXam }}/global_hyblev.l65.txt"
           varmap_file: "{{ user.PARMdir }}/ufs_utils/varmap_tables/GFSphys_var_map.txt"
-          data_dir_input_grid: '{{workflow.EXPTDIR }}/{{ timevars.yyyymmddhh }}/{{ task_get_extrn_lbcs.EXTRN_MDL_NAME_LBCS }}/for_LBCS{{ "/mem%s" % ("MEMBER"|env) if global.DO_ENSEMBLE  }}'
+          data_dir_input_grid: '{{ task_get_extrn_lbcs.envvars.rundir }}'
           cycle_mon: !int "{{ cycle.strftime('%m') }}"
           cycle_day: !int "{{ cycle.strftime('%d') }}"
           cycle_hour: !int "{{ cycle.strftime('%H') }}"
@@ -1861,6 +1873,8 @@ task_make_lbcs:
           input_type: "gaussian_nemsio" 
           external_model: "FV3GFS"
     rundir: '{{ task_run_fcst.rundir}}/tmp_MAKE_LBCS'
+  output_file_labels:
+    - '{{ nco.NET_DEFAULT }}.t{{ cycle.hh }}z{{ ".mem%s" % ("MEMBER"|env) if global.DO_ENSEMBLE }}.gfs_bndy.tile7.f{{ "fcst_hhh_FV3LAM" | env }}.nc'
 
 #----------------------------
 # IO_LAYOUT_Y FORECAST config parameters
