@@ -10,13 +10,13 @@ import sys
 from argparse import ArgumentParser
 from pathlib import Path
 
+from uwtools.api.config import get_yaml_config
 from uwtools.api.driver import Driver
 from uwtools.api.filter_topo import FilterTopo
 from uwtools.api.logging import use_uwtools_logger
 from uwtools.api.orog import Orog
 from uwtools.api.orog_gsl import OrogGSL
 from uwtools.api.shave import Shave
-from uwtools.api.config import get_yaml_config
 
 
 def link_files(dest_dir, files):
@@ -71,7 +71,7 @@ def make_orog(config_file, key_path):
     logging.info(f"Will run make_orog in {task_rundir}")
 
     # The experiment config will have {{ CRES | env }} expressions in it that need to be
-    # dereferenced during driver initialization.
+    # dereferenced during driver initialization
     cres = expt_config["workflow"]["CRES"]
     os.environ["CRES"] = cres
 
@@ -116,7 +116,7 @@ def make_orog(config_file, key_path):
         files=glob.glob(str(task_rundir / f"{cres}*.nc")),
     )
 
-    # Mark the successful completion of the script on disk.
+    # Mark the successful completion of the script on disk
     Path(task_rundir / "make_orog_task_complete.txt").touch()
 
 
