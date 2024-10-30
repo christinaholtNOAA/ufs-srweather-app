@@ -116,12 +116,9 @@ def run_chgres_cube(config_file, cycle, key_path, member):
     # update config for ics task, run and stage data
     if "task_make_ics" in key_path:
         if input_type == "grib2":
-            os.environ["fn_atm"] = ""
             os.environ["fn_grib2"] = external_config_fns[0]
-            os.environ["fn_sfc"] = ""
         else:
             os.environ["fn_atm"] = external_config_fns[0]
-            os.environ["fn_grib2"] = ""
             os.environ["fn_sfc"] = external_config_fns[1]
 
     # reinstantiate driver
@@ -162,11 +159,9 @@ def run_chgres_cube(config_file, cycle, key_path, member):
             if i < num_fhrs:
                 print(f"group {bcgrp10} processes member {i}")
                 if input_type == "grib2":
-                    os.environ["fn_atm"] = ""
                     os.environ["fn_grib2"] = external_config_fns[i]
                 else:
                     os.environ["fn_atm"] = external_config_fns[i]
-                    os.environ["fn_grib2"] = ""
 
                 lbc_spec_fhrs = external_config_fhrs[i]
                 lbc_offset_fhrs = expt_config_cp["task_get_extrn_lbcs"]["envvars"][

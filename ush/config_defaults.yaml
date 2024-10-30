@@ -1774,7 +1774,6 @@ task_make_ics:
     namelist:
       update_values:
         config:
-          atm_files_input_grid: "{{ 'fn_atm' | env }}"
           convert_atm: true
           convert_nst: true
           convert_sfc: true
@@ -1794,7 +1793,6 @@ task_make_ics:
           orog_dir_target_grid: "{{ workflow.FIXlam }}"
           orog_files_target_grid: "{{ 'CRES' | env }}_oro_data.tile{{ constants.TILE_RGNL }}.halo{{ constants.NH4 }}.nc"
           regional: 1
-          sfc_files_input_grid: "{{ 'fn_sfc' | env }}"       
           sotyp_from_climo: true
           tg3_from_soil: false
           varmap_file: "{{ user.PARMdir }}/ufs_utils/varmap_tables/GFSphys_var_map.txt"
@@ -1841,7 +1839,6 @@ task_make_lbcs:
     namelist:
       update_values:
         config:
-          atm_files_input_grid: "{{ 'fn_atm' | env }}"
           convert_atm: true
           cycle_day: !int "{{ cycle.strftime('%d') }}"
           cycle_hour: !int "{{ cycle.strftime('%H') }}"
