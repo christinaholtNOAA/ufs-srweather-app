@@ -73,6 +73,7 @@ def parse_args(argv):
     )
     return parser.parse_args(argv)
 
+
 # pylint: disable-next=too-many-locals, too-many-statements
 def run_chgres_cube(config_file, cycle, key_path, member):
     """
@@ -106,6 +107,7 @@ def run_chgres_cube(config_file, cycle, key_path, member):
     input_type = chgres_cube_config["chgres_cube"]["namelist"]["update_values"][
         "config"
     ].get("input_type")
+
     varsfilepath = chgres_cube_config["input_files_metadata_path"]
     external_config = get_yaml_config(varsfilepath)
     external_config_fns = external_config["external_model_fns"]
@@ -114,12 +116,15 @@ def run_chgres_cube(config_file, cycle, key_path, member):
     # update config for ics task, run and stage data
     if "task_make_ics" in key_path:
         if input_type == "grib2":
+            os.environ["fn_atm"] = ""
             os.environ["fn_grib2"] = external_config_fns[0]
+            os.environ["fn_sfc"] = ""
         else:
             os.environ["fn_atm"] = external_config_fns[0]
+            os.environ["fn_grib2"] = ""
             os.environ["fn_sfc"] = external_config_fns[1]
 
-        # reinstantiate driver
+    # reinstantiate driver
         expt_config_cp.dereference(
             context={
                 "cycle": cycle,
@@ -138,9 +143,11 @@ def run_chgres_cube(config_file, cycle, key_path, member):
 
         output_dir = os.path.join(rundir.parent, "INPUT")
         os.makedirs(output_dir, exist_ok=True)
-        for i, label in enumerate(chgres_cube_config["output_file_labels"]):
-            input_fn = expt_config["task_get_extrn_ics"]["output_files"][i]
-            links[input_fn] = str(label)
+        for i, output_fn in enumerate(
+            expt_config_cp["task_make_ics"]["output_file_labels"]
+        ):
+            input_fn = expt_config_cp["task_get_extrn_ics"]["output_file_labels"][i]
+            links[output_fn] = str(input_fn)
 
         uwlink(target_dir=output_dir, config=links)
 
@@ -155,12 +162,14 @@ def run_chgres_cube(config_file, cycle, key_path, member):
             if i < num_fhrs:
                 print(f"group {bcgrp10} processes member {i}")
                 if input_type == "grib2":
+                    os.environ["fn_atm"] = ""
                     os.environ["fn_grib2"] = external_config_fns[i]
                 else:
                     os.environ["fn_atm"] = external_config_fns[i]
+                    os.environ["fn_grib2"] = ""
 
                 lbc_spec_fhrs = external_config_fhrs[i]
-                lbc_offset_fhrs = expt_config_cp["task_get_extrn_lbcs"][
+                lbc_offset_fhrs = expt_config_cp["task_get_extrn_lbcs"]["envvars"][
                     "EXTRN_MDL_LBCS_OFFSET_HRS"
                 ]
                 fcst_hhh = int(lbc_spec_fhrs) - int(lbc_offset_fhrs)
@@ -186,10 +195,12 @@ def run_chgres_cube(config_file, cycle, key_path, member):
                 output_dir = os.path.join(rundir.parent, "INPUT")
                 os.makedirs(output_dir, exist_ok=True)
 
-                lbc_input_fn = expt_config["task_get_extrn_lbcs"]["output_file_labels"][
+                lbc_input_fn = expt_config_cp["task_get_extrn_lbcs"][
+                    "output_file_labels"
+                ][0]
+                lbc_output_fn = expt_config_cp["task_make_lbcs"]["output_file_labels"][
                     0
                 ]
-                lbc_output_fn = chgres_cube_config["output_file_labels"][0]
                 links[lbc_output_fn] = str(lbc_input_fn)
                 uwlink(target_dir=output_dir, config=links)
 

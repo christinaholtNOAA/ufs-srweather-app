@@ -1611,7 +1611,7 @@ task_get_extrn_ics:
     USE_USER_STAGED_EXTRN_FILES: false
     EXTRN_MDL_SOURCE_BASEDIR_ICS: ""
     EXTRN_MDL_FILES_ICS: ""
-    rundir: '{{ workflow.EXPTDIR }}/{{ timevars.yyyymmddhh }}/for_ICS{{ "/mem%s" % ("MEMBER"|env) if global.DO_ENSEMBLE }}'
+    rundir: '{{ workflow.EXPTDIR }}/{{ timevars.yyyymmddhh }}/{{ task_get_extrn_ics.envvars.EXTRN_MDL_NAME_ICS }}/for_ICS{{ "/mem%s" % ("MEMBER"|env) if global.DO_ENSEMBLE }}'
   output_file_labels:
     - "out.atm.tile{{{ constants.TILE_RGNL }}.nc"
     - "out.sfc.tile{{ constants.TILE_RGNL }}.nc"
@@ -1665,7 +1665,6 @@ task_get_extrn_lbcs:
     LBC_SPEC_INTVL_HRS: 6
     EXTRN_MDL_LBCS_OFFSET_HRS: '{{ 3 if task_get_extrn_lbcs.envvars.EXTRN_MDL_NAME_LBCS == "RAP" else 0 }}'
     FV3GFS_FILE_FMT_LBCS: "nemsio"
-    rundir: '{{ workflow.EXPTDIR }}/{{ timevars.yyyymmddhh }}/for_LBCS{{ "/mem%s" % ("MEMBER"|env) if global.DO_ENSEMBLE }}'
     #
     #-----------------------------------------------------------------------
     #
@@ -1699,6 +1698,7 @@ task_get_extrn_lbcs:
     USE_USER_STAGED_EXTRN_FILES: false
     EXTRN_MDL_SOURCE_BASEDIR_LBCS: ""
     EXTRN_MDL_FILES_LBCS: ""
+    rundir: '{{ workflow.EXPTDIR }}/{{ timevars.yyyymmddhh }}/{{ task_get_extrn_lbcs.envvars.EXTRN_MDL_NAME_LBCS }}/for_LBCS{{ "/mem%s" % ("MEMBER"|env) if global.DO_ENSEMBLE }}'
   output_file_labels:
     - "gfs.bndy.nc"
 
@@ -1759,13 +1759,12 @@ task_make_ics:
     FVCOM_FILE: "fvcom.nc"
     VCOORD_FILE: "{{ workflow.FIXam }}/global_hyblev.l65.txt"
   #------------------------------------------------------------------------
-  input_files_metadata_path: '{{ task_get_extrn_ics.envvars.rundir }}/{{ workflow.EXTRN_MDL_VAR_DEFNS_FN }}.sh'
+  input_files_metadata_path: '{{ task_get_extrn_ics.envvars.rundir }}/{{ workflow.EXTRN_MDL_VAR_DEFNS_FN }}.yaml'
   chgres_cube:
     execution: &chgres_cube_execution
       batchargs:
         nodes: 4
         tasks_per_node: 12
-        threads: 1
         walltime: 00:30:00
       envcmds:
         - module use {{ user.HOMEdir }}/modulefiles
@@ -1804,10 +1803,10 @@ task_make_ics:
           vgfrc_from_climo: true
     rundir: '{{ task_run_fcst.rundir }}/tmp_MAKE_ICS'
   output_file_labels:
-    - '{{ nco.NET_DEFAULT }}.t{{ cycle.hh }}z{{ ".mem%s" % ("MEMBER"|env) if global.DO_ENSEMBLE }}.sfc_data.tile{{ constants.TILE_RGNL }}.halo{{ constants.NH0 }}.nc'
-    - '{{ nco.NET_DEFAULT }}.t{{ cycle.hh }}z{{ ".mem%s" % ("MEMBER"|env) if global.DO_ENSEMBLE }}.gfs_data.tile{{ constants.TILE_RGNL }}.halo{{ constants.NH0 }}.nc'
-    - '{{ nco.NET_DEFAULT }}.t{{ cycle.hh }}z.gfs_ctrl.nc'
-    - '{{ nco.NET_DEFAULT }}.t{{ cycle.hh }}z{{ ".mem%s" % ("MEMBER"|env) if global.DO_ENSEMBLE }}.gfs_bndy.tile{{ constants.TILE_RGNL }}.f000.nc'
+    - '{{ nco.NET_DEFAULT }}.t{{ cycle.strftime("%H") }}z{{ ".mem%s" % ("MEMBER"|env) if global.DO_ENSEMBLE }}.sfc_data.tile{{ constants.TILE_RGNL }}.halo{{ constants.NH0 }}.nc'
+    - '{{ nco.NET_DEFAULT }}.t{{ cycle.strftime("%H") }}z{{ ".mem%s" % ("MEMBER"|env) if global.DO_ENSEMBLE }}.gfs_data.tile{{ constants.TILE_RGNL }}.halo{{ constants.NH0 }}.nc'
+    - '{{ nco.NET_DEFAULT }}.t{{ cycle.strftime("%H") }}z.gfs_ctrl.nc'
+    - '{{ nco.NET_DEFAULT }}.t{{ cycle.strftime("%H") }}z{{ ".mem%s" % ("MEMBER"|env) if global.DO_ENSEMBLE }}.gfs_bndy.tile{{ constants.TILE_RGNL }}.f000.nc'
 
 #----------------------------
 # MAKE LBCS config parameters
@@ -1861,7 +1860,7 @@ task_make_lbcs:
           vcoord_file_target_grid: "{{ workflow.FIXam }}/global_hyblev.l65.txt"
     rundir: '{{ task_run_fcst.rundir}}/tmp_MAKE_LBCS'
   output_file_labels:
-    - '{{ nco.NET_DEFAULT }}.t{{ cycle.hh }}z{{ ".mem%s" % ("MEMBER"|env) if global.DO_ENSEMBLE }}.gfs_bndy.tile7.f{{ "fcst_hhh_FV3LAM" | env }}.nc'
+    - '{{ nco.NET_DEFAULT }}.t{{ cycle.strftime("%H") }}z{{ ".mem%s" % ("MEMBER"|env) if global.DO_ENSEMBLE }}.gfs_bndy.tile7.f{{ "fcst_hhh_FV3LAM" | env }}.nc'
 
 #----------------------------
 # IO_LAYOUT_Y FORECAST config parameters
