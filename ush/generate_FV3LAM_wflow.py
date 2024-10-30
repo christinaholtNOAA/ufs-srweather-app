@@ -39,9 +39,8 @@ from uwtools.api.template import render
 
 # pylint: disable=too-many-locals,too-many-branches, too-many-statements
 def generate_FV3LAM_wflow(
-        ushdir,
-        logfile: str = "log.generate_FV3LAM_wflow",
-        debug: bool = False) -> str:
+    ushdir, logfile: str = "log.generate_FV3LAM_wflow", debug: bool = False
+) -> str:
     """Function to setup a forecast experiment and create a workflow
     (according to the parameters specified in the config file)
 
@@ -69,7 +68,7 @@ def generate_FV3LAM_wflow(
 
     # The setup function reads the user configuration file and fills in
     # non-user-specified values from config_defaults.yaml
-    expt_config = setup(ushdir,debug=debug)
+    expt_config = setup(ushdir, debug=debug)
 
     #
     # -----------------------------------------------------------------------
@@ -114,10 +113,10 @@ def generate_FV3LAM_wflow(
         #
         rocoto_yaml_fp = expt_config["workflow"]["ROCOTO_YAML_FP"]
         render(
-            input_file = template_xml_fp,
-            output_file = wflow_xml_fp,
-            values_src = rocoto_yaml_fp,
-            )
+            input_file=template_xml_fp,
+            output_file=wflow_xml_fp,
+            values_src=rocoto_yaml_fp,
+        )
     #
     # -----------------------------------------------------------------------
     #
@@ -138,22 +137,27 @@ def generate_FV3LAM_wflow(
         verbose=debug,
     )
 
-    with open(wflow_launch_script_fp, "r", encoding='utf-8') as launch_script_file:
+    with open(wflow_launch_script_fp, "r", encoding="utf-8") as launch_script_file:
         launch_script_content = launch_script_file.read()
 
     # Stage an experiment-specific launch file in the experiment directory
     template = Template(launch_script_content)
 
     # The script needs several variables from the workflow and user sections
-    template_variables = {**expt_config["user"], **expt_config["workflow"],
-            "valid_vals_BOOLEAN": list_to_str(expt_config["constants"]["valid_vals_BOOLEAN"])}
-    launch_content =  template.safe_substitute(template_variables)
+    template_variables = {
+        **expt_config["user"],
+        **expt_config["workflow"],
+        "valid_vals_BOOLEAN": list_to_str(
+            expt_config["constants"]["valid_vals_BOOLEAN"]
+        ),
+    }
+    launch_content = template.safe_substitute(template_variables)
 
     launch_fp = os.path.join(exptdir, wflow_launch_script_fn)
-    with open(launch_fp, "w", encoding='utf-8') as expt_launch_fn:
+    with open(launch_fp, "w", encoding="utf-8") as expt_launch_fn:
         expt_launch_fn.write(launch_content)
 
-    os.chmod(launch_fp, os.stat(launch_fp).st_mode|S_IXUSR)
+    os.chmod(launch_fp, os.stat(launch_fp).st_mode | S_IXUSR)
 
     #
     # -----------------------------------------------------------------------
@@ -173,9 +177,13 @@ def generate_FV3LAM_wflow(
 
     # pylint: disable=undefined-variable
     if USE_CRON_TO_RELAUNCH:
-        add_crontab_line(called_from_cron=False,machine=expt_config["user"]["MACHINE"],
-                         crontab_line=expt_config["workflow"]["CRONTAB_LINE"],
-                         exptdir=exptdir,debug=debug)
+        add_crontab_line(
+            called_from_cron=False,
+            machine=expt_config["user"]["MACHINE"],
+            crontab_line=expt_config["workflow"]["CRONTAB_LINE"],
+            exptdir=exptdir,
+            debug=debug,
+        )
 
     #
     # Copy or symlink fix files
@@ -300,7 +308,7 @@ def generate_FV3LAM_wflow(
     # the C-resolution of the grid), and this parameter is in most workflow
     # configurations is not known until the grid is created.
     #
-    if not expt_config['rocoto']['tasks'].get('task_make_grid'):
+    if not expt_config["rocoto"]["tasks"].get("task_make_grid"):
 
         set_fv3nml_sfc_climo_filenames(flatten_dict(expt_config), debug)
 
@@ -370,7 +378,9 @@ def generate_FV3LAM_wflow(
     return EXPTDIR
 
 
-def setup_logging(logfile: str = "log.generate_FV3LAM_wflow", debug: bool = False) -> None:
+def setup_logging(
+    logfile: str = "log.generate_FV3LAM_wflow", debug: bool = False
+) -> None:
     """
     Sets up logging, printing high-priority (INFO and higher) messages to screen, and printing all
     messages with detailed timing and routine info in the specified text file.
@@ -381,7 +391,7 @@ def setup_logging(logfile: str = "log.generate_FV3LAM_wflow", debug: bool = Fals
 
     formatter = logging.Formatter("%(name)-22s %(levelname)-8s %(message)s")
 
-    fh = logging.FileHandler(logfile, mode='w')
+    fh = logging.FileHandler(logfile, mode="w")
     fh.setLevel(logging.DEBUG)
     fh.setFormatter(formatter)
     logging.getLogger().addHandler(fh)
@@ -404,13 +414,18 @@ def setup_logging(logfile: str = "log.generate_FV3LAM_wflow", debug: bool = Fals
 
 if __name__ == "__main__":
 
-    #Parse arguments
+    # Parse arguments
     parser = argparse.ArgumentParser(
-                     description="Script for setting up a forecast and creating a workflow"\
-                     "according to the parameters specified in the config file\n")
+        description="Script for setting up a forecast and creating a workflow"
+        "according to the parameters specified in the config file\n"
+    )
 
-    parser.add_argument('-d', '--debug', action='store_true',
-                        help='Script will be run in debug mode with more verbose output')
+    parser.add_argument(
+        "-d",
+        "--debug",
+        action="store_true",
+        help="Script will be run in debug mode with more verbose output",
+    )
     pargs = parser.parse_args()
 
     USHdir = os.path.dirname(os.path.abspath(__file__))
@@ -420,7 +435,7 @@ if __name__ == "__main__":
     # experiment/workflow.
     try:
         expt_dir = generate_FV3LAM_wflow(USHdir, wflow_logfile, pargs.debug)
-    except: # pylint: disable=bare-except
+    except:  # pylint: disable=bare-except
         logging.exception(
             dedent(
                 f"""
