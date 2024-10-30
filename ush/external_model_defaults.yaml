@@ -79,16 +79,18 @@ GEFS:
       namelist:
         update_values:
           config:
-            input_type: "grib2"
             convert_nst: False
             external_model: "GFS"
+            input_grid: "{{ 'fn_grib2' | env }}"
+            input_type: "grib2"
   task_make_lbcs:
     chgres_cube:
       namelist:
         update_values:
           config:
-            input_type: "grib2"
             external_model: "GFS"
+            input_grid: "{{ 'fn_grib2' | env }}"
+            input_type: "grib2"
 
 HRRR:
   task_make_ics:
@@ -96,18 +98,20 @@ HRRR:
       namelist:
         update_values:
           config:
-            input_type: "grib2"
             convert_nst: False
             external_model: "HRRR"
             geogrid_file_input_grid: "{{ platform.FIXgsm }}/geo_em.d01.nc_HRRRX"
+            input_grid: "{{ 'fn_grib2' | env }}"
+            input_type: "grib2"
             tg3_from_soil: True
   task_make_lbcs:
     chgres_cube:
       namelist:
         update_values:
           config:
-            input_type: "grib2"
             external_model: "HRRR"
+            input_grid: "{{ 'fn_grib2' | env }}"
+            input_type: "grib2"
 
 RAP:
   task_make_ics:
@@ -115,18 +119,20 @@ RAP:
       namelist:
         update_values:
           config:
-            input_type: "grib2"
             convert_nst: False
             external_model: "RAP"
             geogrid_file_input_grid: "{{ platform.FIXgsm }}/geo_em.d01.nc_RAPX"
+            input_grid: "{{ 'fn_grib2' | env }}"
+            input_type: "grib2"
             tg3_from_soil: True
   task_make_lbcs:
     chgres_cube:
       namelist:
         update_values:
           config:
-            input_type: "grib2"
             external_model: "RAP"
+            input_grid: "{{ 'fn_grib2' | env }}"
+            input_type: "grib2"
 
 NAM:
   task_make_ics:
@@ -134,13 +140,15 @@ NAM:
       namelist:
         update_values:
           config:
-            input_type: "grib2"
             convert_nst: False
             external_model: "NAM"
+            input_grid: "{{ 'fn_grib2' | env }}"
+            input_type: "grib2"
   task_make_lbcs:
     chgres_cube:
       namelist:
         update_values:
           config:
-            input_type: "grib2"
             external_model: "NAM"
+            input_grid: "{{ 'fn_grib2' | env }}"
+            input_type: "grib2"

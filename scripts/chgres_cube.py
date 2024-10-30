@@ -6,7 +6,6 @@ The run script for chgres_cube
 import datetime as dt
 import logging
 import os
-import re
 import sys
 from argparse import ArgumentParser
 from copy import deepcopy
@@ -74,8 +73,7 @@ def parse_args(argv):
     )
     return parser.parse_args(argv)
 
-
-# pylint: disable=too-many-locals, too-many-statements, too-many-branches
+# pylint: disable-next=too-many-locals, too-many-statements
 def run_chgres_cube(config_file, cycle, key_path, member):
     """
     Setup and run the chgres_cube Driver.
@@ -86,11 +84,6 @@ def run_chgres_cube(config_file, cycle, key_path, member):
     CRES = expt_config["workflow"]["CRES"]
     os.environ["CRES"] = CRES
     os.environ["MEMBER"] = member
-
-    # set universal variables
-    cyc = str(cycle.strftime("%H")]
-    dot_ensmem = f".mem{member}" if  expt_config["global"]["DO_ENSEMBLE"] else ""
-    nco_net = expt_config["nco"]["NET_default"]
 
     # Extract driver config from experiment config
     chgres_cube_driver = ChgresCube(
@@ -120,14 +113,11 @@ def run_chgres_cube(config_file, cycle, key_path, member):
 
     # update config for ics task, run and stage data
     if "task_make_ics" in key_path:
-
         if input_type == "grib2":
-            fn_grib2 = extrn_config_fns[0]
+            os.environ["fn_grib2"] = external_config_fns[0]
         else:
-            fn_atm = external_config_fns[0]
-            fn_sfc = external_config_fns[1]
-
-        expt_config_cp.update_from(update_cfg)
+            os.environ["fn_atm"] = external_config_fns[0]
+            os.environ["fn_sfc"] = external_config_fns[1]
 
         # reinstantiate driver
         expt_config_cp.dereference(
@@ -156,8 +146,7 @@ def run_chgres_cube(config_file, cycle, key_path, member):
 
     #  update config for lbcs task, loop run and stage data
     else:
-        fn_sfc = ""
-        num_fhrs = len(extrn_config_fhrs)
+        num_fhrs = len(external_config_fhrs)
 
         bcgrp10 = 0
         bcgrpnum10 = 1
@@ -166,9 +155,16 @@ def run_chgres_cube(config_file, cycle, key_path, member):
             if i < num_fhrs:
                 print(f"group {bcgrp10} processes member {i}")
                 if input_type == "grib2":
-                    fn_grib2 = extrn_config_fns[i]
+                    os.environ["fn_grib2"] = external_config_fns[i]
                 else:
-                    fn_atm = extrn_config_fns[i]
+                    os.environ["fn_atm"] = external_config_fns[i]
+
+                lbc_spec_fhrs = external_config_fhrs[i]
+                lbc_offset_fhrs = expt_config_cp["task_get_extrn_lbcs"][
+                    "EXTRN_MDL_LBCS_OFFSET_HRS"
+                ]
+                fcst_hhh = int(lbc_spec_fhrs) - int(lbc_offset_fhrs)
+                os.environ["fcst_hhh_FV3LAM"] = f"{fcst_hhh:03d}"
 
                 # reinstantiate driver
                 expt_config_cp.dereference(
@@ -187,17 +183,12 @@ def run_chgres_cube(config_file, cycle, key_path, member):
                 # Deliver output data to a common location above the rundir.
                 links = {}
 
-                lbc_spec_fhrs = extrn_config_fhrs[i]
-                lbc_offset_fhrs = expt_config_cp["task_get_extrn_lbcs"][
-                    "EXTRN_MDL_LBCS_OFFSET_HRS"
-                ]
-                fcst_hhh = int(lbc_spec_fhrs) - int(lbc_offset_fhrs)
-                fcst_hhh_FV3LAM = f"{fcst_hhh:03d}"
-
                 output_dir = os.path.join(rundir.parent, "INPUT")
                 os.makedirs(output_dir, exist_ok=True)
 
-                lbc_input_fn = expt_config["task_get_extrn_lbcs"]["output_file_labels"][0]
+                lbc_input_fn = expt_config["task_get_extrn_lbcs"]["output_file_labels"][
+                    0
+                ]
                 lbc_output_fn = chgres_cube_config["output_file_labels"][0]
                 links[lbc_output_fn] = str(lbc_input_fn)
                 uwlink(target_dir=output_dir, config=links)

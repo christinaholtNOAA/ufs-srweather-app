@@ -1781,31 +1781,33 @@ task_make_ics:
     namelist:
       update_values:
         config:
-          fix_dir_target_grid: "{{ workflow.FIXlam }}"
-          mosaic_file_target_grid: "{{ workflow.FIXlam }}/{{ 'CRES' | env }}{{ workflow.DOT_OR_USCORE }}mosaic.halo{{ constants.NH4 }}.nc"
-          orog_dir_target_grid: "{{ workflow.FIXlam }}"
-          orog_files_target_grid: "{{ 'CRES' | env }}{{ workflow.DOT_OR_USCORE }}oro_data.tile{{ constants.TILE_RGNL }}.halo{{ constants.NH4 }}.nc"
-          vcoord_file_target_grid: "{{ workflow.FIXam }}/global_hyblev.l65.txt"
-          varmap_file: "{{ user.PARMdir }}/ufs_utils/varmap_tables/GFSphys_var_map.txt"
-          data_dir_input_grid: '{{ task_get_extrn_ics.envvars.rundir }}'
-          cycle_mon: !int "{{ cycle.strftime('%m') }}"
+          atm_files_input_grid: "{{ 'fn_atm' | env }}"
+          convert_atm: true
+          convert_nst: true
+          convert_sfc: true
           cycle_day: !int "{{ cycle.strftime('%d') }}"
           cycle_hour: !int "{{ cycle.strftime('%H') }}"
-          convert_atm: true
-          convert_sfc: true
-          convert_nst: true
-          regional: 1
-          halo_bndy: !int "{{ constants.NH4 }}"
-          halo_blend: !int "{{ global.HALO_BLEND }}"
-          input_type: "gaussian_nemsio" 
+          cycle_mon: !int "{{ cycle.strftime('%m') }}"
+          data_dir_input_grid: '{{ task_get_extrn_ics.envvars.rundir }}'
           external_model: "FV3GFS"
-          nsoill_out: 4
-          vgtyp_from_climo: true
-          sotyp_from_climo: true
-          vgfrc_from_climo: true
-          minmax_vgfrc_from_climo: true
+          fix_dir_target_grid: "{{ workflow.FIXlam }}"
+          halo_blend: !int "{{ global.HALO_BLEND }}"
+          halo_bndy: !int "{{ constants.NH4 }}"
+          input_type: "gaussian_nemsio" 
           lai_from_climo: true
+          minmax_vgfrc_from_climo: true
+          mosaic_file_target_grid: "{{ workflow.FIXlam }}/{{ 'CRES' | env }}_mosaic.halo{{ constants.NH4 }}.nc"
+          nsoill_out: 4
+          orog_dir_target_grid: "{{ workflow.FIXlam }}"
+          orog_files_target_grid: "{{ 'CRES' | env }}_oro_data.tile{{ constants.TILE_RGNL }}.halo{{ constants.NH4 }}.nc"
+          regional: 1
+          sfc_files_input_grid: "{{ 'fn_sfc' | env }}"       
+          sotyp_from_climo: true
           tg3_from_soil: false
+          varmap_file: "{{ user.PARMdir }}/ufs_utils/varmap_tables/GFSphys_var_map.txt"
+          vcoord_file_target_grid: "{{ workflow.FIXam }}/global_hyblev.l65.txt"
+          vgtyp_from_climo: true
+          vgfrc_from_climo: true
     rundir: '{{ task_run_fcst.rundir }}/tmp_MAKE_ICS'
   output_file_labels:
     - '{{ nco.NET_DEFAULT }}.t{{ cycle.hh }}z{{ ".mem%s" % ("MEMBER"|env) if global.DO_ENSEMBLE }}.sfc_data.tile{{ constants.TILE_RGNL }}.halo{{ constants.NH0 }}.nc'
@@ -1856,22 +1858,23 @@ task_make_lbcs:
     namelist:
       update_values:
         config:
-          fix_dir_target_grid: "{{ workflow.FIXlam }}"
-          mosaic_file_target_grid: "{{ workflow.FIXlam }}/{{ 'CRES' | env }}{{ workflow.DOT_OR_USCORE }}mosaic.halo{{ constants.NH4 }}.nc"
-          orog_dir_target_grid: "{{ workflow.FIXlam }}"
-          orog_files_target_grid: "{{ 'CRES' | env }}{{ workflow.DOT_OR_USCORE }}oro_data.tile{{ constants.TILE_RGNL }}.halo{{ constants.NH4 }}.nc"
-          vcoord_file_target_grid: "{{ workflow.FIXam }}/global_hyblev.l65.txt"
-          varmap_file: "{{ user.PARMdir }}/ufs_utils/varmap_tables/GFSphys_var_map.txt"
-          data_dir_input_grid: '{{ task_get_extrn_lbcs.envvars.rundir }}'
-          cycle_mon: !int "{{ cycle.strftime('%m') }}"
+          atm_files_input_grid: "{{ 'fn_atm' | env }}"
+          convert_atm: true
           cycle_day: !int "{{ cycle.strftime('%d') }}"
           cycle_hour: !int "{{ cycle.strftime('%H') }}"
-          convert_atm: true
-          regional: 2
-          halo_bndy: !int "{{ constants.NH4 }}"
-          halo_blend: !int "{{ global.HALO_BLEND }}"
-          input_type: "gaussian_nemsio" 
+          cycle_mon: !int "{{ cycle.strftime('%m') }}"
+          data_dir_input_grid: '{{ task_get_extrn_lbcs.envvars.rundir }}'
           external_model: "FV3GFS"
+          fix_dir_target_grid: "{{ workflow.FIXlam }}"
+          halo_blend: !int "{{ global.HALO_BLEND }}"
+          halo_bndy: !int "{{ constants.NH4 }}"
+          input_type: "gaussian_nemsio" 
+          mosaic_file_target_grid: "{{ workflow.FIXlam }}/{{ 'CRES' | env }}_mosaic.halo{{ constants.NH4 }}.nc"
+          orog_dir_target_grid: "{{ workflow.FIXlam }}"
+          orog_files_target_grid: "{{ 'CRES' | env }}_oro_data.tile{{ constants.TILE_RGNL }}.halo{{ constants.NH4 }}.nc"
+          regional: 2
+          varmap_file: "{{ user.PARMdir }}/ufs_utils/varmap_tables/GFSphys_var_map.txt"
+          vcoord_file_target_grid: "{{ workflow.FIXam }}/global_hyblev.l65.txt"
     rundir: '{{ task_run_fcst.rundir}}/tmp_MAKE_LBCS'
   output_file_labels:
     - '{{ nco.NET_DEFAULT }}.t{{ cycle.hh }}z{{ ".mem%s" % ("MEMBER"|env) if global.DO_ENSEMBLE }}.gfs_bndy.tile7.f{{ "fcst_hhh_FV3LAM" | env }}.nc'

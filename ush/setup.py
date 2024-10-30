@@ -151,10 +151,10 @@ def load_config_for_setup(ushdir, default_config_path, user_config_path):
         ("task_get_extrn_lbcs", "EXTRN_MDL_NAME_LBCS", "task_make_ics")]
 
     for task, mdl_key, make_key in tasks:
-        external_mdl = cfg_d[task][mdl_key]
+        external_mdl = default_config[task]["envvars"][mdl_key]
         external_cfg = get_yaml_config(Path(ushdir, "external_model_defaults.yaml")).get(external_mdl, {})
         del external_cfg[make_key]
-        update_dict(external_cfg, cfg_d)
+        default_config.update_from(external_cfg)
 
     # Set "Home" directory, the top-level ufs-srweather-app directory
     homedir = Path(__file__).parent.parent.resolve()
