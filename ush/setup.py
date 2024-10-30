@@ -1377,27 +1377,20 @@ def setup(USHdir, user_config_fn="config.yaml", debug: bool = False):
     workflow_config["SDF_USES_THOMPSON_MP"] = has_tag_with_value(ccpp_suite_xml, "scheme", "mp_thompson")
 
     if workflow_config["SDF_USES_THOMPSON_MP"]:
-    
         logging.debug(f'Selected CCPP suite ({workflow_config["CCPP_PHYS_SUITE"]}) uses Thompson MP')
         logging.debug(f'Setting up links for additional fix files')
 
         # If the model ICs or BCs are not from RAP or HRRR, they will not contain aerosol
         # climatology data needed by the Thompson scheme, so we need to provide a separate file
+        thompson_files = fixed_files["THOMPSON_FIX_FILES"]
         if (get_extrn_ics["EXTRN_MDL_NAME_ICS"] not in ["HRRR", "RAP"] or
            get_extrn_lbcs["EXTRN_MDL_NAME_LBCS"] not in ["HRRR", "RAP"]):
-            fixed_files["THOMPSON_FIX_FILES"].append(workflow_config["THOMPSON_MP_CLIMO_FN"])
+            thompson_files.append(workflow_config["THOMPSON_MP_CLIMO_FN"])
 
-        # Add thompson-specific fix files to CYCLEDIR_LINKS_TO_FIXam_FILES_MAPPING and
-        # FIXgsm_FILES_TO_COPY_TO_FIXam; see parm/fixed_files_mapping.yaml for more info on these variables
-
-        fixed_files["FIXgsm_FILES_TO_COPY_TO_FIXam"].extend(fixed_files["THOMPSON_FIX_FILES"])
-
-        for fix_file in fixed_files["THOMPSON_FIX_FILES"]:
-            fixed_files["CYCLEDIR_LINKS_TO_FIXam_FILES_MAPPING"].append(f"{fix_file} | {fix_file}")
-
-        logging.debug(f'New fix file list:\n{fixed_files["FIXgsm_FILES_TO_COPY_TO_FIXam"]=}')
-        logging.debug(f'New fix file mapping:\n{fixed_files["CYCLEDIR_LINKS_TO_FIXam_FILES_MAPPING"]=}')
-
+        # Add thompson-specific fix files to the FV3 configuration
+        fixam = workflow_config["FIXam"]
+        thompson_fix_links = {fn: f"{fixam}/{fn}"  in thompson_files}
+        expt_config["task_run_fcst"]["fv3"]["files_to_link"].update(thompson_fix_links)
 
     #
     # -----------------------------------------------------------------------

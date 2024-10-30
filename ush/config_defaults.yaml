@@ -565,13 +565,7 @@ workflow:
   # a "ESGgrid" type of regional grid.
   #
   # FV3_NML_FN: 
-  # Name of the forecast model's namelist file. It includes the information in 
-  # FV3_NML_BASE_SUITE_FN (i.e., input.nml.FV3),  FV3_NML_YAML_CONFIG_FN (i.e., FV3.input.yml), and the user configuration file (i.e., config.yaml).
-  #
-  # FV3_NML_BASE_SUITE_FN:
-  # Name of Fortran namelist file containing the forecast model's base suite
-  # namelist, i.e. the portion of the namelist that is common to all physics
-  # suites.
+  # Name of the forecast model's namelist file.
   #
   # FV3_NML_YAML_CONFIG_FN:
   # Name of YAML configuration file containing the forecast model's namelist
@@ -654,9 +648,6 @@ workflow:
 
   # 
   #-----------------------------------------------------------------------
-  # FV3_NML_BASE_SUITE_FP: 
-  # Path to the FV3_NML_BASE_SUITE_FN file. 
-  # 
   # FV3_NML_YAML_CONFIG_FP: 
   # Path to the FV3_NML_YAML_CONFIG_FN file.
   # 
@@ -684,7 +675,6 @@ workflow:
   #-----------------------------------------------------------------------
   #
 
-  FV3_NML_BASE_SUITE_FP: '{{ user.PARMdir }}/{{ workflow.FV3_NML_BASE_SUITE_FN }}'
   FV3_NML_YAML_CONFIG_FP: '{{ user.PARMdir }}/{{ workflow.FV3_NML_YAML_CONFIG_FN }}'
   FV3_NML_BASE_ENS_FP: '{{ workflow.EXPTDIR }}/{{ workflow.FV3_NML_BASE_ENS_FN }}'
   DATA_TABLE_TMPL_FP: '{{ user.PARMdir }}/{{ workflow.DATA_TABLE_FN }}'
@@ -1777,8 +1767,28 @@ task_run_fcst:
       INPUT/gfs_data.nc: '{{ task_run_fcst.fv.rundir }}/INPUT/{{ nco.NET_default }}.{{ cycle }}{{ "dot_ensmem" | env }}.gfs_data.tile{{ constants.TILE_RGNL }}.halo{{ constants.NH0 }}.nc'
       INPUT/sfc_data.nc: '{{ task_run_fcst.fv.rundir }}/INPUT/{{ nco.NET_default }}.{{ cycle }}{{ "dot_ensmem" | env }}.sfc_data.tile{{ constants.TILE_RGNL }}.halo{{ constants.NH0 }}.nc'
     files_to_link:
-      co2historicaldata_2010.txt: src/uwtools/drivers/global_co2historicaldata_2010.txt
-      co2historicaldata_2011.txt: src/uwtools/drivers/global_co2historicaldata_2011.txt
+      aerosol.dat: '{{ workflow.FIXam }}/global_climaeropac_global.txt'
+      co2historicaldata_2010.txt: '{{ workflow.FIXam }}/fix_co2_proj/global_co2historicaldata_2010.txt'
+      co2historicaldata_2011.txt: '{{ workflow.FIXam }}/fix_co2_proj/global_co2historicaldata_2011.txt'
+      co2historicaldata_2012.txt: '{{ workflow.FIXam }}/fix_co2_proj/global_co2historicaldata_2012.txt'
+      co2historicaldata_2013.txt: '{{ workflow.FIXam }}/fix_co2_proj/global_co2historicaldata_2013.txt'
+      co2historicaldata_2014.txt: '{{ workflow.FIXam }}/fix_co2_proj/global_co2historicaldata_2014.txt'
+      co2historicaldata_2015.txt: '{{ workflow.FIXam }}/fix_co2_proj/global_co2historicaldata_2015.txt'
+      co2historicaldata_2016.txt: '{{ workflow.FIXam }}/fix_co2_proj/global_co2historicaldata_2016.txt'
+      co2historicaldata_2017.txt: '{{ workflow.FIXam }}/fix_co2_proj/global_co2historicaldata_2017.txt'
+      co2historicaldata_2018.txt: '{{ workflow.FIXam }}/fix_co2_proj/global_co2historicaldata_2018.txt'
+      co2historicaldata_2019.txt: '{{ workflow.FIXam }}/fix_co2_proj/global_co2historicaldata_2019.txt'
+      co2historicaldata_2020.txt: '{{ workflow.FIXam }}/fix_co2_proj/global_co2historicaldata_2020.txt'
+      co2historicaldata_2021.txt: '{{ workflow.FIXam }}/fix_co2_proj/global_co2historicaldata_2021.txt'
+      co2historicaldata_glob.txt: '{{ workflow.FIXam }}/global_co2historicaldata_glob.txt'
+      co2monthlycyc.txt: '{{ workflow.FIXam }}/co2monthlycyc.txt'
+      global_h2oprdlos.f77: '{{ workflow.FIXam }}/global_h2o_pltc.f77'
+      global_albedo4.1x1.grb: '{{ workflow.FIXam }}/global_albedo4.1x1.grb'
+      global_zorclim.1x1.grb: '{{ workflow.FIXam }}/global_zorclim.1x1.grb'
+      global_tg3clim.2.6x1.5.grb: '{{ workflow.FIXam }}/global_tg3clim.2.6x1.5.grb'
+      sfc_emissivity_idx.txt: '{{ workflow.FIXam }}/global_sfc_emissivity_idx.txt'
+      solarconstant_noaa_an.txt: '{{ workflow.FIXam }}/global_solarconstant_noaa_an.txt'
+      global_o3prdlos.f77: '{{ workflow.FIXam }}/ozprdlos_2015_new_sbuvO3_tclm15_nuchem.f77'
     lateral_boundary_conditions:
       interval_hours: 1 
       offset: 3 
@@ -1821,7 +1831,7 @@ task_run_fcst:
         nsout: -1
         output_grid: '{{ task_run_fcst.WRTCMP_output_grid }}'
     namelist:
-      base_file: "{{ workflow.FV3_NML_BASE_SUITE_FP }}"
+      base_file: "{{ user.PARMdir }}/input.nml.FV3"
       update_values:
         atmos_model_nml:
           blocksize: !int {{ task_run_fcst.BLOCKSIZE }}
@@ -1840,6 +1850,27 @@ task_run_fcst:
         gfs_physics_nml:
           kice: !int {{ 9 if workflow.SDF_USES_RUC_LSM else 2 }}
           print_diff_pgr: false
+        namsfc:
+          # From sfc_climo_gen
+          fnalbc: '{{ workflow.FIXlam }}/{{ "CRES" | env }}.snowfree_albedo.tileX.nc'
+          fnalbc2: '{{ workflow.FIXlam }}/{{ "CRES" | env }}.facsf.tileX.nc'
+          fntg3c: '{{ workflow.FIXlam }}/{{ "CRES" | env }}.substrate_temperature.tileX.nc'
+          fnvegc: '{{ workflow.FIXlam }}/{{ "CRES" | env }}.vegetation_greenness.tileX.nc'
+          fnvetc: '{{ workflow.FIXlam }}/{{ "CRES" | env }}.vegetation_type.tileX.nc'
+          fnsotc: '{{ workflow.FIXlam }}/{{ "CRES" | env }}.soil_type.tileX.nc'
+          fnvmnc: '{{ workflow.FIXlam }}/{{ "CRES" | env }}.vegetation_greenness.tileX.nc'
+          fnvmxc: '{{ workflow.FIXlam }}/{{ "CRES" | env }}.vegetation_greenness.tileX.nc'
+          fnslpc: '{{ workflow.FIXlam }}/{{ "CRES" | env }}.slope_type.tileX.nc'
+          fnabsc: '{{ workflow.FIXlam }}/{{ "CRES" | env }}.maximum_snow_albedo.tileX.nc'
+          # General fix files
+          fnglac: '{{ workflow.FIXlam }}/global_glacier.2x2.grb'
+          fnmxic: '{{ workflow.FIXlam }}/global_maxice.2x2.grb'
+          fntsfc: '{{ workflow.FIXlam }}/RTGSST.1982.2012.monthly.clim.grb'
+          fnsnoc: '{{ workflow.FIXlam }}/global_snoclim.1.875.grb'
+          fnzorc: '{{ workflow.FIXlam }}/igbp'
+          fnaisc: '{{ workflow.FIXlam }}/CFSR.SEAICE.1982.2012.monthly.clim.grb'
+          fnsmcc: '{{ workflow.FIXlam }}/global_soilmgldas.t126.384.190.grb'
+          fnmskh: '{{ workflow.FIXlam }}/seaice_newland.grb'
       validate: true
     rundir: '{{ workflow.EXPTDIR }}/run_fcst'
   #------------------------------------------------------------------------
