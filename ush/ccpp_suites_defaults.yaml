@@ -18,6 +18,56 @@ orog_gsl_defaults: &orog_gsl_defaults
       - module load build_{{ user.MACHINE|lower }}_{{ workflow.COMPILER }}
   rundir: "{{ task_make_orog.rundir }}/orog_gsl"
 
+fv3_nml_gfs_gfdl_cloud_mp_defaults:
+  gfdl_cloud_microphysics_nml: &gfs_gfdl_cloud_mp
+    c_cracw: 0.8
+    c_paut: 0.5
+    c_pgacs: 0.01
+    c_psaci: 0.05
+    ccn_l: 300.0
+    ccn_o: 100.0
+    const_vg: False
+    const_vi: False
+    const_vr: False
+    const_vs: False
+    de_ice: False
+    do_qa: True
+    do_sedi_heat: False
+    dw_land: 0.16
+    dw_ocean: 0.1
+    fast_sat_adj: True
+    fix_negative: True
+    icloud_f: 1
+    mono_prof: True
+    mp_time: 90.0
+    prog_ccn: False
+    qi0_crt: 8.0e-05
+    qi_lim: 1.0
+    ql_gen: 0.001
+    ql_mlt: 0.001
+    qs0_crt: 0.001
+    rad_graupel: True
+    rad_rain: True
+    rad_snow: True
+    rh_inc: 0.3
+    rh_inr: 0.3
+    rh_ins: 0.3
+    rthresh: 1.0e-05
+    sedi_transport: False
+    tau_g2v: 900.0
+    tau_i2s: 1000.0
+    tau_l2v: 180.0
+    tau_v2l: 90.0
+    use_ccn: True
+    use_ppm: False
+    vg_max: 12.0
+    vi_max: 1.0
+    vr_max: 12.0
+    vs_max: 2.0
+    z_slope_ice: True
+    z_slope_liq: True
+
+
 FV3_GFS_v15p2:
   task_run_fcst:
     namelist:
@@ -388,7 +438,7 @@ FV3_HRRR:
           isncond_opt: 2
           isncovr_opt: 3
           lsm: 3
-          lsoil: !int {{ 9 if task_get_extrn_ics.EXTRN_MDL_NAME_ICS in ("RAP", "HRRR") else 4 }}
+          lsoil: !int '{{ 9 if task_get_extrn_ics.EXTRN_MDL_NAME_ICS in ("RAP", "HRRR") else 4 }}'
           lsoil_lsm: 9
           mosaic_lu: 0
           mosaic_soil: 0

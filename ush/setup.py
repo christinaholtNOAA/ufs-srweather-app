@@ -227,6 +227,14 @@ def load_config_for_setup(ushdir, default_config, user_config):
     ccpp_cfg = get_yaml_config(Path(ushdir, "ccpp_suites_defaults.yaml")).get(ccpp_suite, {})
     update_dict(ccpp_cfg, cfg_d)
 
+    # Load stochastic physics params
+    stochastic_params = get_yaml_config(Path(ushdir, "stochastic_params.yaml"))
+    fcst_config = cfg_d["task_run_fcst"]["fv3"]
+    fcst_nml_config = get_yaml_config(fcst_config["namelist"]["update_values"])
+    for switch_name in ("do_spp", "do_sppt", "do_shum", "do_skeb", "do_lsm_spp"):
+        if (cfg_d["global"][switch_name.upper()]):
+            fcst_nml_config.update_from(stochastic_params.get(switch_name)
+
     # Set "Home" directory, the top-level ufs-srweather-app directory
     homedir = os.path.abspath(os.path.dirname(__file__) + os.sep + os.pardir)
     cfg_d["user"]["HOMEdir"] = homedir
@@ -724,7 +732,7 @@ def setup(USHdir, user_config_fn="config.yaml", debug: bool = False):
 
     quilting = fcst_config["model_configure"]["update_values"]["quilting"]
     # Gather the pre-defined grid parameters, if needed
-    if workflow_config.get("PREDEF_GRID_NAME"):
+    if predef_grid_name := (workflow_config.get("PREDEF_GRID_NAME")):
         grid_params = set_predef_grid_params(
             USHdir,
             workflow_config["PREDEF_GRID_NAME"],
@@ -763,6 +771,11 @@ def setup(USHdir, user_config_fn="config.yaml", debug: bool = False):
             else:
                 grid_config[param] = value
 
+    # This logic belongs in predef_grid_params.yaml once merged with make_grid integration.
+    if predef_grid_name == "RRFS_NA_3km":
+        fv3_namelist = expt_config["task_run_fcst"]["fv3"]["namelist"]
+        fv3_namlelist["update_values"]["fms2_io_nml"]["netcdf_default_format"] = "netcdf4"
+
     # Load model write component grid settings
     quilting_cfg = get_yaml_config(Path(USHdir, "quilting.yaml"))
     if not quilting:
@@ -770,6 +783,8 @@ def setup(USHdir, user_config_fn="config.yaml", debug: bool = False):
     else:
         write_grid = expt_config["task_run_fcst"]["WRTCMP_output_grid"]
         update_dict(quilting_cfg[write_grid], expt_config)
+
+
 
     run_envir = expt_config["user"].get("RUN_ENVIR", "")
 
@@ -910,116 +925,54 @@ def setup(USHdir, user_config_fn="config.yaml", debug: bool = False):
     #
     # -----------------------------------------------------------------------
     #
-    # Set magnitude of stochastic ad-hoc schemes to -999.0 if they are not
-    # being used. This is required at the moment, since "do_shum/sppt/skeb"
-    # does not override the use of the scheme unless the magnitude is also
-    # specifically set to -999.0.  If all "do_shum/sppt/skeb" are set to
-    # "false," then none will run, regardless of the magnitude values.
+    # Update the FV3 namelist based on switches that turn on/off various
+    # stocastic schemes.
     #
     # -----------------------------------------------------------------------
-    #
-    global_sect = expt_config["global"]
-    if not global_sect.get("DO_SHUM"):
-        global_sect["SHUM_MAG"] = -999.0
-    if not global_sect.get("DO_SKEB"):
-        global_sect["SKEB_MAG"] = -999.0
-    if not global_sect.get("DO_SPPT"):
-        global_sect["SPPT_MAG"] = -999.0
-    #
-    # -----------------------------------------------------------------------
-    #
-    # If running with SPP in MYNN PBL, MYNN SFC, GSL GWD, Thompson MP, or
-    # RRTMG, count the number of entries in SPP_VAR_LIST to correctly set
-    # N_VAR_SPP, otherwise set it to zero.
-    #
-    # -----------------------------------------------------------------------
-    #
-    if global_sect.get("DO_SPP"):
-        global_sect["N_VAR_SPP"] = len(global_sect["SPP_VAR_LIST"])
-    else:
-        global_sect["N_VAR_SPP"] = 0
-    #
-    # -----------------------------------------------------------------------
-    #
-    # If running with SPP, confirm that each SPP-related namelist value
-    # contains the same number of entries as N_VAR_SPP (set above to be equal
-    # to the number of entries in SPP_VAR_LIST).
-    #
-    # -----------------------------------------------------------------------
-    #
-    spp_vars = [
-        "SPP_MAG_LIST",
-        "SPP_LSCALE",
-        "SPP_TSCALE",
-        "SPP_SIGTOP1",
-        "SPP_SIGTOP2",
-        "SPP_STDDEV_CUTOFF",
-        "ISEED_SPP",
-    ]
 
+    # Check to make sure all SPP and LSM_SPP lists are the same length.
+    stoch_config = fcst_config["namelist"]["update_values"]["nam_sppperts"]
     if global_sect.get("DO_SPP"):
-        for spp_var in spp_vars:
-            if len(global_sect[spp_var]) != global_sect["N_VAR_SPP"]:
-                raise Exception(
-                    f"""
-                    All MYNN PBL, MYNN SFC, GSL GWD, Thompson MP, or RRTMG SPP-related namelist
-                    variables must be of equal length to SPP_VAR_LIST:
-                      SPP_VAR_LIST (length {global_sect['N_VAR_SPP']})
-                      {spp_var} (length {len(global_sect[spp_var])})
-                    """
-                )
-    #
-    # -----------------------------------------------------------------------
-    #
-    # If running with Noah or RUC-LSM SPP, count the number of entries in
-    # LSM_SPP_VAR_LIST to correctly set N_VAR_LNDP, otherwise set it to zero.
-    # Also set LNDP_TYPE to 2 for LSM SPP, otherwise set it to zero.  Finally,
-    # initialize an "FHCYC_LSM_SPP" variable to 0 and set it to 999 if LSM SPP
-    # is turned on.  This requirement is necessary since LSM SPP cannot run with
-    # FHCYC=0 at the moment, but FHCYC cannot be set to anything less than the
-    # length of the forecast either.  A bug fix will be submitted to
-    # ufs-weather-model soon, at which point, this requirement can be removed
-    # from regional_workflow.
-    #
-    # -----------------------------------------------------------------------
-    #
+        list_vars = ("iseed_spp", "spp_lscale", "spp_prt_list",
+        "spp_sigtop1", "spp_sigtop2", "spp_stddev_cutoff", "spp_tau",
+        "spp_var_list",)
+        list_len =  fcst_config["namelist"]["update_values"]["n_var_spp"]
+        if any([len(stoch_config[v]) != list_len for v in list_vars ]):
+            report = "\n".join([f"{v}: {len(stoch_config[v])}" for v in list_vars])
+            raise Exception(
+                f"""
+                All MYNN PBL, MYNN SFC, GSL GWD, Thompson MP, or RRTMG SPP-related namelist
+                variables must be of length equal to namelist setting
+                "n_var_spp".
+                  n_var_spp:  {list_len}
+
+                Relevant namelist settings have counts:
+
+                  {report}
+                """
+            )
+
+    stoch_config = fcst_config["namelist"]["update_values"]["nam_sfcperts"]
     if global_sect.get("DO_LSM_SPP"):
-        global_sect["N_VAR_LNDP"] = len(global_sect["LSM_SPP_VAR_LIST"])
-        global_sect["LNDP_TYPE"] = 2
-        global_sect["LNDP_MODEL_TYPE"] = 2
-        global_sect["FHCYC_LSM_SPP_OR_NOT"] = 999
-    else:
-        global_sect["N_VAR_LNDP"] = 0
-        global_sect["LNDP_TYPE"] = 0
-        global_sect["LNDP_MODEL_TYPE"] = 0
-        global_sect["FHCYC_LSM_SPP_OR_NOT"] = 0
-    #
-    # -----------------------------------------------------------------------
-    #
-    # If running with LSM SPP, confirm that each LSM SPP-related namelist
-    # value contains the same number of entries as N_VAR_LNDP (set above to
-    # be equal to the number of entries in LSM_SPP_VAR_LIST).
-    #
-    # -----------------------------------------------------------------------
-    #
-    lsm_spp_vars = [
-        "LSM_SPP_MAG_LIST",
-        "LSM_SPP_LSCALE",
-        "LSM_SPP_TSCALE",
-    ]
-    if global_sect.get("DO_LSM_SPP"):
-        for lsm_spp_var in lsm_spp_vars:
-            if len(global_sect[lsm_spp_var]) != global_sect["N_VAR_LNDP"]:
-                raise Exception(
-                    f"""
-                    All MYNN PBL, MYNN SFC, GSL GWD, Thompson MP, or RRTMG SPP-related namelist
-                    variables must be of equal length to SPP_VAR_LIST:
-                    All Noah or RUC-LSM SPP-related namelist variables (except ISEED_LSM_SPP)
-                    must be equal of equal length to LSM_SPP_VAR_LIST:
-                      LSM_SPP_VAR_LIST (length {global_sect['N_VAR_LNDP']})
-                      {lsm_spp_var} (length {len(global_sect[lsm_spp_var])}
-                      """
-                )
+        list_vars = ("lndp_tau", "lndp_lscale", "lndp_var_list",
+        "lndp_prt_list")
+        list_len = fcst_config["namelist"]["update_values"]["n_var_lndp"]
+        if any([len(stoch_config[v]) != list_len for v in list_vars ]):
+            report = "\n".join([f"{v}: {len(stoch_config[v])}" for v in list_vars])
+            raise Exception(
+                f"""
+                All Noah or RUC-LSM SPP-related namelist variables (except ISEED_LSM_SPP)
+                must be equal of equal length to the n_var_lndp namelist
+                setting:
+                  n_var_lndp: {list_len}
+                  {lsm_spp_var} (length {len(global_sect[lsm_spp_var])}
+
+                Relevant namelist settings have counts:
+
+                  {report}
+                """
+            )
+
 
     # Check whether the forecast length (FCST_LEN_HRS) is evenly divisible
     # by the BC update interval (LBC_SPEC_INTVL_HRS). If so, generate an
@@ -1036,10 +989,6 @@ def setup(USHdir, user_config_fn="config.yaml", debug: bool = False):
               LBC_SPEC_INTVL_HRS = {lbc_spec_intvl_hrs}
               rem = FCST_LEN_HRS%%LBC_SPEC_INTVL_HRS = {rem}"""
         )
-
-    # Configure the model namelist
-
-
 
 
     #

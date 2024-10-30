@@ -2,7 +2,7 @@
 
 no_quilting:
   task_run_fcst:
-    PE_MEMBER01: !int {{  task_run_fcst.LAYOUT_Y * task_run_fcst.LAYOUT_X }}
+    PE_MEMBER01: !int '{{  task_run_fcst.LAYOUT_Y * task_run_fcst.LAYOUT_X }}'
     model_configure:
       update_values:
         write_groups: !remove
@@ -43,4 +43,4 @@ regional_latlon:
         dlat: '{{ task_run_fcst.WRTCMP_dlat }}'
 
 rotated_latlon:
-  <<: * latlon_reference
+  <<: *latlon_reference
