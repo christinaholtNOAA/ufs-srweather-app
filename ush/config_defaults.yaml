@@ -1706,14 +1706,6 @@ task_get_extrn_lbcs:
 # MAKE ICS config parameters
 #-----------------------------
 task_make_ics:
-
-  chgres_cube:
-    execution: &chgres_cube_execution
-      batchargs:
-        walltime: 00:30:00
-        threads: 1
-        nodes: 4
-        tasks_per_node: 12
   #-----------------------------------------------------------------------
   # KMP_AFFINITY_MAKE_ICS: 
   # Intel Thread Affinity Interface for the make_ics task. 
@@ -1769,15 +1761,17 @@ task_make_ics:
   #------------------------------------------------------------------------
   input_files_metadata_path: '{{ task_get_extrn_ics.envvars.rundir }}/{{ workflow.EXTRN_MDL_VAR_DEFNS_FN }}.sh'
   chgres_cube:
-    execution:
-      executable: "{{ user.EXECdir }}/chgres_cube"
+    execution: &chgres_cube_execution
+      batchargs:
+        nodes: 4
+        tasks_per_node: 12
+        threads: 1
+        walltime: 00:30:00
       envcmds:
         - module use {{ user.HOMEdir }}/modulefiles
         - module load build_{{ user.MACHINE|lower }}_{{ workflow.COMPILER }}
-      mpiargs:
-        - "--ntasks $SLURM_CPUS_ON_NODE"
+      executable: "{{ user.EXECdir }}/chgres_cube"
       mpicmd: '{{ platform.BATCH_RUN_CMD }}'
-      threads: 1
     namelist:
       update_values:
         config:
@@ -1819,9 +1813,6 @@ task_make_ics:
 # MAKE LBCS config parameters
 #-----------------------------
 task_make_lbcs:
-  chgres_cube:
-    execution:
-      <<: *chgres_cube_execution
   #------------------------------------------------------------------------
   #
   # KMP_AFFINITY_MAKE_LBCS: 
@@ -1847,14 +1838,7 @@ task_make_lbcs:
   input_files_metadata_path: '{{ task_get_extrn_lbcs.envvars.rundir }}/{{ workflow.EXTRN_MDL_VAR_DEFNS_FN }}.yaml'
   chgres_cube:
     execution:
-      executable: "{{ user.EXECdir }}/chgres_cube"
-      envcmds:
-        - module use {{ user.HOMEdir }}/modulefiles
-        - module load build_{{ user.MACHINE|lower }}_{{ workflow.COMPILER }}
-      mpiargs:
-        - "--ntasks $SLURM_CPUS_ON_NODE"
-      mpicmd: '{{ platform.BATCH_RUN_CMD }}'
-      threads: 1
+      <<: *chgres_cube_execution
     namelist:
       update_values:
         config:
