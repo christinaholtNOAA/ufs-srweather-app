@@ -429,21 +429,22 @@ else
   relative_link_flag="FALSE"
 fi
 
-regex_search="^[ ]*([^| ]+)[ ]*[|][ ]*([^| ]+)[ ]*$"
-num_symlinks=${#CYCLEDIR_LINKS_TO_FIXam_FILES_MAPPING[@]}
-for (( i=0; i<${num_symlinks}; i++ )); do
-
-  mapping="${CYCLEDIR_LINKS_TO_FIXam_FILES_MAPPING[$i]}"
-  symlink=$( printf "%s\n" "$mapping" | \
-             $SED -n -r -e "s/${regex_search}/\1/p" )
-  target=$( printf "%s\n" "$mapping" | \
-            $SED -n -r -e "s/${regex_search}/\2/p" )
-
-  symlink="${DATA}/$symlink"
-  target="$FIXam/$target"
-  create_symlink_to_file $target $symlink ${relative_link_flag}
-
-done
+# CRH added these to the config_defaults files_to_link section.
+#regex_search="^[ ]*([^| ]+)[ ]*[|][ ]*([^| ]+)[ ]*$"
+#num_symlinks=${#CYCLEDIR_LINKS_TO_FIXam_FILES_MAPPING[@]}
+#for (( i=0; i<${num_symlinks}; i++ )); do
+#
+#  mapping="${CYCLEDIR_LINKS_TO_FIXam_FILES_MAPPING[$i]}"
+#  symlink=$( printf "%s\n" "$mapping" | \
+#             $SED -n -r -e "s/${regex_search}/\1/p" )
+#  target=$( printf "%s\n" "$mapping" | \
+#            $SED -n -r -e "s/${regex_search}/\2/p" )
+#
+#  symlink="${DATA}/$symlink"
+#  target="$FIXam/$target"
+#  create_symlink_to_file $target $symlink ${relative_link_flag}
+#
+#done
 #
 #-----------------------------------------------------------------------
 #

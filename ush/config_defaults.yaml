@@ -565,13 +565,7 @@ workflow:
   # a "ESGgrid" type of regional grid.
   #
   # FV3_NML_FN: 
-  # Name of the forecast model's namelist file. It includes the information in 
-  # FV3_NML_BASE_SUITE_FN (i.e., input.nml.FV3),  FV3_NML_YAML_CONFIG_FN (i.e., FV3.input.yml), and the user configuration file (i.e., config.yaml).
-  #
-  # FV3_NML_BASE_SUITE_FN:
-  # Name of Fortran namelist file containing the forecast model's base suite
-  # namelist, i.e. the portion of the namelist that is common to all physics
-  # suites.
+  # Name of the forecast model's namelist file.
   #
   # FV3_NML_YAML_CONFIG_FN:
   # Name of YAML configuration file containing the forecast model's namelist
@@ -654,9 +648,6 @@ workflow:
 
   # 
   #-----------------------------------------------------------------------
-  # FV3_NML_BASE_SUITE_FP: 
-  # Path to the FV3_NML_BASE_SUITE_FN file. 
-  # 
   # FV3_NML_YAML_CONFIG_FP: 
   # Path to the FV3_NML_YAML_CONFIG_FN file.
   # 
@@ -684,7 +675,6 @@ workflow:
   #-----------------------------------------------------------------------
   #
 
-  FV3_NML_BASE_SUITE_FP: '{{ user.PARMdir }}/{{ workflow.FV3_NML_BASE_SUITE_FN }}'
   FV3_NML_YAML_CONFIG_FP: '{{ user.PARMdir }}/{{ workflow.FV3_NML_YAML_CONFIG_FN }}'
   FV3_NML_BASE_ENS_FP: '{{ workflow.EXPTDIR }}/{{ workflow.FV3_NML_BASE_ENS_FN }}'
   DATA_TABLE_TMPL_FP: '{{ user.PARMdir }}/{{ workflow.DATA_TABLE_FN }}'
@@ -1764,34 +1754,122 @@ task_run_fcst:
     execution:
       batchargs:
         walltime: 00:10:00
-      executable: '{{ user.EXECdir }}/run_fcst' 
+      executable: '{{ user.EXECdir }}/{{ workflow.FV3_EXEC_FN }}' 
       mpiargs:
         - "--export=NONE"
       mpicmd: '{{ platform.BATCH_RUN_CMD }}' 
       threads: 1
     field_table:
       base_file: '{{ workflow.FIELD_TABLE_FP }}'
+    files_to_copy:
+      INPUT/gfs_ctrl.nc: '{{ workflow.EXPTDIR }}/run_fcst/INPUT/{{ nco.NET_default }}.{{ cycle }}{{ "dot_ensmem" | env  }}.gfs_ctrl.nc'
+      INPUT/gfs_data.nc: '{{ task_run_fcst.fv3.rundir }}/INPUT/{{ nco.NET_default }}.{{ cycle }}{{ "dot_ensmem" | env }}.gfs_data.tile{{ constants.TILE_RGNL }}.halo{{ constants.NH0 }}.nc'
+      INPUT/sfc_data.nc: '{{ task_run_fcst.fv3.rundir }}/INPUT/{{ nco.NET_default }}.{{ cycle }}{{ "dot_ensmem" | env }}.sfc_data.tile{{ constants.TILE_RGNL }}.halo{{ constants.NH0 }}.nc'
     files_to_link:
-      co2historicaldata_2010.txt: '{{ fixed_files.CYCLEDIR_LINKS_TO_FIXam_FILES_MAPPING }}'
-      co2historicaldata_2011.txt: src/uwtools/drivers/global_co2historicaldata_2011.txt
-      INPUT/gfs_ctrl.nc: '{{ workflow.EXPTDIR }}/run_fcst/INPUT/{{ nco.NET_default }}.{{ cycle }}{{ "DOT_ENSMEM" | env  }}.gfs_ctrl.nc'
-      INPUT/gfs_data.nc: '{{ task_run_fcst.fv3.rundir }}/INPUT/{{ nco.NET_default }}.{{ cycle }}{{ "DOT_ENSMEM" | env }}.gfs_data.tile{{ constants.TILE_RGNL }}.halo{{ constants.NH0 }}.nc'
-      INPUT/sfc_data.nc: '{{ task_run_fcst.fv3.rundir }}/INPUT/{{ nco.NET_default }}.{{ cycle }}{{ "DOT_ENSMEM" | env }}.sfc_data.tile{{ constants.TILE_RGNL }}.halo{{ constants.NH0 }}.nc'
+      aerosol.dat: '{{ workflow.FIXam }}/global_climaeropac_global.txt'
+      co2historicaldata_2010.txt: '{{ workflow.FIXam }}/fix_co2_proj/global_co2historicaldata_2010.txt'
+      co2historicaldata_2011.txt: '{{ workflow.FIXam }}/fix_co2_proj/global_co2historicaldata_2011.txt'
+      co2historicaldata_2012.txt: '{{ workflow.FIXam }}/fix_co2_proj/global_co2historicaldata_2012.txt'
+      co2historicaldata_2013.txt: '{{ workflow.FIXam }}/fix_co2_proj/global_co2historicaldata_2013.txt'
+      co2historicaldata_2014.txt: '{{ workflow.FIXam }}/fix_co2_proj/global_co2historicaldata_2014.txt'
+      co2historicaldata_2015.txt: '{{ workflow.FIXam }}/fix_co2_proj/global_co2historicaldata_2015.txt'
+      co2historicaldata_2016.txt: '{{ workflow.FIXam }}/fix_co2_proj/global_co2historicaldata_2016.txt'
+      co2historicaldata_2017.txt: '{{ workflow.FIXam }}/fix_co2_proj/global_co2historicaldata_2017.txt'
+      co2historicaldata_2018.txt: '{{ workflow.FIXam }}/fix_co2_proj/global_co2historicaldata_2018.txt'
+      co2historicaldata_2019.txt: '{{ workflow.FIXam }}/fix_co2_proj/global_co2historicaldata_2019.txt'
+      co2historicaldata_2020.txt: '{{ workflow.FIXam }}/fix_co2_proj/global_co2historicaldata_2020.txt'
+      co2historicaldata_2021.txt: '{{ workflow.FIXam }}/fix_co2_proj/global_co2historicaldata_2021.txt'
+      co2historicaldata_glob.txt: '{{ workflow.FIXam }}/global_co2historicaldata_glob.txt'
+      co2monthlycyc.txt: '{{ workflow.FIXam }}/co2monthlycyc.txt'
+      global_h2oprdlos.f77: '{{ workflow.FIXam }}/global_h2o_pltc.f77'
+      global_albedo4.1x1.grb: '{{ workflow.FIXam }}/global_albedo4.1x1.grb'
+      global_zorclim.1x1.grb: '{{ workflow.FIXam }}/global_zorclim.1x1.grb'
+      global_tg3clim.2.6x1.5.grb: '{{ workflow.FIXam }}/global_tg3clim.2.6x1.5.grb'
+      sfc_emissivity_idx.txt: '{{ workflow.FIXam }}/global_sfc_emissivity_idx.txt'
+      solarconstant_noaa_an.txt: '{{ workflow.FIXam }}/global_solarconstant_noaa_an.txt'
+      global_o3prdlos.f77: '{{ workflow.FIXam }}/ozprdlos_2015_new_sbuvO3_tclm15_nuchem.f77'
     lateral_boundary_conditions:
       interval_hours: 1 
       offset: 3 
       path: '{{ task_run_fcst.fv3.rundir }}/INPUT/{{ nco.NET_default }}.{{ cycle }}{{ "DOT_ENSMEM" | env  }}.gfs_bndy.tile{{ constants.TILE_RGNL }}.f{{ task_run_fcst.fv3.lateral_boundary_conditions.offset }}.nc' 
     length: 12
     model_configure:
-      base_file: '{{ user.USHdir }}/create_model_configure_file.py' 
       update_values:
-        write_dopost: .false.
+        total_member: 1
+        start_year: !int '{{ cycle.year }}'
+        start_month: !int '{{ cycle.month }}'
+        start_day: !int '{{ cycle.day }}'
+        start_hour: !int '{{ cycle.hour }}'
+        start_minute: !int '{{ cycle.minute }}'
+        start_second: !int '{{ cycle.second }}'
+        nhours_fcst: !int '{{ workflow.FCST_LEN_HRS }}'
+        fhrot: 0
+        run_continue: false
+        ens_sps: false
+        dt_atmos: ""
+        calendar: julian
+        memuse_verbose: false
+        restart_interval: 0
+        output_1st_tstep_rst: false
+        write_dopost: false
+        ideflate: 0
+        nbits: 0
+        ichunk2d: -1
+        jchunk2d: -1
+        ichunk3d: -1
+        jchunk3d: -1
+        kchunk3d: -1
+        itasks: 1
+        quilting: true
+        write_groups: !int '{{ task_run_fcst.WRTCMP_write_groups }}'
+        write_tasks_per_group: !int '{{ task_run_fcst.WRTCMP_write_tasks_per_group }}'
+        num_files: 2
+        filename_base: 'dyn phy'
+        output_file: 'netcdf netcdf'
+        output_fh: '1  -1'
+        nsout: -1
+        output_grid: '{{ task_run_fcst.WRTCMP_output_grid }}'
     namelist:
-      base_file: /path/to/base/input.nml
+      base_file: "{{ user.PARMdir }}/input.nml.FV3"
       update_values:
+        atmos_model_nml:
+          blocksize: !int '{{ task_run_fcst.BLOCKSIZE }}'
+          ccpp_suite: '{{ workflow.CCPP_PHYS_SUITE }}'
         fv_core_nml:
-          k_split: 2
-          n_split: 6
+          target_lon: !int '{{ grid_params.LON_CTR }}'
+          target_lat: !int '{{ grid_params.LAT_CTR }}'
+          nrows_blend: !int '{{ grid_params.HALO_BLEND }}'
+          stretch_fac: !int '{{ grid_params.STRETCH_FAC }}'
+          npx: !int '{{ grid_params.NX + 1 }}'
+          npy: !int '{{ grid_params.NY + 1 }}'
+          layout:
+            - !int '{{ task_run_fcst.LAYOUT_X }}'
+            - !int '{{ task_run_fcst.LAYOUT_Y }}'
+          bc_update_interval: !int '{{ task_get_extrn_lbcs.LBC_SPEC_INTVL_HRS }}'
+        gfs_physics_nml:
+          kice: !int '{{ 9 if workflow.SDF_USES_RUC_LSM else 2 }}'
+          print_diff_pgr: false
+        namsfc:
+          # From sfc_climo_gen
+          fnalbc: '{{ workflow.FIXlam }}/{{ "CRES" | env }}.snowfree_albedo.tileX.nc'
+          fnalbc2: '{{ workflow.FIXlam }}/{{ "CRES" | env }}.facsf.tileX.nc'
+          fntg3c: '{{ workflow.FIXlam }}/{{ "CRES" | env }}.substrate_temperature.tileX.nc'
+          fnvegc: '{{ workflow.FIXlam }}/{{ "CRES" | env }}.vegetation_greenness.tileX.nc'
+          fnvetc: '{{ workflow.FIXlam }}/{{ "CRES" | env }}.vegetation_type.tileX.nc'
+          fnsotc: '{{ workflow.FIXlam }}/{{ "CRES" | env }}.soil_type.tileX.nc'
+          fnvmnc: '{{ workflow.FIXlam }}/{{ "CRES" | env }}.vegetation_greenness.tileX.nc'
+          fnvmxc: '{{ workflow.FIXlam }}/{{ "CRES" | env }}.vegetation_greenness.tileX.nc'
+          fnslpc: '{{ workflow.FIXlam }}/{{ "CRES" | env }}.slope_type.tileX.nc'
+          fnabsc: '{{ workflow.FIXlam }}/{{ "CRES" | env }}.maximum_snow_albedo.tileX.nc'
+          # General fix files
+          fnglac: '{{ workflow.FIXlam }}/global_glacier.2x2.grb'
+          fnmxic: '{{ workflow.FIXlam }}/global_maxice.2x2.grb'
+          fntsfc: '{{ workflow.FIXlam }}/RTGSST.1982.2012.monthly.clim.grb'
+          fnsnoc: '{{ workflow.FIXlam }}/global_snoclim.1.875.grb'
+          fnzorc: '{{ workflow.FIXlam }}/igbp'
+          fnaisc: '{{ workflow.FIXlam }}/CFSR.SEAICE.1982.2012.monthly.clim.grb'
+          fnsmcc: '{{ workflow.FIXlam }}/global_soilmgldas.t126.384.190.grb'
+          fnmskh: '{{ workflow.FIXlam }}/seaice_newland.grb'
       validate: true
     rundir: '{{ workflow.EXPTDIR }}/run_fcst'
   #------------------------------------------------------------------------
@@ -1814,7 +1892,6 @@ task_run_fcst:
   #------------------------------------------------------------------------
   NNODES_RUN_FCST: !int '{{ (task_run_fcst.PE_MEMBER01 + task_run_fcst.PPN_RUN_FCST - 1) // task_run_fcst.PPN_RUN_FCST }}'
   PPN_RUN_FCST: '{{ platform.NCORES_PER_NODE // task_run_fcst.OMP_NUM_THREADS_RUN_FCST }}'
-  FV3_EXEC_FP: '{{ user.EXECdir }}/{{ workflow.FV3_EXEC_FN }}'
   IO_LAYOUT_Y: 1
   #
   #-----------------------------------------------------------------------
@@ -1854,15 +1931,6 @@ task_run_fcst:
   #
   # Set model_configure parameters.  Definitions:
   #
-  # DT_ATMOS:
-  # The main forecast model integration time step.  As described in the 
-  # forecast model documentation, "It corresponds to the frequency with 
-  # which the top level routine in the dynamics is called as well as the 
-  # frequency with which the physics is called."
-  #
-  # FHROT:
-  # Forecast hour at restart
-  #
   # RESTART_INTERVAL:
   # frequency of the output restart files (unit:hour). 
   # Default=0: restart files are produced at the end of a forecast run
@@ -1887,10 +1955,7 @@ task_run_fcst:
   #
   #-----------------------------------------------------------------------
   #
-  DT_ATMOS: ""
-  FHROT: 0
   RESTART_INTERVAL: 0
-  WRITE_DOPOST: false
   ITASKS: 1
   #
   #-----------------------------------------------------------------------
@@ -1942,14 +2007,6 @@ task_run_fcst:
   #
   # Definitions:
   #
-  # QUILTING:
-  # Flag that determines whether or not to use the write component for 
-  # writing output files to disk. The regional grid requires the use of 
-  # the write component, so users should not change the default value. 
-  # When set to true, the forecast model will output files named dynf$HHH.nc 
-  # and phyf$HHH.nc (where HHH is the 3-digit forecast hour) containing dynamics 
-  # and physics fields, respectively, on the write-component grid. 
-  # 
   # PRINT_ESMF:
   # Flag that determines whether to output extra (debugging) information from
   # ESMF routines. Must be true or false. Note that the write
@@ -2040,10 +2097,9 @@ task_run_fcst:
   #
   #-----------------------------------------------------------------------
   #
-  QUILTING: true
   PRINT_ESMF: false
 
-  PE_MEMBER01: '{{ task_run_fcst.LAYOUT_Y * task_run_fcst.LAYOUT_X + task_run_fcst.WRTCMP_write_groups * task_run_fcst.WRTCMP_write_tasks_per_group if task_run_fcst.QUILTING else task_run_fcst.LAYOUT_Y * task_run_fcst.LAYOUT_X}}'
+  PE_MEMBER01: !int '{{ task_run_fcst.LAYOUT_Y * task_run_fcst.LAYOUT_X + task_run_fcst.WRTCMP_write_groups * task_run_fcst.WRTCMP_write_tasks_per_group }}'
   
   WRTCMP_write_groups: ""
   WRTCMP_write_tasks_per_group: ""
@@ -2354,65 +2410,16 @@ global:
   #
   #-----------------------------------------------------------------------
   #
-  # Set default ad-hoc stochastic physics options.
-  # For detailed documentation of these parameters, see:
-  # https://stochastic-physics.readthedocs.io/en/ufs_public_release/namelist_options.html
+  # Switches for using ad-hoc stochastic physics options.
+  #
+  # For specific namelist settings associated with these switches, see
+  # stochastic_params.yaml
   #
   #-----------------------------------------------------------------------
   #
   DO_SHUM: false
   DO_SPPT: false
   DO_SKEB: false
-  ISEED_SPPT: 1
-  ISEED_SHUM: 2
-  ISEED_SKEB: 3
-  NEW_LSCALE: true
-  SHUM_MAG: 0.006 #Variable "shum" in input.nml
-  SHUM_LSCALE: 150000
-  SHUM_TSCALE: 21600 #Variable "shum_tau" in input.nml
-  SHUM_INT: 3600 #Variable "shumint" in input.nml
-  SPPT_MAG: 0.7 #Variable "sppt" in input.nml
-  SPPT_LOGIT: true
-  SPPT_LSCALE: 150000
-  SPPT_TSCALE: 21600 #Variable "sppt_tau" in input.nml
-  SPPT_INT: 3600 #Variable "spptint" in input.nml
-  SPPT_SFCLIMIT: true
-  SKEB_MAG: 0.5 #Variable "skeb" in input.nml
-  SKEB_LSCALE: 150000
-  SKEB_TSCALE: 21600 #Variable "skeb_tau" in input.nml
-  SKEB_INT: 3600 #Variable "skebint" in input.nml
-  SKEBNORM: 1
-  SKEB_VDOF: 10
-  USE_ZMTNBLCK: false
-  #
-  #-----------------------------------------------------------------------
-  #
-  # Set default SPP stochastic physics options. 
-  # SPP perturbs specific tuning parameters within a physics parameterization 
-  # (unlike SPPT, which multiplies overall physics tendencies by a random  
-  # perturbation field *after* the call to the physics suite).Patterns evolve 
-  # and are applied at each time step. Each SPP option is an array, 
-  # applicable (in order) to the HRRR-based parameterization listed in SPP_VAR_LIST. 
-  # Enter each value of the array in config.yaml as shown below without commas
-  # or single quotes (e.g., SPP_VAR_LIST: [ "pbl" "sfc" "mp" "rad" "gwd" ] ). 
-  # Both commas and single quotes will be added by Jinja when creating the
-  # namelist.
-  #
-  # Note that SPP is currently only available for specific physics schemes 
-  # used in the RAP/HRRR physics suite. Users need to be aware of which SDF
-  # is chosen when turning this option on. 
-  #
-  #-----------------------------------------------------------------------
-  #
-  DO_SPP: false
-  SPP_VAR_LIST: [ "pbl", "sfc", "mp", "rad", "gwd" ]
-  SPP_MAG_LIST: [ 0.2, 0.2, 0.75, 0.2, 0.2 ] #Variable "spp_prt_list" in input.nml
-  SPP_LSCALE: [ 150000.0, 150000.0, 150000.0, 150000.0, 150000.0 ]
-  SPP_TSCALE: [ 21600.0, 21600.0, 21600.0, 21600.0, 21600.0 ] #Variable "spp_tau" in input.nml
-  SPP_SIGTOP1: [ 0.1, 0.1, 0.1, 0.1, 0.1 ]
-  SPP_SIGTOP2: [ 0.025, 0.025, 0.025, 0.025, 0.025 ]
-  SPP_STDDEV_CUTOFF: [ 1.5, 1.5, 2.5, 1.5, 1.5 ]
-  ISEED_SPP: [ 4, 5, 6, 7, 8 ]
   #
   #-----------------------------------------------------------------------
   #
@@ -2420,26 +2427,10 @@ global:
   # Please be aware of the SDF that you choose if you wish to turn on LSM
   # SPP.
   #
-  # SPP in LSM schemes is handled in the &nam_sfcperts namelist block 
-  # instead of in &nam_sppperts, where all other SPP is implemented.
-  #
   # Perturbations to soil moisture content (SMC) are only applied at the 
   # first time step.
   #
-  # LSM perturbations include SMC - soil moisture content (volume fraction),
-  # VGF - vegetation fraction, ALB - albedo, SAL - salinity, 
-  # EMI - emissivity, ZOL - surface roughness (cm), and STC - soil temperature.
-  #
-  # Only five perturbations at a time can be applied currently, but all seven
-  # are shown below.  In addition, only one unique iseed value is allowed 
-  # at the moment, and is used for each pattern.
-  #
-  DO_LSM_SPP: false #If true, sets lndp_type=2
-  LSM_SPP_TSCALE: [ 21600, 21600, 21600, 21600, 21600, 21600, 21600 ]
-  LSM_SPP_LSCALE: [ 150000, 150000, 150000, 150000, 150000, 150000, 150000 ]
-  ISEED_LSM_SPP: [ 9 ]
-  LSM_SPP_VAR_LIST: [ "smc", "vgf", "alb", "sal", "emi", "zol", "stc" ]
-  LSM_SPP_MAG_LIST: [ 0.017, 0.001, 0.001, 0.001, 0.001, 0.001, 0.2 ]
+  DO_LSM_SPP: false
   #
   #-----------------------------------------------------------------------
   # 
@@ -2452,16 +2443,6 @@ global:
   #-----------------------------------------------------------------------
   #
   HALO_BLEND: 10
-  #
-  #-----------------------------------------------------------------------
-  #
-  # PRINT_DIFF_PGR:
-  # Option to turn on/off the pressure tendency diagnostic.
-  #
-  #-----------------------------------------------------------------------
-  #
-  PRINT_DIFF_PGR: false
-
 #----------------------------
 # verification (vx) parameters
 #-----------------------------
