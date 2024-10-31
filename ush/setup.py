@@ -1380,9 +1380,16 @@ def setup(USHdir, user_config_fn="config.yaml", debug: bool = False):
             thompson_files.append(workflow_config["THOMPSON_MP_CLIMO_FN"])
 
         # Add thompson-specific fix files to the FV3 configuration
-        fixed_files = expt_config["fixed_files"]
-        for fn in thompson_files:
-          fcst_config["fv3"]["namelist"]["update_values"]["namsfc"].update(fn)
+        thompson_files = fixed_files["THOMPSON_FIX_FILES"]
+        if get_extrn_ics["EXTRN_MDL_NAME_ICS"] not in ["HRRR", "RAP"] or get_extrn_lbcs[
+            "EXTRN_MDL_NAME_LBCS"
+        ] not in ["HRRR", "RAP"]:
+            thompson_files.append(workflow_config["THOMPSON_MP_CLIMO_FN"])
+
+        # Add thompson-specific fix files to the FV3 configuration
+        fixam = workflow_config["FIXam"]
+        thompson_fix_links = {fn: f"{fixam}/{fn}" for fn in thompson_files}
+        expt_config["task_run_fcst"]["fv3"]["files_to_link"].update(thompson_fix_links)
 
     #
     # -----------------------------------------------------------------------
