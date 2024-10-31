@@ -1,0 +1,46 @@
+
+
+no_quilting:
+  task_run_fcst:
+    PE_MEMBER01: !int '{{  task_run_fcst.LAYOUT_Y * task_run_fcst.LAYOUT_X }}'
+    model_configure:
+      update_values:
+        write_groups: !remove
+        write_tasks_per_group: !remove
+        num_files: !remove
+        filename_base: !remove
+        output_file: !remove
+        output_fh: !remove
+        nsout: !remove
+        output_grid: !remove
+
+lambert_conformal:
+  task_run_fcst:
+    model_configure:
+      update_values:
+        cen_lon: '{{ task_run_fcst.WRTCMP_cen_lon }}'
+        cen_lat: '{{ task_run_fcst.WRTCMP_cen_lat }}'
+        stdlat1: '{{ task_run_fcst.WRTCMP_stdlat1 }}'
+        stdlat2: '{{ task_run_fcst.WRTCMP_stdlat2 }}'
+        nx: '{{ task_run_fcst.WRTCMP_nx }}'
+        ny: '{{ task_run_fcst.WRTCMP_ny }}'
+        lon1: '{{ task_run_fcst.WRTCMP_lon_lwr_left }}'
+        lat1: '{{ task_run_fcst.WRTCMP_lat_lwr_left }}'
+        dx: '{{ task_run_fcst.WRTCMP_dx }}'
+        dy: '{{ task_run_fcst.WRTCMP_dy }}'
+
+regional_latlon:
+  task_run_fcst: &latlon_reference
+    model_configure:
+      update_values:
+        cen_lon: '{{ task_run_fcst.WRTCMP_cen_lon }}'
+        cen_lat: '{{ task_run_fcst.WRTCMP_cen_lat }}'
+        lon1: '{{ task_run_fcst.WRTCMP_lon_lwr_left }}'
+        lat1: '{{ task_run_fcst.WRTCMP_lat_lwr_left }}'
+        lon2: '{{ task_run_fcst.WRTCMP_lon_upr_rght }}'
+        lat2: '{{ task_run_fcst.WRTCMP_lat_upr_rght }}'
+        dlon: '{{ task_run_fcst.WRTCMP_dlon }}'
+        dlat: '{{ task_run_fcst.WRTCMP_dlat }}'
+
+rotated_latlon:
+  <<: *latlon_reference
