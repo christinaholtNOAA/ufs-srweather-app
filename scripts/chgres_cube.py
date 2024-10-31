@@ -143,7 +143,7 @@ def run_chgres_cube(config_file, cycle, key_path, member):
         task_make_block = _walk_key_path(expt_config_cp, key_path)
         for i, output_fn in enumerate(task_make_block["output_file_labels"]):
             input_fn = task_get_block["output_file_labels"][i]
-            links[output_fn] = str(input_fn)
+            links[output_fn] = str(rundir / input_fn)
 
         uwlink(target_dir=output_dir, config=links)
 
@@ -196,7 +196,7 @@ def run_chgres_cube(config_file, cycle, key_path, member):
 
                 lbc_input_fn = task_get_block["output_file_labels"][0]
                 lbc_output_fn = task_make_block["output_file_labels"][0]
-                links[lbc_output_fn] = str(lbc_input_fn)
+                links[lbc_output_fn] = str(rundir / lbc_input_fn)
                 uwlink(target_dir=output_dir, config=links)
 
     # error message
