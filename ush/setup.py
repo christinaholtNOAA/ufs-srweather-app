@@ -749,7 +749,7 @@ def setup(USHdir, user_config_fn="config.yaml", debug: bool = False):
                     )
                 )
 
-    quilting = fcst_config["model_configure"]["update_values"]["quilting"]
+    quilting = fcst_config["fv3"]["model_configure"]["update_values"]["quilting"]
     # Gather the pre-defined grid parameters, if needed
     if predef_grid_name := (workflow_config.get("PREDEF_GRID_NAME")):
         grid_params = set_predef_grid_params(
@@ -955,8 +955,8 @@ def setup(USHdir, user_config_fn="config.yaml", debug: bool = False):
     # -----------------------------------------------------------------------
 
     # Check to make sure all SPP and LSM_SPP lists are the same length.
-    stoch_config = fcst_config["namelist"]["update_values"]["nam_sppperts"]
-    if global_sect.get("DO_SPP"):
+    stoch_config = fcst_config["fv3"]["namelist"]["update_values"]["nam_sppperts"]
+    if stoch_config[].get("DO_SPP"):
         list_vars = (
             "iseed_spp",
             "spp_lscale",
@@ -967,7 +967,7 @@ def setup(USHdir, user_config_fn="config.yaml", debug: bool = False):
             "spp_tau",
             "spp_var_list",
         )
-        list_len = fcst_config["namelist"]["update_values"]["n_var_spp"]
+        list_len = fcst_config["fv3"]["namelist"]["update_values"]["n_var_spp"]
         if any([len(stoch_config[v]) != list_len for v in list_vars]):
             report = "\n".join([f"{v}: {len(stoch_config[v])}" for v in list_vars])
             raise Exception(
