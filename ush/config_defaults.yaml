@@ -1849,6 +1849,7 @@ task_run_fcst:
         gfs_physics_nml:
           kice: !int '{{ 9 if workflow.SDF_USES_RUC_LSM else 2 }}'
           print_diff_pgr: false
+        nam_sfcperts: {}
         nam_sppperts: {}
         namsfc:
           # From sfc_climo_gen

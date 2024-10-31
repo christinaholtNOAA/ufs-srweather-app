@@ -956,7 +956,8 @@ def setup(USHdir, user_config_fn="config.yaml", debug: bool = False):
 
     # Check to make sure all SPP and LSM_SPP lists are the same length.
     stoch_config = fcst_config["fv3"]["namelist"]["update_values"]["nam_sppperts"]
-    if stoch_config[].get("DO_SPP"):
+    global_sect = expt_config["global"]
+    if global_sect.get("DO_SPP"):
         list_vars = (
             "iseed_spp",
             "spp_lscale",
@@ -983,7 +984,7 @@ def setup(USHdir, user_config_fn="config.yaml", debug: bool = False):
                 """
             )
 
-    stoch_config = fcst_config["namelist"]["update_values"]["nam_sfcperts"]
+    stoch_config = fcst_config["fv3"]["namelist"]["update_values"]["nam_sfcperts"]
     if global_sect.get("DO_LSM_SPP"):
         list_vars = ("lndp_tau", "lndp_lscale", "lndp_var_list", "lndp_prt_list")
         list_len = fcst_config["namelist"]["update_values"]["n_var_lndp"]
@@ -1328,7 +1329,7 @@ def setup(USHdir, user_config_fn="config.yaml", debug: bool = False):
     #
     # -----------------------------------------------------------------------
     #
-    if fcst_config["WRITE_DOPOST"]:
+    if fcst_config["fv3"]["model_configure"]["update_values"]["write_dopost"]:
         # Turn off run_post
         task_name = "metatask_run_ens_post"
         removed_task = task_defs.pop(task_name, None)
@@ -1379,9 +1380,9 @@ def setup(USHdir, user_config_fn="config.yaml", debug: bool = False):
             thompson_files.append(workflow_config["THOMPSON_MP_CLIMO_FN"])
 
         # Add thompson-specific fix files to the FV3 configuration
-        fixam = workflow_config["FIXam"]
-        thompson_fix_links = {fn: f"{fixam}/{fn}" in thompson_files}
-        expt_config["task_run_fcst"]["fv3"]["files_to_link"].update(thompson_fix_links)
+        fixed_files = expt_config["fixed_files"]
+        for fn in thompson_files:
+          fcst_config["fv3"]["namelist"]["update_values"]["namsfc"].update(fn)
 
     #
     # -----------------------------------------------------------------------
