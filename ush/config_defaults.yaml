@@ -1613,7 +1613,7 @@ task_get_extrn_ics:
     EXTRN_MDL_FILES_ICS: ""
     rundir: '{{ workflow.EXPTDIR }}/{{ timevars.yyyymmddhh }}/{{ task_get_extrn_ics.envvars.EXTRN_MDL_NAME_ICS }}/for_ICS{{ "/mem%s" % ("MEMBER"|env) if global.DO_ENSEMBLE }}'
   output_file_labels:
-    - "out.atm.tile{{{ constants.TILE_RGNL }}.nc"
+    - "out.atm.tile{{ constants.TILE_RGNL }}.nc"
     - "out.sfc.tile{{ constants.TILE_RGNL }}.nc"
     - "gfs_ctrl.nc"
     - "gfs.bndy.nc"
@@ -1801,10 +1801,10 @@ task_make_ics:
           vgfrc_from_climo: true
     rundir: '{{ task_run_fcst.rundir }}/tmp_MAKE_ICS'
   output_file_labels:
-    - '{{ nco.NET_DEFAULT }}.t{{ cycle.strftime("%H") }}z{{ ".mem%s" % ("MEMBER"|env) if global.DO_ENSEMBLE }}.sfc_data.tile{{ constants.TILE_RGNL }}.halo{{ constants.NH0 }}.nc'
-    - '{{ nco.NET_DEFAULT }}.t{{ cycle.strftime("%H") }}z{{ ".mem%s" % ("MEMBER"|env) if global.DO_ENSEMBLE }}.gfs_data.tile{{ constants.TILE_RGNL }}.halo{{ constants.NH0 }}.nc'
-    - '{{ nco.NET_DEFAULT }}.t{{ cycle.strftime("%H") }}z.gfs_ctrl.nc'
-    - '{{ nco.NET_DEFAULT }}.t{{ cycle.strftime("%H") }}z{{ ".mem%s" % ("MEMBER"|env) if global.DO_ENSEMBLE }}.gfs_bndy.tile{{ constants.TILE_RGNL }}.f000.nc'
+    - '{{ nco.NET_default }}.t{{ timevars.hh }}z{{ ".mem%s" % ("MEMBER"|env) if global.DO_ENSEMBLE }}.sfc_data.tile{{ constants.TILE_RGNL }}.halo{{ constants.NH0 }}.nc'
+    - '{{ nco.NET_default }}.t{{ timevars.hh }}z{{ ".mem%s" % ("MEMBER"|env) if global.DO_ENSEMBLE }}.gfs_data.tile{{ constants.TILE_RGNL }}.halo{{ constants.NH0 }}.nc'
+    - '{{ nco.NET_default }}.t{{ timevars.hh }}z.gfs_ctrl.nc'
+    - '{{ nco.NET_default }}.t{{ timevars.hh }}z{{ ".mem%s" % ("MEMBER"|env) if global.DO_ENSEMBLE }}.gfs_bndy.tile{{ constants.TILE_RGNL }}.f000.nc'
 
 #----------------------------
 # MAKE LBCS config parameters
@@ -1857,7 +1857,7 @@ task_make_lbcs:
           vcoord_file_target_grid: "{{ workflow.FIXam }}/global_hyblev.l65.txt"
     rundir: '{{ task_run_fcst.rundir}}/tmp_MAKE_LBCS'
   output_file_labels:
-    - '{{ nco.NET_DEFAULT }}.t{{ cycle.strftime("%H") }}z{{ ".mem%s" % ("MEMBER"|env) if global.DO_ENSEMBLE }}.gfs_bndy.tile7.f{{ "fcst_hhh_FV3LAM" | env }}.nc'
+    - '{{ nco.NET_default }}.t{{ timevars.hh }}z{{ ".mem%s" % ("MEMBER"|env) if global.DO_ENSEMBLE }}.gfs_bndy.tile7.f{{ "fcst_hhh_FV3LAM" | env }}.nc'
 
 #----------------------------
 # IO_LAYOUT_Y FORECAST config parameters

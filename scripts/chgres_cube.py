@@ -79,31 +79,29 @@ def run_chgres_cube(config_file, cycle, key_path, member):
     """
     Setup and run the chgres_cube Driver.
     """
-
-    # dereference expressions during driver initialization
     expt_config = get_yaml_config(config_file)
-    CRES = expt_config["workflow"]["CRES"]
-    os.environ["CRES"] = CRES
-    os.environ["MEMBER"] = member
 
-    # Extract driver config from experiment config
+    # The experiment config will have {{ CRES | env }} expressions in it that need to be
+    # dereferenced during driver initialization
+    cres = expt_config["workflow"]["CRES"]
+    os.environ["CRES"] = cres
+    os.environ["MEMBER"] = member
+    expt_config.dereference(
+        context={
+            "cycle": cycle,
+            **os.environ,
+            **expt_config,
+        }
+    )
     chgres_cube_driver = ChgresCube(
         config=config_file,
         cycle=cycle,
         key_path=key_path,
     )
     rundir = Path(chgres_cube_driver.config["rundir"])
-    print(f"Will run in {rundir}")
+    logging.info(f"Will run in {rundir}")
 
-    # Dereference cycle for file paths
-    expt_config_cp = get_yaml_config(deepcopy(expt_config.data))
-    expt_config_cp.dereference(
-        context={
-            "cycle": cycle,
-            **expt_config_cp,
-        }
-    )
-    chgres_cube_config = _walk_key_path(expt_config_cp, key_path)
+    chgres_cube_config = _walk_key_path(expt_config, key_path)
     input_type = chgres_cube_config["chgres_cube"]["namelist"]["update_values"][
         "config"
     ].get("input_type")
@@ -120,11 +118,12 @@ def run_chgres_cube(config_file, cycle, key_path, member):
         else:
             os.environ["fn_atm"] = external_config_fns[0]
             os.environ["fn_sfc"] = external_config_fns[1]
-
-    # reinstantiate driver
+        # reinstantiate driver
+        expt_config_cp = get_yaml_config(deepcopy(expt_config.data))
         expt_config_cp.dereference(
             context={
                 "cycle": cycle,
+                **os.environ,
                 **expt_config_cp,
             }
         )
@@ -140,10 +139,10 @@ def run_chgres_cube(config_file, cycle, key_path, member):
 
         output_dir = os.path.join(rundir.parent, "INPUT")
         os.makedirs(output_dir, exist_ok=True)
-        for i, output_fn in enumerate(
-            expt_config_cp["task_make_ics"]["output_file_labels"]
-        ):
-            input_fn = expt_config_cp["task_get_extrn_ics"]["output_file_labels"][i]
+        task_get_block = _walk_key_path(expt_config_cp, {"task_get_extrn_ics"})
+        task_make_block = _walk_key_path(expt_config_cp, key_path)
+        for i, output_fn in enumerate(task_make_block["output_file_labels"]):
+            input_fn = task_get_block["output_file_labels"][i]
             links[output_fn] = str(input_fn)
 
         uwlink(target_dir=output_dir, config=links)
@@ -164,16 +163,18 @@ def run_chgres_cube(config_file, cycle, key_path, member):
                     os.environ["fn_atm"] = external_config_fns[i]
 
                 lbc_spec_fhrs = external_config_fhrs[i]
-                lbc_offset_fhrs = expt_config_cp["task_get_extrn_lbcs"]["envvars"][
+                lbc_offset_fhrs = expt_config["task_get_extrn_lbcs"]["envvars"][
                     "EXTRN_MDL_LBCS_OFFSET_HRS"
                 ]
                 fcst_hhh = int(lbc_spec_fhrs) - int(lbc_offset_fhrs)
                 os.environ["fcst_hhh_FV3LAM"] = f"{fcst_hhh:03d}"
 
                 # reinstantiate driver
+                expt_config_cp = get_yaml_config(deepcopy(expt_config.data))
                 expt_config_cp.dereference(
                     context={
                         "cycle": cycle,
+                        **os.environ,
                         **expt_config_cp,
                     }
                 )
@@ -187,15 +188,14 @@ def run_chgres_cube(config_file, cycle, key_path, member):
                 # Deliver output data to a common location above the rundir.
                 links = {}
 
+                task_get_block = _walk_key_path(expt_config_cp, {"task_get_extrn_lbcs"})
+                task_make_block = _walk_key_path(expt_config_cp, key_path)
+
                 output_dir = os.path.join(rundir.parent, "INPUT")
                 os.makedirs(output_dir, exist_ok=True)
 
-                lbc_input_fn = expt_config_cp["task_get_extrn_lbcs"][
-                    "output_file_labels"
-                ][0]
-                lbc_output_fn = expt_config_cp["task_make_lbcs"]["output_file_labels"][
-                    0
-                ]
+                lbc_input_fn = task_get_block["output_file_labels"][0]
+                lbc_output_fn = task_make_block["output_file_labels"][0]
                 links[lbc_output_fn] = str(lbc_input_fn)
                 uwlink(target_dir=output_dir, config=links)
 
