@@ -94,11 +94,10 @@ def run_chgres_cube(config_file, cycle, key_path, member):
 
     # The experiment config will have {{ CRES | env }} expressions in it that need to be
     # dereferenced during driver initialization
-    cres = expt_config["workflow"]["CRES"]
-    os.environ["CRES"] = cres
+    os.environ["CRES"] = expt_config["workflow"]["CRES"]
     os.environ["MEMBER"] = member
 
-    # Find the names of the external model files
+    # Render names of external model files in experiment config.
     expt_config.dereference(
         context={
             "cycle": cycle,
@@ -107,9 +106,7 @@ def run_chgres_cube(config_file, cycle, key_path, member):
         }
     )
     chgres_cube_config = _walk_key_path(expt_config, key_path)
-    input_type = chgres_cube_config["chgres_cube"]["namelist"]["update_values"][
-        "config"
-    ].get("input_type")
+    grib2_input = _walk_key_path(chgres_cube_config, ["chgres_cube", "namelist", "update_values", "config"]).get("input_type") == "grib2"
 
     varsfilepath = chgres_cube_config["input_files_metadata_path"]
     external_config = get_yaml_config(varsfilepath)
@@ -117,7 +114,7 @@ def run_chgres_cube(config_file, cycle, key_path, member):
     external_config_fhrs = external_config["external_model_fhrs"]
 
     if "task_make_ics" in key_path:
-        if input_type == "grib2":
+        if grib2_input:
             os.environ["fn_grib2"] = external_config_fns[0]
         else:
             os.environ["fn_atm"] = external_config_fns[0]
@@ -147,14 +144,9 @@ def run_chgres_cube(config_file, cycle, key_path, member):
 
         fhrs_and_fns = list(zip(external_config_fhrs, external_config_fns))
         for external_fhr, external_fn in fhrs_and_fns:
-            if input_type == "grib2":
-                os.environ["fn_grib2"] = external_fn
-            else:
-                os.environ["fn_atm"] = external_fn
+            os.environ["fn_grib2" if grib2_input else "fn_atm"] = external_fn
 
-            lbc_offset_fhrs = expt_config["task_get_extrn_lbcs"]["envvars"][
-                    "EXTRN_MDL_LBCS_OFFSET_HRS"
-                ]
+            lbc_offset_fhrs = _walk_key_path(expt_config, ["task_get_extrn_lbcs", "envvars", "EXTRN_MDL_LBCS_OFFSET_HRS"])
             fcst_hr_lam = int(external_fhr) - int(lbc_offset_fhrs)
             leadtime = dt.timedelta(hours=fcst_hr_lam)
 

@@ -120,7 +120,7 @@ metatask_run_ensemble:
       cyclestr:
         value: '&LOGDIR;/{{ jobname }}_@Y@m@d@H&LOGEXT;'
     nodes: '{{ task_make_ics.chgres_cube.execution.batchargs.nodes }}:ppn={{ task_make_ics.chgres_cube.execution.batchargs.tasks_per_node }}'
-    walltime: '{{ task_make_ics.chgres_cube.execution.batchargs.walltime }}' 
+    walltime: '{{ task_make_ics.chgres_cube.execution.batchargs.walltime }}'
     dependency:
       and: &make_ics_deps
         taskdep_get_extrn:
@@ -173,7 +173,7 @@ metatask_run_ensemble:
       cyclestr:
         value: '&LOGDIR;/{{ jobname }}_@Y@m@d@H&LOGEXT;'
     nodes: '{{ task_make_lbcs.chgres_cube.execution.batchargs.nodes }}:ppn={{ task_make_lbcs.chgres_cube.execution.batchargs.tasks_per_node }}'
-    walltime: '{{ task_make_lbcs.chgres_cube.execution.batchargs.walltime }}' 
+    walltime: '{{ task_make_lbcs.chgres_cube.execution.batchargs.walltime }}'
     dependency:
       and:
         <<: *make_ics_deps
