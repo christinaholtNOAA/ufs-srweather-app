@@ -113,6 +113,7 @@ HRRR:
             geogrid_file_input_grid: "{{ platform.FIXgsm }}/geo_em.d01.nc_HRRRX"
             grib2_file_input_grid: "{{ 'fn_grib2' | env }}"
             input_type: "grib2"
+            nsoill_out: !int "{{ 9 if workflow.SDF_USES_RUC_LSM else 4 }}"
             tg3_from_soil: True
   task_make_lbcs:
     chgres_cube:
@@ -134,6 +135,7 @@ RAP:
             geogrid_file_input_grid: "{{ platform.FIXgsm }}/geo_em.d01.nc_RAPX"
             grib2_file_input_grid: "{{ 'fn_grib2' | env }}"
             input_type: "grib2"
+            nsoill_out: !int "{{ 9 if workflow.SDF_USES_RUC_LSM else 4 }}"
             tg3_from_soil: True
   task_make_lbcs:
     chgres_cube:
