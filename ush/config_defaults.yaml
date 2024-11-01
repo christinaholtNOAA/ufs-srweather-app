@@ -1612,11 +1612,6 @@ task_get_extrn_ics:
     EXTRN_MDL_SOURCE_BASEDIR_ICS: ""
     EXTRN_MDL_FILES_ICS: ""
     rundir: '{{ workflow.EXPTDIR }}/{{ timevars.yyyymmddhh }}/{{ task_get_extrn_ics.envvars.EXTRN_MDL_NAME_ICS }}/for_ICS{{ "/mem%s" % ("MEMBER"|env) if global.DO_ENSEMBLE }}'
-  output_file_labels:
-    - "out.atm.tile{{ constants.TILE_RGNL }}.nc"
-    - "out.sfc.tile{{ constants.TILE_RGNL }}.nc"
-    - "gfs_ctrl.nc"
-    - "gfs.bndy.nc"
 
 #----------------------------
 # EXTRN LBCS config parameters
@@ -1699,8 +1694,6 @@ task_get_extrn_lbcs:
     EXTRN_MDL_SOURCE_BASEDIR_LBCS: ""
     EXTRN_MDL_FILES_LBCS: ""
     rundir: '{{ workflow.EXPTDIR }}/{{ timevars.yyyymmddhh }}/{{ task_get_extrn_lbcs.envvars.EXTRN_MDL_NAME_LBCS }}/for_LBCS{{ "/mem%s" % ("MEMBER"|env) if global.DO_ENSEMBLE }}'
-  output_file_labels:
-    - "gfs.bndy.nc"
 
 #----------------------------
 # MAKE ICS config parameters
@@ -1800,11 +1793,11 @@ task_make_ics:
           vgtyp_from_climo: true
           vgfrc_from_climo: true
     rundir: '{{ task_run_fcst.rundir }}/tmp_MAKE_ICS'
-  output_file_labels:
-    - '{{ nco.NET_default }}.t{{ timevars.hh }}z{{ ".mem%s" % ("MEMBER"|env) if global.DO_ENSEMBLE }}.sfc_data.tile{{ constants.TILE_RGNL }}.halo{{ constants.NH0 }}.nc'
-    - '{{ nco.NET_default }}.t{{ timevars.hh }}z{{ ".mem%s" % ("MEMBER"|env) if global.DO_ENSEMBLE }}.gfs_data.tile{{ constants.TILE_RGNL }}.halo{{ constants.NH0 }}.nc'
-    - '{{ nco.NET_default }}.t{{ timevars.hh }}z.gfs_ctrl.nc'
-    - '{{ nco.NET_default }}.t{{ timevars.hh }}z{{ ".mem%s" % ("MEMBER"|env) if global.DO_ENSEMBLE }}.gfs_bndy.tile{{ constants.TILE_RGNL }}.f000.nc'
+  output_file_links:
+    '{{ nco.NET_default }}.t{{ timevars.hh }}z.sfc_data.tile{{ constants.TILE_RGNL }}.halo{{ constants.NH0 }}.nc': out.sfc.tile{{ constants.TILE_RGNL }}.nc
+    '{{ nco.NET_default }}.t{{ timevars.hh }}z.gfs_data.tile{{ constants.TILE_RGNL }}.halo{{ constants.NH0 }}.nc': out.atm.tile{{ constants.TILE_RGNL }}.nc
+    '{{ nco.NET_default }}.t{{ timevars.hh }}z.gfs_ctrl.nc': gfs_ctrl.nc
+    '{{ nco.NET_default }}.t{{ timevars.hh }}z.gfs_bndy.tile{{ constants.TILE_RGNL }}.f000.nc': gfs.bndy.nc
 
 #----------------------------
 # MAKE LBCS config parameters
@@ -1840,24 +1833,24 @@ task_make_lbcs:
       update_values:
         config:
           convert_atm: true
-          cycle_day: !int "{{ cycle.strftime('%d') }}"
-          cycle_hour: !int "{{ cycle.strftime('%H') }}"
-          cycle_mon: !int "{{ cycle.strftime('%m') }}"
+          cycle_day: !int "{{ (cycle + leadtime).strftime('%d') }}"
+          cycle_hour: !int "{{ (cycle + leadtime).strftime('%H') }}"
+          cycle_mon: !int "{{ (cycle + leadtime).strftime('%m') }}"
           data_dir_input_grid: '{{ task_get_extrn_lbcs.envvars.rundir }}'
           external_model: "FV3GFS"
           fix_dir_target_grid: "{{ workflow.FIXlam }}"
           halo_blend: !int "{{ global.HALO_BLEND }}"
           halo_bndy: !int "{{ constants.NH4 }}"
-          input_type: "gaussian_nemsio" 
+          input_type: "gaussian_nemsio"
           mosaic_file_target_grid: "{{ workflow.FIXlam }}/{{ 'CRES' | env }}_mosaic.halo{{ constants.NH4 }}.nc"
           orog_dir_target_grid: "{{ workflow.FIXlam }}"
           orog_files_target_grid: "{{ 'CRES' | env }}_oro_data.tile{{ constants.TILE_RGNL }}.halo{{ constants.NH4 }}.nc"
           regional: 2
           varmap_file: "{{ user.PARMdir }}/ufs_utils/varmap_tables/GFSphys_var_map.txt"
           vcoord_file_target_grid: "{{ workflow.FIXam }}/global_hyblev.l65.txt"
-    rundir: '{{ task_run_fcst.rundir}}/tmp_MAKE_LBCS'
-  output_file_labels:
-    - '{{ nco.NET_default }}.t{{ timevars.hh }}z{{ ".mem%s" % ("MEMBER"|env) if global.DO_ENSEMBLE }}.gfs_bndy.tile7.f{{ "fcst_hhh_FV3LAM" | env }}.nc'
+    rundir: '{{ task_run_fcst.rundir}}/tmp_MAKE_LBCS_{{ timevars.yyyymmddhh }}'
+  output_file_links:
+    '{{ nco.NET_default }}.t{{ timevars.hh }}z.gfs_bndy.tile7.f{{ "%03d" % (leadtime.total_seconds() // 3600) }}.nc': gfs.bndy.nc
 
 #----------------------------
 # IO_LAYOUT_Y FORECAST config parameters
