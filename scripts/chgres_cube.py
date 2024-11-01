@@ -28,6 +28,7 @@ def _deliver_files(config, dst_dir, key_path, src_dir):
         logging.error("Files could not be copied to their final destination.")
         sys.exit(1)
 
+
 def _get_external_fns(config, cycle, key_path):
     """
     Return external model file names and forecast hours for the given task in the experiment.
@@ -45,20 +46,25 @@ def _get_external_fns(config, cycle, key_path):
     varsfilepath = _walk_key_path(
         config_cp,
         key_path + ["input_files_metadata_path"],
-        )
+    )
     external_config = get_yaml_config(varsfilepath)
     external_config_fns = external_config["external_model_fns"]
     external_config_fhrs = external_config["external_model_fhrs"]
     return external_config_fhrs, external_config_fns
 
+
 def _is_grib2(config, key_path):
     """
     Is the input in grib2 format?
     """
-    return _walk_key_path(
-        config,
-        key_path + ["chgres_cube", "namelist", "update_values", "config"],
-        ).get("input_type") == "grib2"
+    return (
+        _walk_key_path(
+            config,
+            key_path + ["chgres_cube", "namelist", "update_values", "config"],
+        ).get("input_type")
+        == "grib2"
+    )
+
 
 def _walk_key_path(config, key_path):
     """
@@ -137,7 +143,9 @@ def run_chgres_cube(config_file, cycle, key_path, member):
             os.environ["fn_atm"] = ext_fns[0]
             os.environ["fn_sfc"] = ext_fns[1]
 
-        driver = run_driver(ChgresCube, config_file, cycle, key_path, leadtime=dt.timedelta(hours=0))
+        driver = run_driver(
+            ChgresCube, config_file, cycle, key_path, leadtime=dt.timedelta(hours=0)
+        )
         rundir = Path(driver.config["rundir"])
 
         # Deliver output data to the forecast's INPUT dir.
@@ -181,6 +189,7 @@ def run_chgres_cube(config_file, cycle, key_path, member):
                 key_path=key_path,
                 src_dir=rundir,
             )
+
 
 def run_driver(driver_obj, config_file, cycle, key_path, leadtime):
     """
