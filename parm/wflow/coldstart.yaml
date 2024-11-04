@@ -102,7 +102,16 @@ metatask_run_ensemble:
     mem: '{% if global.DO_ENSEMBLE %}{%- for m in range(1, global.NUM_ENS_MEMBERS+1) -%}{{ "%03d "%m }}{%- endfor -%} {% else %}{{ "000"|string }}{% endif %}'
   task_make_ics_mem#mem#:
     <<: *default_task
-    command: '&LOAD_MODULES_RUN_TASK; "make_ics" "&JOBSdir;/JREGIONAL_MAKE_ICS"'
+    command: 
+      cyclestr:
+        value: 'source &USHdir;/load_modules_wflow.sh {{ user.MACHINE }} ; &SCRIPTSdir;/chgres_cube.py
+          -c &GLOBAL_VAR_DEFNS_FP;
+          --cycle @Y-@m-@dT@H:@M:@S
+          --key-path task_make_ics
+          --mem #mem#'
+    join:
+      cyclestr:
+        value: '&LOGDIR;/{{ jobname }}_@Y@m@d@H&LOGEXT;'
     envars:
       <<: *default_vars
       SLASH_ENSMEM_SUBDIR: '&SLASH_ENSMEM_SUBDIR;'
@@ -144,7 +153,16 @@ metatask_run_ensemble:
 
   task_make_lbcs_mem#mem#:
     <<: *default_task
-    command: '&LOAD_MODULES_RUN_TASK; "make_lbcs" "&JOBSdir;/JREGIONAL_MAKE_LBCS"'
+    command: 
+      cyclestr:
+        value: 'source &USHdir;/load_modules_wflow.sh {{ user.MACHINE }} ; &SCRIPTSdir;/chgres_cube.py
+          -c &GLOBAL_VAR_DEFNS_FP;
+          --cycle @Y-@m-@dT@H:@M:@S
+          --key-path task_make_lbcs
+          --mem #mem#'
+    join:
+      cyclestr:
+        value: '&LOGDIR;/{{ jobname }}_@Y@m@d@H&LOGEXT;'
     envars:
       <<: *default_vars
       SLASH_ENSMEM_SUBDIR: '&SLASH_ENSMEM_SUBDIR;'

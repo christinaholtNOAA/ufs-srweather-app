@@ -146,6 +146,16 @@ def load_config_for_setup(ushdir, default_config_path, user_config_path):
     ccpp_config = get_yaml_config(ushdir / "ccpp_suites_defaults.yaml").get(ccpp_suite, {})
     default_config.update_from(ccpp_config)
 
+    # Load external model-specific settings
+    external_cfg = get_yaml_config(ushdir / "external_model_defaults.yaml")
+    for bcs in ("ics", "lbcs"):
+        get_task_config = default_config[f"task_get_extrn_{bcs}"]
+        external_model = get_task_config["envvars"][f"EXTRN_MDL_NAME_{bcs.upper()}"]
+        bcs_task = f"task_make_{bcs}"
+        default_config.update_from(
+            {bcs_task: external_cfg.get(external_model, {}).get(bcs_task, {}) }
+        )
+
     # Set "Home" directory, the top-level ufs-srweather-app directory
     homedir = Path(__file__).parent.parent.resolve()
     default_config["user"]["HOMEdir"] = str(homedir)
