@@ -43,10 +43,7 @@ def _get_external_fns(config, cycle, key_path):
             "cycle": cycle,
         }
     )
-    varsfilepath = _walk_key_path(
-        config_cp,
-        key_path + ["input_files_metadata_path"],
-    )
+    varsfilepath = _walk_key_path(config_cp, key_path)["input_files_metadata_path"]
     external_config = get_yaml_config(varsfilepath)
     external_config_fns = external_config["external_model_fns"]
     external_config_fhrs = external_config["external_model_fhrs"]
@@ -150,8 +147,16 @@ def run_chgres_cube(config_file, cycle, key_path, member):
 
         # Deliver output data to the forecast's INPUT dir.
         delivery_dir = rundir.parent / "INPUT"
+        expt_config_cp = get_yaml_config(deepcopy(expt_config.data))
+        expt_config_cp.dereference(
+            context={
+                **expt_config_cp,
+                **os.environ,
+                "cycle": cycle,
+            }
+        )
         _deliver_files(
-            config=expt_config, dst_dir=delivery_dir, key_path=key_path, src_dir=rundir
+            config=expt_config_cp, dst_dir=delivery_dir, key_path=key_path, src_dir=rundir
         )
 
     else:  # Loop over make_lbcs tasks.
@@ -163,10 +168,9 @@ def run_chgres_cube(config_file, cycle, key_path, member):
             # Determine lead time and run the driver
             lbc_offset_fhrs = _walk_key_path(
                 expt_config,
-                key_path + ["envvars", "EXTRN_MDL_LBCS_OFFSET_HRS"],
-            )
+                ["task_get_extrn_lbcs", "envvars"])["EXTRN_MDL_LBCS_OFFSET_HRS"]
             leadtime = dt.timedelta(hours=int(external_fhr) - int(lbc_offset_fhrs))
-            run_driver(ChgresCube, config_file, cycle, key_path, leadtime=leadtime)
+            driver = run_driver(ChgresCube, config_file, cycle, key_path, leadtime=leadtime)
             rundir = Path(driver.config["rundir"])
 
             # Use a copy of the original here to avoid opening the file every time.
@@ -203,9 +207,9 @@ def run_driver(driver_obj, config_file, cycle, key_path, leadtime):
         key_path=key_path,
         leadtime=leadtime,
     )
-    rundir = Path(driver_obj.config["rundir"])
+    rundir = Path(driver.config["rundir"])
     logging.info(f"Will run {driver.driver_name()} in {rundir}")
-    driver_obj.run()
+    driver.run()
 
     if not (rundir / f"runscript.{driver.driver_name()}.done").is_file():
         logging.error(
