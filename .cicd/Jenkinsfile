@@ -12,9 +12,9 @@ pipeline {
     parameters {
         // Allow job runner to filter based on platform
         // Use the line below to enable all PW clusters
-        // choice(name: 'SRW_PLATFORM_FILTER', choices: ['all', 'cheyenne', 'gaea', 'hera', 'jet', 'orion', 'hercules', 'pclusternoaav2use1', 'azclusternoaav2eus1', 'gclusternoaav2usc1'], description: 'Specify the platform(s) to use')
+        // choice(name: 'SRW_PLATFORM_FILTER', choices: ['all', 'derecho', 'gaea', 'hera', 'jet', 'orion', 'hercules', 'pclusternoaav2use1', 'azclusternoaav2eus1', 'gclusternoaav2usc1'], description: 'Specify the platform(s) to use')
         // Use the line below to enable the PW AWS cluster
-        // choice(name: 'SRW_PLATFORM_FILTER', choices: ['all', 'cheyenne', 'gaea', 'hera', 'jet', 'orion', 'hercules', 'pclusternoaav2use1'], description: 'Specify the platform(s) to use')
+        // choice(name: 'SRW_PLATFORM_FILTER', choices: ['all', 'derecho', 'gaea', 'hera', 'jet', 'orion', 'hercules', 'pclusternoaav2use1'], description: 'Specify the platform(s) to use')
         choice(name: 'SRW_PLATFORM_FILTER', choices: ['all', 'derecho', 'gaea', 'hera', 'jet', 'orion', 'hercules'], description: 'Specify the platform(s) to use')
         // Allow job runner to filter based on compiler
         choice(name: 'SRW_COMPILER_FILTER', choices: ['all', 'gnu', 'intel'], description: 'Specify the compiler(s) to use to build')
@@ -29,9 +29,15 @@ pipeline {
         stage('Launch SonarQube') {
             steps {
                 script {
+                    echo "BRANCH_NAME=${env.CHANGE_BRANCH}"
+                    echo "FORK_NAME=${env.CHANGE_FORK}"
+                    echo "CHANGE_URL=${env.CHANGE_URL}"
+                    echo "CHANGE_ID=${env.CHANGE_ID}"
                     build job: '/ufs-srweather-app/ufs-srw-sonarqube', parameters: [
                         string(name: 'BRANCH_NAME', value: env.CHANGE_BRANCH ?: 'develop'),
-                        string(name: 'FORK_NAME', value: env.CHANGE_FORK ?: '')
+                        string(name: 'FORK_NAME', value: env.CHANGE_FORK ?: ''),
+                        string(name: 'CHANGE_URL', value: env.CHANGE_URL ?: ''),
+                        string(name: 'CHANGE_ID', value: env.CHANGE_ID ?: '')
                     ], wait: false
                 }
             }

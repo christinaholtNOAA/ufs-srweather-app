@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
 
 """
-Function to create a UFS configuration file for the FV3 forecast
-model(s) from a template.
+Creates a UFS configuration file for the FV3 forecast model(s) from a template.
 """
 
 import argparse
@@ -22,13 +21,12 @@ from uwtools.api.config import get_yaml_config
 from uwtools.api.template import render
 
 def create_ufs_configure_file(run_dir):
-    """ Creates a ufs configuration file in the specified
-    run directory
+    """ Creates a UFS configuration file in the specified run directory
 
     Args:
-        run_dir: run directory
+        run_dir (str): Run directory
     Returns:
-        Boolean
+        True
     """
 
     print_input_args(locals())
@@ -53,6 +51,8 @@ def create_ufs_configure_file(run_dir):
     # Set output file path
     #
     ufs_config_fp = os.path.join(run_dir, UFS_CONFIG_FN)
+    pe_member01_m1 = str(int(PE_MEMBER01)-1)
+    aqm_pe_member01_m1 = str(int(LAYOUT_X*LAYOUT_Y)-1)
     #
     #-----------------------------------------------------------------------
     #
@@ -65,7 +65,10 @@ def create_ufs_configure_file(run_dir):
     settings = {
       "dt_atmos": DT_ATMOS,
       "print_esmf": PRINT_ESMF,
-      "cpl_aqm": CPL_AQM
+      "cpl_aqm": CPL_AQM,
+      "pe_member01_m1": pe_member01_m1,
+      "aqm_pe_member01_m1": aqm_pe_member01_m1,
+      "atm_omp_num_threads": OMP_NUM_THREADS_RUN_FCST,
     }
     settings_str = cfg_to_yaml_str(settings)
 
@@ -94,7 +97,7 @@ def create_ufs_configure_file(run_dir):
         )
     return True
 
-def parse_args(argv):
+def _parse_args(argv):
     """ Parse command line arguments"""
     parser = argparse.ArgumentParser(
         description='Creates UFS configuration file.'
@@ -113,8 +116,10 @@ def parse_args(argv):
     return parser.parse_args(argv)
 
 if __name__ == "__main__":
-    args = parse_args(sys.argv[1:])
+    args = _parse_args(sys.argv[1:])
     cfg = get_yaml_config(args.path_to_defns)
+    args = _parse_args(sys.argv[1:])
+    cfg = load_yaml_config(args.path_to_defns)
     cfg = flatten_dict(cfg)
     import_vars(dictionary=cfg)
     create_ufs_configure_file(

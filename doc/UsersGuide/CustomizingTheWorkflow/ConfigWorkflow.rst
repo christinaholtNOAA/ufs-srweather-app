@@ -393,7 +393,7 @@ Set File Name Parameters
    Name of a file that contains settings and configurations for the :term:`NUOPC`/:term:`ESMF` main component. In general, users should not set this variable in their configuration file (see :ref:`note <tmpl-fn-warning>`).
 
 ``UFS_CONFIG_FN``: (Default: "ufs.configure")
-   Name of a file that contains information about the various :term:`UFS` components and their run sequence. In general, users should not set this variable in their configuration file (see :ref:`note <tmpl-fn-warning>`).
+   Name of a template file that contains information about the various :term:`UFS` components and their run sequence. In general, users should not set this variable in their configuration file (see :ref:`note <tmpl-fn-warning>`).
 
 ``AQM_RC_FN``: (Default: "aqm.rc")
    Name of resource file for NOAA Air Quality Model (AQM). 
@@ -912,7 +912,7 @@ Basic Task Parameters
 For each workflow task, certain parameter values must be passed to the job scheduler (e.g., Slurm), which submits a job for the task. 
 
 ``EXTRN_MDL_NAME_ICS``: (Default: "FV3GFS")
-   The name of the external model that will provide fields from which initial condition (IC) files, surface files, and 0-th hour boundary condition files will be generated for input into the forecast model. Valid values: ``"GSMGFS"`` | ``"FV3GFS"`` | ``"GEFS"`` | ``"GDAS"`` | ``"RAP"`` | ``"HRRR"`` | ``"NAM"`` | ``"UFS-CASE-STUDY"``
+   The name of the external model that will provide fields from which initial condition (IC) files, surface files, and 0-th hour boundary condition files will be generated for input into the forecast model. Valid values: ``"GSMGFS"`` | ``"FV3GFS"`` | ``"GEFS"`` | ``"GDAS"`` | ``"RAP"`` | ``"HRRR"`` | ``"RRFS"`` | ``"NAM"`` | ``"UFS-CASE-STUDY"``
 
 ``EXTRN_MDL_ICS_OFFSET_HRS``: (Default: 0)
    Users may wish to start a forecast using forecast data from a previous cycle of an external model. This variable indicates how many hours earlier the external model started than the FV3 forecast configured here. For example, if the forecast should start from a 6-hour forecast of the GFS, then ``EXTRN_MDL_ICS_OFFSET_HRS: "6"``.
@@ -966,7 +966,7 @@ Basic Task Parameters
 For each workflow task, certain parameter values must be passed to the job scheduler (e.g., Slurm), which submits a job for the task. 
 
 ``EXTRN_MDL_NAME_LBCS``: (Default: "FV3GFS")
-   The name of the external model that will provide fields from which lateral boundary condition (LBC) files (except for the 0-th hour LBC file) will be generated for input into the forecast model. Valid values: ``"GSMGFS"`` | ``"FV3GFS"`` | ``"GEFS"`` | ``"GDAS"`` | ``"RAP"`` | ``"HRRR"`` | ``"NAM"`` | ``"UFS-CASE-STUDY"``
+   The name of the external model that will provide fields from which lateral boundary condition (LBC) files (except for the 0-th hour LBC file) will be generated for input into the forecast model. Valid values: ``"GSMGFS"`` | ``"FV3GFS"`` | ``"GEFS"`` | ``"GDAS"`` | ``"RAP"`` | ``"HRRR"`` | ``"RRFS"`` | ``"NAM"`` | ``"UFS-CASE-STUDY"``
 
 ``LBC_SPEC_INTVL_HRS``: (Default: 6)
    The interval (in integer hours) at which LBC files will be generated. This is also referred to as the *boundary update interval*. Note that the model selected in ``EXTRN_MDL_NAME_LBCS`` must have data available at a frequency greater than or equal to that implied by ``LBC_SPEC_INTVL_HRS``. For example, if ``LBC_SPEC_INTVL_HRS`` is set to "6", then the model must have data available at least every 6 hours. It is up to the user to ensure that this is the case.
@@ -1096,10 +1096,10 @@ For each workflow task, certain parameter values must be passed to the job sched
 
       For more information, see the `Intel Development Reference Guide <https://www.intel.com/content/www/us/en/docs/cpp-compiler/developer-guide-reference/2021-10/thread-affinity-interface.html>`__. 
 
-``OMP_NUM_THREADS_RUN_FCST``: (Default: 1)
-   The number of OpenMP threads to use for parallel regions. Corresponds to the ``atmos_nthreads`` value in ``model_configure``.
+``OMP_NUM_THREADS_RUN_FCST``: (Default: 2)
+   The number of OpenMP threads to use for parallel regions. Corresponds to the ``ATM_omp_num_threads`` value in ``ufs.configure``.
 
-``OMP_STACKSIZE_RUN_FCST``: (Default: "512m")
+``OMP_STACKSIZE_RUN_FCST``: (Default: "1024m")
    Controls the size of the stack for threads created by the OpenMP implementation.
 
 .. _ModelConfigParams:
@@ -1163,12 +1163,12 @@ Write-Component (Quilting) Parameters
 ``PRINT_ESMF``: (Default: false)
    Flag that determines whether to output extra (debugging) information from :term:`ESMF` routines. Note that the write component uses ESMF library routines to interpolate from the native forecast model grid to the user-specified output grid (which is defined in the model configuration file ``model_configure`` in the forecast run directory). Valid values: ``True`` | ``False``
 
-``PE_MEMBER01``: (Default: ``'{{ LAYOUT_Y * LAYOUT_X + WRTCMP_write_groups * WRTCMP_write_tasks_per_group if QUILTING else LAYOUT_Y * LAYOUT_X}}'``)
+``PE_MEMBER01``: (Default: ``'{{ OMP_NUM_THREADS_RUN_FCST * (LAYOUT_Y * LAYOUT_X + WRTCMP_write_groups * WRTCMP_write_tasks_per_group) if QUILTING else OMP_NUM_THREADS_RUN_FCST * (LAYOUT_Y * LAYOUT_X)}}'``)
    The number of MPI processes required by the forecast. When QUILTING is true, it is calculated as: 
    
    .. math::
       
-      LAYOUT\_X * LAYOUT\_Y + WRTCMP\_write\_groups * WRTCMP\_write\_tasks\_per\_group 
+      OMP\_NUM\_THREADS\_RUN\_FCST * (LAYOUT\_X * LAYOUT\_Y + WRTCMP\_write\_groups * WRTCMP\_write\_tasks\_per\_group)
 
 ``WRTCMP_write_groups``: (Default: "")
    The number of write groups (i.e., groups of :term:`MPI` tasks) to use in the write component. Each write group will write to one set of output files (a ``dynf${fhr}.nc`` and a ``phyf${fhr}.nc`` file, where ``${fhr}`` is the forecast hour). Each write group contains ``WRTCMP_write_tasks_per_group`` tasks. Usually, one write group is sufficient. This may need to be increased if the forecast is proceeding so quickly that a single write group cannot complete writing to its set of files before there is a need/request to start writing the next set of files at the next output time.

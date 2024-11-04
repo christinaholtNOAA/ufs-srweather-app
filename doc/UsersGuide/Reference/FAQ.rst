@@ -20,33 +20,47 @@ Building the SRW App
 How can I clean up the SRW App code if something went wrong during the build?
 ===============================================================================
 
-The ``ufs-srweather-app`` repository contains a ``devclean.sh`` convenience script. This script can be used to clean up code if something goes wrong when checking out externals or building the application. To view usage instructions and to get help, run with the ``-h`` flag:
+The ``ufs-srweather-app`` repository contains a ``devclean.sh`` convenience script. This script can be used to clean up code if something goes wrong when checking out externals or building the application. To view usage instructions and to get help, run with the ``-h`` or ``--help`` flag:
 
 .. code-block:: console
    
    ./devclean.sh -h
 
-To remove the ``build`` directory, run:
+To remove all the build artifacts and directories except conda installation, use the ``-b`` or ``--build`` flag:
 
 .. code-block:: console
    
-   ./devclean.sh --remove
+   ./devclean.sh --build
 
-To remove all build artifacts (including ``build``, ``exec``, ``lib``, and ``share``), run: 
+When using a containerized approach of running the SRW, use the ``--container`` option that will make sure to remove ``container-bin`` directory in lieu of the ``exec``, i.e.:
 
 .. code-block:: console
    
-   ./devclean.sh --clean
+   ./devclean.sh -b --container
+
+To remove only conda directory and conda_loc file in the main SRW directory, run with the ``-c`` or ``--conda`` flag:
+
+.. code-block:: console
+   
+   ./devclean.sh --conda
    OR
-   ./devclean.sh -a
+   ./devclean.sh -c
 
-To remove external submodules, run: 
+To remove external submodules, run with the ``-s`` or ``--sub-modules`` flag: 
 
 .. code-block:: console
    
    ./devclean.sh --sub-modules
 
+To remove all build artifacts, conda and submodules (equivalent to \`-b -c -s\`), run with the ``-a`` or ``--all`` flag:
+
+.. code-block:: console
+   
+   ./devclean.sh --all
+
+
 Users will need to check out the external submodules again before building the application. 
+
 
 In addition to the options above, many standard terminal commands can be run to remove unwanted files and directories (e.g., ``rm -rf expt_dirs``). A complete explanation of these options is beyond the scope of this User's Guide. 
 
@@ -267,12 +281,7 @@ How can I run a new experiment?
 
 To run a new experiment at a later time, users need to rerun the commands in :numref:`Section %s <SetUpPythonEnv>` that reactivate the |wflow_env| environment:
 
-.. code-block:: console
-   
-   source /path/to/etc/lmod-setup.sh/or/lmod-setup.csh <platform>
-   module use /path/to/modulefiles
-   module load wflow_<platform>
-
+.. include:: ../../doc-snippets/load-env.rst
 Follow any instructions output by the console (e.g., |activate|).
 
 Then, users can configure a new experiment by updating the experiment parameters in ``config.yaml`` to reflect the desired experiment configuration. Detailed instructions can be viewed in :numref:`Section %s <UserSpecificConfig>`. Parameters and valid values are listed in :numref:`Section %s <ConfigWorkflow>`. After adjusting the configuration file, generate the new experiment by running ``./generate_FV3LAM_wflow.py``. Check progress by navigating to the ``$EXPTDIR`` and running ``rocotostat -w FV3LAM_wflow.xml -d FV3LAM_wflow.db -v 10``.

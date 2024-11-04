@@ -9,29 +9,18 @@ metadata:
 # USER config parameters
 #----------------------------
 user:
+
+  ###
+  # (Default: ``"nco"``)
+  # 
+  # This variable determines the workflow mode. The user can choose between two options: "nco" and "community". The "nco" mode uses a directory structure that mimics what is used in operations at NOAA/NCEP Central Operations (NCO) and at the NOAA/NCEP/Environmental Modeling Center (EMC), which works with NCO on pre-implementation testing. Specifics of the conventions used in "nco" mode can be found in the following :nco:`WCOSS Implementation Standards <>` document:
   #
-  #-----------------------------------------------------------------------
+  #   | NCEP Central Operations
+  #   | WCOSS Implementation Standards
+  #   | January 19, 2022
+  #   | Version 11.0.0
   #
-  # Set the RUN_ENVIR variable that is listed and described in the WCOSS
-  # Implementation Standards document:
-  #
-  #   NCEP Central Operations
-  #   WCOSS Implementation Standards
-  #   April 19, 2022
-  #   Version 11.0.0
-  #
-  # RUN_ENVIR is described in this document as follows:
-  #
-  #   Set to "nco" if running in NCO's production environment. Used to 
-  #   distinguish between organizations.
-  #
-  # Valid values are "nco" and "community".  Here, we use it to generate
-  # and run the experiment either in NCO mode (if RUN_ENVIR is set to "nco")
-  # or in community mode (if RUN_ENVIR is set to "community").  This has 
-  # implications on the experiment variables that need to be set and the
-  # the directory structure used.
-  #
-  #-----------------------------------------------------------------------
+  # Setting ``RUN_ENVIR`` to "community" is recommended in most cases for users who are not running in NCO's production environment. Valid values: ``"nco"`` | ``"community"``
   #
   RUN_ENVIR: "nco"
   #
@@ -1911,7 +1900,7 @@ task_run_fcst:
   #-----------------------------------------------------------------------
   #
   KMP_AFFINITY_RUN_FCST: "scatter"
-  OMP_NUM_THREADS_RUN_FCST: 2    # atmos_nthreads in model_configure
+  OMP_NUM_THREADS_RUN_FCST: 2    # ATM_omp_num_threads in ufs.configure
   OMP_STACKSIZE_RUN_FCST: "1024m"
   #
   #-----------------------------------------------------------------------
@@ -2107,7 +2096,7 @@ task_run_fcst:
   QUILTING: true
   PRINT_ESMF: false
 
-  PE_MEMBER01: '{{ task_run_fcst.LAYOUT_Y * task_run_fcst.LAYOUT_X + task_run_fcst.WRTCMP_write_groups * task_run_fcst.WRTCMP_write_tasks_per_group if task_run_fcst.QUILTING else task_run_fcst.LAYOUT_Y * task_run_fcst.LAYOUT_X}}'
+  PE_MEMBER01: '{{ task_run_fcst.OMP_NUM_THREADS_RUN_FCST * (task_run_fcst.LAYOUT_Y * task_run_fcst.LAYOUT_X + task_run_fcst.WRTCMP_write_groups * task_run_fcst.WRTCMP_write_tasks_per_group) if task_run_fcst.QUILTING else task_run_fcst.OMP_NUM_THREADS_RUN_FCST * task_run_fcst.LAYOUT_Y * task_run_fcst.LAYOUT_X}}'
   
   WRTCMP_write_groups: ""
   WRTCMP_write_tasks_per_group: ""
