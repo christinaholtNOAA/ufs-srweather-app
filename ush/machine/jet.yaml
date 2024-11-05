@@ -51,5 +51,5 @@ rocoto:
       task_run_fcst_mem#mem#:
         cores: !remove
         native: '--cpus-per-task {{ task_run_fcst.OMP_NUM_THREADS_RUN_FCST|int }} --exclusive {{ platform.SCHED_NATIVE_CMD }}'
-        nodes: !int '{{ task_run_fcst.NNODES_RUN_FCST // 1 }}:ppn={{ task_run_fcst.PPN_RUN_FCST // 1 }}'
+        nodes: '{{ task_run_fcst.NNODES_RUN_FCST // 1 }}:ppn={{ task_run_fcst.PPN_RUN_FCST // 1 }}'
 
