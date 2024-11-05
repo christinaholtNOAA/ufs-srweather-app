@@ -4,6 +4,7 @@ on:
     branches:
       - develop
       - 'release/*'
+      - uwtools_integration
   pull_request:
     branches:
       - develop
