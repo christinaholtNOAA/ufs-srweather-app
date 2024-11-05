@@ -10,7 +10,6 @@ from argparse import ArgumentParser
 from pathlib import Path
 
 from uwtools.api.config import get_yaml_config
-from uwtools.api.fs import link as uwlink
 from uwtools.api.logging import use_uwtools_logger
 from uwtools.api.sfc_climo_gen import SfcClimoGen
 
@@ -48,6 +47,9 @@ def _link_files(dest_dir, files, cres):
 
 
 def parse_args(argv):
+    """
+    Parse command line arguments from script.
+    """
     parser = ArgumentParser(
         description="Script that runs sfc_climo_gen via uwtools API.",
     )
@@ -103,7 +105,7 @@ def make_sfc_climo(config_file, key_path):
     # Link sfc_climo_gen output data to fix directory
     _link_files(
         dest_dir=fix_lam_path,
-        files=glob.glob(str(rundir / f"*.nc")),
+        files=glob.glob(str(rundir / "*.nc")),
         cres=cres,
     )
 
