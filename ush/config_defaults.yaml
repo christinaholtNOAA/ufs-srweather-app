@@ -2115,10 +2115,10 @@ task_run_post:
         - module load build_{{ user.MACHINE|lower }}_{{ workflow.COMPILER }}
       executable: '{{ user.EXECdir }}/upp.x'
       mpicmd: '{{ platform.BATCH_RUN_CMD }}'
+    control_file: '{{ user.UFS_WTHR_MDL_DIR }}/tests/parm/postxconfig-NT-fv3lam.txt'
     files_to_copy:
       eta_micro_lookup.dat: '{{ user.PARMdir }}/upp/nam_micro_lookup.dat'
       params_grib2_tbl_new: '{{ user.PARMdir }}/upp/params_grib2_tbl_new'
-      postxconfig-NT.txt: '{{ user.UFS_WTHR_MDL_DIR }}/tests/parm/postxconfig-NT-fv3lam.txt'
       postxconfig-NT_FH00.txt: '{{ task_run_post.upp.files_to_copy["postxconfig-NT.txt"] }}'
     namelist:
       update_values:
