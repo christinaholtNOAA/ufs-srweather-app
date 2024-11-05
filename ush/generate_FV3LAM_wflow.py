@@ -37,7 +37,6 @@ from setup import setup
 from set_fv3nml_sfc_climo_filenames import set_fv3nml_sfc_climo_filenames
 
 from uwtools.api.config import get_nml_config, get_yaml_config, realize
-from uwtools.api.template import render
 from uwtools.api import rocoto as uwrocoto
 
 

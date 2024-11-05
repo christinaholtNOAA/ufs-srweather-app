@@ -9,7 +9,6 @@ from textwrap import dedent
 
 from python_utils import (
     cfg_to_yaml_str,
-    flatten_dict,
     import_vars,
     lowercase,
     print_info_msg,
