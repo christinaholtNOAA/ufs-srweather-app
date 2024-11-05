@@ -12,7 +12,7 @@ from pathlib import Path
 from uwtools.api.config import get_yaml_config
 from uwtools.api.fs import link as uwlink
 from uwtools.api.logging import use_uwtools_logger
-from uwtools.api.sfc_climo_gen import SfcClimoGen 
+from uwtools.api.sfc_climo_gen import SfcClimoGen
 
 
 def _link_files(dest_dir, files, cres):
@@ -22,7 +22,7 @@ def _link_files(dest_dir, files, cres):
     for fpath in files:
         path = Path(fpath)
         fn = Path(fpath).name
-    
+
         if "halo" in fn:
             # The output files with "halo" in the name map to the "halo4" files in the destination
             # directory.
@@ -33,7 +33,7 @@ def _link_files(dest_dir, files, cres):
                 if (linkname := dest_dir / link.name).is_symlink():
                     linkname.unlink()
                 linkname.symlink_to(path)
-    
+
         else:
             # The files without halo in the name map to two sets of files in the destination
             # directory: one with tile1 in the name, another with halo0 in the name.
@@ -45,6 +45,7 @@ def _link_files(dest_dir, files, cres):
                 if (linkname := dest_dir / link.name).is_symlink():
                     linkname.unlink()
                 linkname.symlink_to(path)
+
 
 def parse_args(argv):
     parser = ArgumentParser(
@@ -65,7 +66,7 @@ def parse_args(argv):
         required=True,
         type=lambda s: s.split("."),
     )
-    
+
     return parser.parse_args(argv)
 
 
@@ -74,11 +75,11 @@ def make_sfc_climo(config_file, key_path):
     Run the sfc_climo_gen driver.
     """
     expt_config = get_yaml_config(config_file)
-    
+
     # The experiment config will have {{ "CRES" | env }} expressions in it that need to be
     # dereferenced during driver initialization.
     cres = expt_config["workflow"]["CRES"]
-    os.environ["CRES"] = cres 
+    os.environ["CRES"] = cres
     expt_config.dereference(
         context={
             **os.environ,
@@ -88,16 +89,15 @@ def make_sfc_climo(config_file, key_path):
     sfc_climo_gen_driver = SfcClimoGen(
         config=config_file,
         key_path=key_path,
-    ) 
+    )
     rundir = Path(sfc_climo_gen_driver.config["rundir"])
     print(f"Will run sfc_climo_gen in {rundir}")
     sfc_climo_gen_driver.run()
-    
+
     if not (rundir / "runscript.sfc_climo_gen.done").is_file():
         print("Error occurred running sfc_climo_gen. Please see component error logs.")
         sys.exit(1)
-    
-    
+
     # Destination of important files from this process
     fix_lam_path = Path(expt_config["workflow"]["FIXlam"])
     # Link sfc_climo_gen output data to fix directory
@@ -106,7 +106,7 @@ def make_sfc_climo(config_file, key_path):
         files=glob.glob(str(rundir / f"*.nc")),
         cres=cres,
     )
-    
+
     # Mark the successful completion of the script on disk
     Path(rundir / "make_sfc_climo_task_complete.txt").touch()
 
