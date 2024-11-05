@@ -24,6 +24,8 @@ def _link_files(dest_dir, files, cres):
         fn = Path(fpath).name
     
         if "halo" in fn:
+            # The output files with "halo" in the name map to the "halo4" files in the destination
+            # directory.
             fn = f"{cres}.{(fn.replace('halo', 'halo4'))}"
             no_halo_fn = fn.replace("halo4.", "")
             for link in (fn, no_halo_fn):
@@ -33,6 +35,8 @@ def _link_files(dest_dir, files, cres):
                 linkname.symlink_to(path)
     
         else:
+            # The files without halo in the name map to two sets of files in the destination
+            # directory: one with tile1 in the name, another with halo0 in the name.
             basename = path.stem
             halo0_fn = f"{cres}.{basename}.halo0.nc"
             tile1_fn = halo0_fn.replace("tile7.halo0", "tile1")
@@ -71,8 +75,8 @@ def make_sfc_climo(config_file, key_path):
     """
     expt_config = get_yaml_config(config_file)
     
-    # The experiment config will have {{ CRES | env }} expressions in it that need to be
-    # dereferenced during driver initialization
+    # The experiment config will have {{ "CRES" | env }} expressions in it that need to be
+    # dereferenced during driver initialization.
     cres = expt_config["workflow"]["CRES"]
     os.environ["CRES"] = cres 
     expt_config.dereference(

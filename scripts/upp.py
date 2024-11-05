@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-The run script for UPP
+The run script for UPP.
 """
 
 import datetime as dt
@@ -98,7 +98,7 @@ def run_upp(config_file, cycle, leadtime, key_path, member):
     Setup and run the UPP Driver.
     """
 
-    # The experiment config will have {{ MEMBER | env }} expressions in it that need to be
+    # The experiment config will have {{ "MEMBER" | env }} expressions in it that need to be
     # dereferenced during driver initialization.
     os.environ["MEMBER"] = member
 
