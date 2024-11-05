@@ -119,7 +119,7 @@ if __name__ == "__main__":
     args = _parse_args(sys.argv[1:])
     cfg = get_yaml_config(args.path_to_defns)
     args = _parse_args(sys.argv[1:])
-    cfg = load_yaml_config(args.path_to_defns)
+    cfg = get_yaml_config(args.path_to_defns)
     cfg = flatten_dict(cfg)
     import_vars(dictionary=cfg)
     create_ufs_configure_file(
