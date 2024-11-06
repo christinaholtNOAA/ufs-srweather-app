@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 
 """
-User interface to create an experiment directory consistent with the
-user-defined config.yaml file.
+User interface to create an experiment directory consistent with the user-defined ``config.yaml`` 
+file.
 """
 
 # pylint: disable=invalid-name
@@ -35,17 +35,20 @@ from setup import setup
 
 from uwtools.api.config import get_yaml_config
 from uwtools.api.template import render
+from uwtools.api import rocoto as uwrocoto
 
 
 # pylint: disable=too-many-locals,too-many-branches, too-many-statements
 def generate_FV3LAM_wflow(
-    ushdir, logfile: str = "log.generate_FV3LAM_wflow", debug: bool = False
-) -> str:
-    """Function to setup a forecast experiment and create a workflow
-    (according to the parameters specified in the config file)
+        ushdir,
+        logfile: str = "log.generate_FV3LAM_wflow",
+        debug: bool = False) -> str:
+    """
+    Sets up a forecast experiment and creates a workflow (according to the parameters specified 
+    in the configuration file)
 
     Args:
-        ushdir  (str) : The full path of the ush/ directory where this script is located
+        ushdir  (str) : The full path of the ``ush/`` directory where this script is located
         logfile (str) : The name of the file where logging is written
         debug   (bool): Enable extra output for debugging
     Returns:
@@ -73,7 +76,7 @@ def generate_FV3LAM_wflow(
     #
     # -----------------------------------------------------------------------
     #
-    # Set the full path to the experiment's rocoto workflow xml file.  This
+    # Set the full path to the experiment's rocoto workflow xml file. This
     # file will be placed at the top level of the experiment directory and
     # then used by rocoto to run the workflow.
     #
@@ -97,26 +100,17 @@ def generate_FV3LAM_wflow(
     #
     if expt_config["platform"]["WORKFLOW_MANAGER"] == "rocoto":
 
-        template_xml_fp = os.path.join(
-            expt_config["user"]["PARMdir"],
-            wflow_xml_fn,
-        )
-
         log_info(
             f"""
             Creating rocoto workflow XML file (WFLOW_XML_FP):
               WFLOW_XML_FP = '{wflow_xml_fp}'"""
         )
 
-        #
-        # Call the python script to generate the experiment's XML file
-        #
         rocoto_yaml_fp = expt_config["workflow"]["ROCOTO_YAML_FP"]
-        render(
-            input_file=template_xml_fp,
+        uwrocoto.realize(
+            config=rocoto_yaml_fp,
             output_file=wflow_xml_fp,
-            values_src=rocoto_yaml_fp,
-        )
+            )
     #
     # -----------------------------------------------------------------------
     #
@@ -382,10 +376,16 @@ def setup_logging(
     logfile: str = "log.generate_FV3LAM_wflow", debug: bool = False
 ) -> None:
     """
-    Sets up logging, printing high-priority (INFO and higher) messages to screen, and printing all
-    messages with detailed timing and routine info in the specified text file.
+    Sets up logging, printing high-priority (INFO and higher) messages to screen and printing all
+    messages with detailed timing and routine info in the specified text file. If ``debug = True``,
+    print all messages to both screen and log file.
 
-    If debug = True, print all messages to both screen and log file.
+    Args:
+        logfile (str) : The name of the file where logging information is written
+        debug   (bool): Enable extra output for debugging
+    Returns:
+        None
+
     """
     logging.getLogger().setLevel(logging.DEBUG)
 

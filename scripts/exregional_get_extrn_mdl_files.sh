@@ -74,8 +74,8 @@ sections=(
   platform
   workflow
   global
-  task_get_extrn_ics
-  task_get_extrn_lbcs
+  task_get_extrn_ics.envvars
+  task_get_extrn_lbcs.envvars
 )
 for sect in ${sections[*]} ; do
   source_yaml ${GLOBAL_VAR_DEFNS_FP} ${sect}
@@ -240,9 +240,9 @@ fi
 mkdir -p ${EXTRN_MDL_STAGING_DIR}
 
 if [ $RUN_ENVIR = "nco" ]; then
-    EXTRN_DEFNS="${NET}.${cycle}.${EXTRN_MDL_NAME}.${ICS_OR_LBCS}.${EXTRN_MDL_VAR_DEFNS_FN}.sh"
+    EXTRN_DEFNS="${NET}.${cycle}.${EXTRN_MDL_NAME}.${ICS_OR_LBCS}.${EXTRN_MDL_VAR_DEFNS_FN}.yaml"
 else
-    EXTRN_DEFNS="${EXTRN_MDL_VAR_DEFNS_FN}.sh"
+    EXTRN_DEFNS="${EXTRN_MDL_VAR_DEFNS_FN}.yaml"
 fi
 cmd="
 python3 -u ${USHdir}/retrieve_data.py \
