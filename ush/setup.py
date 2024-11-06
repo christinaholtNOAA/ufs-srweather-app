@@ -610,11 +610,13 @@ def setup(USHdir, user_config_fn="config.yaml", debug: bool = False):
     # make_ics is the same.
     vcoord_files = {}
     for bcs_task in ("task_make_ics", "task_make_lbcs"):
-        vcoord_files[bcs_task] = \
-        expt_config[bcs_task]["chgres_cube"]["namelist"].get("config",
-        {}).get("vcoord_file_target_grid")
+        vcoord_files[bcs_task] = (
+            expt_config[bcs_task]["chgres_cube"]["namelist"]
+            .get("config", {})
+            .get("vcoord_file_target_grid")
+        )
 
-    if not all(x==list(vcoord_files.values())[0] for x in vcoord_files.values()):
+    if not all(x == list(vcoord_files.values())[0] for x in vcoord_files.values()):
         raise ValueError(
             f"""
             The VCOORD_FILE must be set to the same value for both the
@@ -623,7 +625,7 @@ def setup(USHdir, user_config_fn="config.yaml", debug: bool = False):
 
             {json.dumps(vcoord_files)}
             """
-         )
+        )
 
     #
     # -----------------------------------------------------------------------
