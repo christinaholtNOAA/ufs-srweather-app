@@ -49,7 +49,7 @@ class TestExptFiles(unittest.TestCase):
         Test that expected files exist.
         """
         for filename in self.filename_list:
-            filename_fp = Path(self.fcst_dir, filename)
+            filename_fp = self.fcst_dir / filename
             logging.info(f"Checking existence of: {str(filename_fp)}")
             err_msg = f"Missing file: {str(filename_fp)}"
             self.assertTrue(filename_fp.exists(), err_msg)
@@ -76,11 +76,13 @@ if __name__ == "__main__":
         "--fcst_dir",
         help="Directory to forecast files.",
         required=True,
+        type=Path,
     )
     parser.add_argument(
         "--fcst_len",
         help="Forecast length.",
         required=True,
+        type=int,
     )
     parser.add_argument(
         "--fcst_inc",
@@ -98,15 +100,11 @@ if __name__ == "__main__":
     args = parser.parse_args()
     sys.argv[1:] = args.unittest_args
 
-    FCST_DIR = str(args.fcst_dir)
-    fcst_len = int(args.fcst_len)
-    fcst_inc = int(args.fcst_inc)
-
     # Start logger
     setup_logging()
 
     # Check if model_configure exists
-    MODEL_CONFIGURE_FP = Path(FCST_DIR, "model_configure")
+    MODEL_CONFIGURE_FP = args.fcst_dir / "model_configure"
 
     if not MODEL_CONFIGURE_FP.is_file():
         logging.error("Experiment's model_configure file is missing! Exiting!")
@@ -121,10 +119,9 @@ if __name__ == "__main__":
                 break
 
     # Create list of expected filenames from the experiment
-    fcst_len = fcst_len + 1
     filename_list = []
 
-    for x in range(0, fcst_len, fcst_inc):
+    for x in range(0, args.fcst_len + 1, args.fcst_inc):
         fhour = str(x).zfill(3)
         filename_1 = f"{filename_base_1}f{fhour}.nc"
         filename_2 = f"{filename_base_2}f{fhour}.nc"
@@ -132,6 +129,6 @@ if __name__ == "__main__":
         filename_list.append(filename_2)
 
     # Call unittest class
-    TestExptFiles.fcst_dir = FCST_DIR
+    TestExptFiles.fcst_dir = args.fcst_dir
     TestExptFiles.filename_list = filename_list
     unittest.main()
