@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-The run script for run_fcst 
+The run script for run_fcst.
 """
 
 import datetime as dt
@@ -77,9 +77,31 @@ def run_fcst(config_file, cycle, key_path, member):
     os.environ["DOT_ENSMEM"] = f".mem{member}"
     os.environ["MEMBER"] = member
 
+    if restart:
+        restart_settings = {
+        "fv_core_nml": {
+            "external_ic": False,
+            "make_nh": False,
+            "mountain": True,
+            "na_init": 0,
+            "nggps_ic": False,
+            "warm_start": True,
+        },
+        "gfs_physics_nml": {
+            "nstf_name": [2, 0, 0, 0, 0],
+        }
+        expt_config.update_from({
+            "task_run_fcst": {"fv3": {"namelist": "update_values": restart_settings}}})
+
+    if aqm:
+        pass
+        # TODO: Create aqm rc file
+
+    # TODO Create ufs.configure file
+
     # Run the FV3 program via UW driver
     fv3_driver = FV3(
-        config=config_file,
+        config=expt_config,
         cycle=cycle,
         key_path=key_path,
     )
@@ -91,17 +113,7 @@ def run_fcst(config_file, cycle, key_path, member):
         logging.error("Error occurred running FV3. Please see component error logs.")
         sys.exit(1)
 
-    # Deliver output data to a common location above the rundir.
-    fix_lam_path = Path(expt_config["workflow"]["FIXlam"])
-
-    # Link output data to fix directory
-    _link_files(
-        dest_dir=fix_lam_path,
-        files=glob.glob(str(rundir / f"*.nc")),
-    )
-
-    # Mark the successful completion of the script on disk
-    Path(task_rundir / "run_fcst_task_complete.txt").touch()
+        # TODO: Link output data to preferred names
 
 
 if __name__ == "__main__":

@@ -14,6 +14,9 @@ task_run_fcst:
   fv3:
     namelist:
       update_values:
+        fv_core_nml:
+          k_split: 1
+          n_split: 8
         gfs_physics_nml:
           cplaqm: true
           cplocn2atm: false

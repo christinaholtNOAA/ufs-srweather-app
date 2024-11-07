@@ -217,7 +217,7 @@ def generate_FV3LAM_wflow(
     #
     # -----------------------------------------------------------------------
     #
-    if USE_MERRA_CLIMO:
+    if expt_config["workflow"]["USE_MERRA_CLIMO"]:
         log_info(
             f"""
             Copying MERRA2 aerosol climatology data files from system directory

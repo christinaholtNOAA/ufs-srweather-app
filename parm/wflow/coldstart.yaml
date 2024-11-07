@@ -112,13 +112,6 @@ metatask_run_ensemble:
     join:
       cyclestr:
         value: '&LOGDIR;/{{ jobname }}_@Y@m@d@H&LOGEXT;'
-    envars:
-      <<: *default_vars
-      SLASH_ENSMEM_SUBDIR: '&SLASH_ENSMEM_SUBDIR;'
-      nprocs: !int '{{ task_make_ics.chgres_cube.execution.batchargs.nodes * task_make_ics.chgres_cube.execution.batchargs.tasks_per_node }}'
-    join:
-      cyclestr:
-        value: '&LOGDIR;/{{ jobname }}_@Y@m@d@H&LOGEXT;'
     nodes: '{{ task_make_ics.chgres_cube.execution.batchargs.nodes }}:ppn={{ task_make_ics.chgres_cube.execution.batchargs.tasks_per_node }}'
     walltime: '{{ task_make_ics.chgres_cube.execution.batchargs.walltime }}'
     dependency:
@@ -183,16 +176,20 @@ metatask_run_ensemble:
 
   task_run_fcst_mem#mem#:
     <<: *default_task
-    command: !cycstr 'source &USHdir;/load_modules_wflow.sh {{ user.MACHINE }} ; &SCRIPTSdir;/run_fcst.py 
-      -c &GLOBAL_VAR_DEFNS_FP;
-      --cycle @Y-@m-@dT@H:@M:@S
-      --key-path task_run_fcst
-      --mem #mem#'
-    join: !cycstr '&LOGDIR;/{{ jobname }}_@Y@m@d@H&LOGEXT;'
+    command: 
+      cyclestr:
+        value: 'source &USHdir;/load_modules_wflow.sh {{ user.MACHINE }} ; &SCRIPTSdir;/run_fcst.py 
+          -c &GLOBAL_VAR_DEFNS_FP;
+          --cycle @Y-@m-@dT@H:@M:@S
+          --key-path task_run_fcst
+          --mem #mem#'
+    join:
+      cyclestr:
+        value: '&LOGDIR;/{{ jobname }}_@Y@m@d@H&LOGEXT;'
     nodes: '{{ task_run_fcst.run_fcst.execution.batchargs.nodes }}:ppn={{ task_run_fcst.run_fcst.execution.batchargs.tasks_per_node }}'
-    partition: '{{ "&PARTITION_FCST;" if platform.get("PARTITION_FCST") else "None" }}'
+    partition: '{{ "&PARTITION_FCST;" if platform.get("PARTITION_FCST") }}'
     queue: '&QUEUE_FCST;'
-    walltime: '{{ task_run_fcst.walltime }}'
+    walltime: '{{ task_run_fcst.execution.batchargs.walltime }}'
     dependency:
       and:
         taskdep_make_ics:

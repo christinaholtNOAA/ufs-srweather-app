@@ -533,19 +533,6 @@ workflow:
   #
   #-----------------------------------------------------------------------
   #
-  # Set the separator character(s) to use in the names of the grid, mosaic,
-  # and orography fixed files.
-  #
-  # Ideally, the same separator should be used in the names of these fixed
-  # files as in the surface climatology fixed files (which always use a "."
-  # as the separator), i.e. ideally, DOT_OR_USCORE should be set to "."
-  #
-  #-----------------------------------------------------------------------
-  #
-  DOT_OR_USCORE: "_"
-  #
-  #-----------------------------------------------------------------------
-  #
   # Set file names.  Definitions:
   #
   # EXPT_CONFIG_FN:
@@ -559,9 +546,6 @@ workflow:
   # Name of file containing the namelist settings for the code that generates
   # a "ESGgrid" type of regional grid.
   #
-  # FV3_NML_FN: 
-  # Name of the forecast model's namelist file.
-  #
   # FV3_NML_YAML_CONFIG_FN:
   # Name of YAML configuration file containing the forecast model's namelist
   # settings for various physics suites.
@@ -572,40 +556,9 @@ workflow:
   # from which the namelist files for each of the enesemble members are
   # generated.
   #
-  # FV3_EXEC_FN:
-  # Name to use for the forecast model executable when it is copied from
-  # the directory in which it is created in the build step to the executables
-  # directory (EXECDIR; this is set during experiment generation).
-  #
   # DATA_TABLE_FN: 
   # Name of the file that contains the data table read in by the forecast model. 
   # 
-  # DIAG_TABLE_FN: 
-  # Prefix for the name of the file that specifies 
-  # the output fields of the forecast model. 
-  # 
-  # FIELD_TABLE_FN: 
-  # Prefix for the name of the file that specifies 
-  # the tracers that the forecast model will read in from the IC/LBC files.
-  # 
-  # DIAG_TABLE_TMPL_FN:
-  # Name of a template file that specifies the output fields of the
-  # forecast model (ufs-weather-model: diag_table) followed by the name
-  # of the ccpp_phys_suite.  Its default value is the name of the file
-  # that the ufs weather model 
-  # expects to read in.
-  #
-  # FIELD_TABLE_TMPL_FN:
-  # Name of a template file that specifies the tracers in IC/LBC files of the 
-  # forecast model (ufs-weather-mode: field_table) followed by [dot_ccpp_phys_suite]. 
-  # Its default value is the name of the file that the ufs weather model expects 
-  # to read in.
-  #
-  # MODEL_CONFIG_FN:
-  # Name of a template file that contains settings and configurations for the 
-  # NUOPC/ESMF main component (ufs-weather-model: model_config). Its default 
-  # value is the name of the file that the ufs weather model expects to read in.
-  #
   # UFS_CONFIG_FN:
   # Name of a template file that contains information about the various UFS 
   # components and their run sequence (ufs-weather-model: ufs.configure). 
@@ -621,23 +574,9 @@ workflow:
   #-----------------------------------------------------------------------
   #
   EXPT_CONFIG_FN: "config.yaml"
-  CONSTANTS_FN: "constants.yaml"
-  
-  RGNL_GRID_NML_FN: "regional_grid.nml"
-  
-  FV3_NML_FN: "input.nml"
-  FV3_NML_BASE_SUITE_FN: "{{ workflow.FV3_NML_FN }}.FV3"
-  FV3_NML_YAML_CONFIG_FN: "FV3.input.yml"
-  FV3_NML_BASE_ENS_FN: "{{ workflow.FV3_NML_FN }}.base_ens"
-  FV3_EXEC_FN: "ufs_model"
 
-  DATA_TABLE_FN: "data_table"
-  DIAG_TABLE_FN: "diag_table"
-  FIELD_TABLE_FN: "field_table"
-  DIAG_TABLE_TMPL_FN: 'diag_table.{{ workflow.CCPP_PHYS_SUITE }}'
-  FIELD_TABLE_TMPL_FN: 'field_table.{{ workflow.CCPP_PHYS_SUITE }}'
-  MODEL_CONFIG_FN: "model_configure"
-  UFS_CONFIG_FN: "ufs.configure"
+  RGNL_GRID_NML_FN: "regional_grid.nml"
+
   AQM_RC_FN: "aqm.rc"
   AQM_RC_TMPL_FN: "aqm.rc"
 
@@ -652,15 +591,6 @@ workflow:
   # DATA_TABLE_TMPL_FP: 
   # Path to the DATA_TABLE_FN file. 
   # 
-  # DIAG_TABLE_TMPL_FP: 
-  # Path to the DIAG_TABLE_TMPL_FN file. 
-  # 
-  # FIELD_TABLE_TMPL_FP: 
-  # Path to the FIELD_TABLE_TMPL_FN file. 
-  # 
-  # MODEL_CONFIG_TMPL_FP: 
-  # Path to the MODEL_CONFIG_FN file.
-  # 
   # UFS_CONFIG_TMPL_FP: 
   # Path to the UFS_CONFIG_FN file. 
   # 
@@ -670,13 +600,6 @@ workflow:
   #-----------------------------------------------------------------------
   #
 
-  FV3_NML_YAML_CONFIG_FP: '{{ user.PARMdir }}/{{ workflow.FV3_NML_YAML_CONFIG_FN }}'
-  FV3_NML_BASE_ENS_FP: '{{ workflow.EXPTDIR }}/{{ workflow.FV3_NML_BASE_ENS_FN }}'
-  DATA_TABLE_TMPL_FP: '{{ user.PARMdir }}/{{ workflow.DATA_TABLE_FN }}'
-  DIAG_TABLE_TMPL_FP: '{{ user.PARMdir }}/{{ workflow.DIAG_TABLE_TMPL_FN }}'
-  FIELD_TABLE_TMPL_FP: '{{ user.PARMdir }}/{{ workflow.FIELD_TABLE_TMPL_FN }}'
-  MODEL_CONFIG_TMPL_FP: '{{ user.PARMdir }}/{{ workflow.MODEL_CONFIG_FN }}'
-  UFS_CONFIG_TMPL_FP: '{{ user.PARMdir }}/{{ workflow.UFS_CONFIG_FN }}'
   AQM_RC_TMPL_FP: '{{ user.PARMdir }}/{{ workflow.AQM_RC_TMPL_FN }}'
 
   # 
@@ -685,9 +608,6 @@ workflow:
   # 
   # DATA_TABLE_FP: 
   # Path to the data table in the experiment directory. 
-  # 
-  # FIELD_TABLE_FP: 
-  # Path to the field table in the experiment directory. 
   # 
   # UFS_CONFIG_FP: 
   # Path to the UFS_CONFIG_FN file in the experiment directory. 
@@ -748,7 +668,6 @@ workflow:
   #-----------------------------------------------------------------------
   #
   DATA_TABLE_FP: '{{ workflow.EXPTDIR }}/{{ workflow.DATA_TABLE_FN }}'
-  FIELD_TABLE_FP: '{{ workflow.EXPTDIR }}/{{ workflow.FIELD_TABLE_FN }}'
   UFS_CONFIG_FP: '{{ workflow.EXPTDIR }}/{{ workflow.UFS_CONFIG_FN }}'
   FV3_NML_FP: '{{ workflow.EXPTDIR }}/{{ workflow.FV3_NML_FN }}'
   FV3_NML_STOCH_FP: '{{ workflow.EXPTDIR }}/{{ workflow.FV3_NML_FN }}_stoch'
@@ -836,7 +755,15 @@ workflow:
   CCPP_PHYS_SUITE_FN: 'suite_{{ workflow.CCPP_PHYS_SUITE }}.xml'
   CCPP_PHYS_SUITE_IN_CCPP_FP: '{{ user.UFS_WTHR_MDL_DIR }}/FV3/ccpp/suites/{{ workflow.CCPP_PHYS_SUITE_FN }}'
   CCPP_PHYS_SUITE_FP: '{{ workflow.EXPTDIR }}/{{ workflow.CCPP_PHYS_SUITE_FN }}'
-  CCPP_PHYS_DIR: '{{ user.UFS_WTHR_MDL_DIR }}/FV3/ccpp/physics/physics/SFC_Models/Land/Noahmp'
+  #
+  #-----------------------------------------------------------------------
+  # 
+  # USE_MERRA_CLIMO: Flag that determines whether MERRA2 aerosol climatology 
+  # data and lookup tables for optics properties are obtained
+  #
+  #-----------------------------------------------------------------------
+  #
+  USE_MERRA_CLIMO: '{{ workflow.CCPP_PHYS_SUITE == "FV3_GFS_v15_thompson_mynn_lam3km" or workflow.CCPP_PHYS_SUITE == "FV3_GFS_v17_p8" }}'
   #
   #-----------------------------------------------------------------------
   #
@@ -1482,10 +1409,10 @@ task_make_sfc_climo:
           input_vegetation_greenness_file: "{{ platform.FIXsfc }}/vegetation_greenness.0.144.nc"
           input_vegetation_type_file: "{{ platform.FIXsfc }}/vegetation_type.igbp.0.05.nc"
           maximum_snow_albedo_method: "bilinear"
-          mosaic_file_mdl: "{{ workflow.FIXlam }}/{{ 'CRES' | env }}{{ workflow.DOT_OR_USCORE }}mosaic.halo{{ constants.NH4 }}.nc"
+          mosaic_file_mdl: "{{ workflow.FIXlam }}/{{ 'CRES' | env }}_mosaic.halo{{ constants.NH4 }}.nc"
           orog_dir_mdl: "{{ workflow.FIXlam }}"
           orog_files_mdl: 
-            - "{{ 'CRES' | env }}{{ workflow.DOT_OR_USCORE }}oro_data.tile{{ constants.TILE_RGNL }}.halo{{ constants.NH4 }}.nc"
+            - "{{ 'CRES' | env }}_oro_data.tile{{ constants.TILE_RGNL }}.halo{{ constants.NH4 }}.nc"
           snowfree_albedo_method: "bilinear"
           vegetation_greenness_method: "bilinear"
     rundir: '{{ workflow.EXPTDIR }}/sfc_climo'
@@ -1832,29 +1759,37 @@ task_make_lbcs:
     '{{ nco.NET_default }}.t{{ timevars.hh }}z.gfs_bndy.tile7.f{{ "%03d" % (leadtime.total_seconds() // 3600) }}.nc': gfs.bndy.nc
 
 #----------------------------
-# IO_LAYOUT_Y FORECAST config parameters
+# FORECAST config parameters
 #-----------------------------
 task_run_fcst:
   fv3:
-    diag_table: 
-      template_file: '{{ workflow.DIAG_TABLE_TMPL_FP }}'
+    diag_table:
+      template_file: '{{ user.PARMdir }}/diag_table.{{ workflow.CCPP_PHYS_SUITE }}'
       template_values:
         cres: "{{ 'CRES' | env }}"
     domain: regional
     execution:
       batchargs:
         walltime: 04:30:00
-      executable: '{{ user.EXECdir }}/{{ workflow.FV3_EXEC_FN }}' 
+        tasks_per_node: !int '{{ platform.NCORES_PER_NODE // task_run_fcst.fv3.execution.threads }}'
+        nodes: !int '{{ (task_run_fcst.PE_MEMBER01 + task_run_fcst.fv3.execution.batchargs.tasks_per_node - 1) // task_run_fcst.fv3.execution.batchargs.tasks_per_node }}'
+      envcmds:
+        - module use {{ user.HOMEdir }}/modulefiles
+        - module load build_{{ user.MACHINE|lower }}_{{ workflow.COMPILER }}
+        - export ESMF_RUNTIME_PROFILE={{ "ON" if task_run_fcst.PRINT_ESMF }}
+        - export ESMF_RUNTIME_PROFILE_OUTPUT={{ "SUMMARY" if task_run_fcst.PRINT_ESMF }}
+      executable: '{{ user.EXECdir }}/ufs_model'
       mpiargs:
         - "--export=NONE"
       mpicmd: '{{ platform.BATCH_RUN_CMD }}' 
-      threads: 1
+      threads: 2
     field_table:
-      base_file: '{{ workflow.FIELD_TABLE_FP }}'
+      base_file: '{{ user.PARMdir }}/field_table.{{ workflow.CCPP_PHYS_SUITE }}'
     files_to_copy:
       INPUT/gfs_ctrl.nc: '{{ workflow.EXPTDIR }}/run_fcst/INPUT/{{ nco.NET_default }}.{{ cycle }}{{ "dot_ensmem" | env  }}.gfs_ctrl.nc'
       INPUT/gfs_data.nc: '{{ task_run_fcst.fv3.rundir }}/INPUT/{{ nco.NET_default }}.{{ cycle }}{{ "dot_ensmem" | env }}.gfs_data.tile{{ constants.TILE_RGNL }}.halo{{ constants.NH0 }}.nc'
       INPUT/sfc_data.nc: '{{ task_run_fcst.fv3.rundir }}/INPUT/{{ nco.NET_default }}.{{ cycle }}{{ "dot_ensmem" | env }}.sfc_data.tile{{ constants.TILE_RGNL }}.halo{{ constants.NH0 }}.nc'
+      noahmptable.tbl: '{{ user.UFS_WTHR_MDL_DIR }}/FV3/ccpp/physics/physics/SFC_Models/Land/Noahmp'
     files_to_link:
       aerosol.dat: '{{ workflow.FIXam }}/global_climaeropac_global.txt'
       co2historicaldata_2010.txt: '{{ workflow.FIXam }}/fix_co2_proj/global_co2historicaldata_2010.txt'
@@ -1879,13 +1814,12 @@ task_run_fcst:
       solarconstant_noaa_an.txt: '{{ workflow.FIXam }}/global_solarconstant_noaa_an.txt'
       global_o3prdlos.f77: '{{ workflow.FIXam }}/ozprdlos_2015_new_sbuvO3_tclm15_nuchem.f77'
     lateral_boundary_conditions:
-      interval_hours: 1 
-      offset: 3 
-      path: '{{ task_run_fcst.fv3.rundir }}/INPUT/{{ nco.NET_default }}.{{ cycle }}{{ "DOT_ENSMEM" | env  }}.gfs_bndy.tile{{ constants.TILE_RGNL }}.f{{ task_run_fcst.fv3.lateral_boundary_conditions.offset }}.nc' 
-    length: 12
+      interval_hours: !int '{{ task_get_extrn_lbcs.envvars.LBC_SPEC_INTVL_HRS }}'
+      offset: !int '{{ task_get_extrn_lbcs.envvars.EXTRN_MDL_LBCS_OFFSET_HRS }}'
+      path: '{{ task_run_fcst.fv3.rundir }}/INPUT/{{ nco.NET_default }}.{{ cycle }}{{ "DOT_ENSMEM" | env  }}.gfs_bndy.tile{{ constants.TILE_RGNL }}.f{{ task_get_extrn_lbcs.envvars.EXTRN_MDL_LBCS_OFFSET_HRS }}.nc' 
+    length: !int '{{ workflow.FCST_LEN_HRS }}'
     model_configure:
       update_values:
-        total_member: 1
         start_year: !int '{{ cycle.year }}'
         start_month: !int '{{ cycle.month }}'
         start_day: !int '{{ cycle.day }}'
@@ -1939,8 +1873,6 @@ task_run_fcst:
         gfs_physics_nml:
           kice: !int '{{ 9 if workflow.SDF_USES_RUC_LSM else 2 }}'
           print_diff_pgr: false
-        nam_sfcperts: {}
-        nam_sppperts: {}
         namsfc:
           # From sfc_climo_gen
           fnalbc: '{{ workflow.FIXlam }}/{{ "CRES" | env }}.snowfree_albedo.tileX.nc'
@@ -1964,93 +1896,6 @@ task_run_fcst:
           fnmskh: '{{ workflow.FIXlam }}/seaice_newland.grb'
       validate: true
     rundir: '{{ workflow.EXPTDIR }}/{{ timevars.yyyymmddhh }}{{ "/mem%s" % ("MEMBER"|env) if global.DO_ENSEMBLE }}'
-  #------------------------------------------------------------------------
-  #
-  #
-  # NNODES_RUN_FCST: 
-  # The number of nodes to request from the job scheduler 
-  # for the forecast task. 
-  # 
-  # PPN_RUN_FCST: 
-  # Processes per node for the forecast task. 
-  #
-  # FV3_EXEC_FP: 
-  # Full path to the forecast model executable.
-  #
-  # IO_LAYOUT_Y: 
-  # Specifies how many MPI ranks to use in the Y direction for 
-  # input/output (I/O). (X direction is assumed to be 1.)
-  #
-  #------------------------------------------------------------------------
-  NNODES_RUN_FCST: !int '{{ (task_run_fcst.PE_MEMBER01 + task_run_fcst.PPN_RUN_FCST - 1) // task_run_fcst.PPN_RUN_FCST }}'
-  PPN_RUN_FCST: '{{ platform.NCORES_PER_NODE // task_run_fcst.OMP_NUM_THREADS_RUN_FCST }}'
-  IO_LAYOUT_Y: 1
-  #
-  #-----------------------------------------------------------------------
-  #
-  # KMP_AFFINITY_*:
-  # From Intel: "The Intel® runtime library has the ability to bind OpenMP
-  # threads to physical processing units. The interface is controlled using
-  # the KMP_AFFINITY environment variable. Depending on the system (machine)
-  # topology, application, and operating system, thread affinity can have a
-  # dramatic effect on the application speed. 
-  #
-  # Thread affinity restricts execution of certain threads (virtual execution
-  # units) to a subset of the physical processing units in a multiprocessor 
-  # computer. Depending upon the topology of the machine, thread affinity can
-  # have a dramatic effect on the execution speed of a program."
-  #
-  # For more information, see the following link:
-  # https://software.intel.com/content/www/us/en/develop/documentation/cpp-
-  # compiler-developer-guide-and-reference/top/optimization-and-programming-
-  # guide/openmp-support/openmp-library-support/thread-affinity-interface-
-  # linux-and-windows.html
-  # 
-  # OMP_NUM_THREADS_RUN_FCST:
-  # The number of OpenMP threads to use for parallel regions.
-  # 
-  # OMP_STACKSIZE_RUN_FCST:
-  # Controls the size of the stack for threads created by the OpenMP 
-  # implementation.
-  #
-  #-----------------------------------------------------------------------
-  #
-  KMP_AFFINITY_RUN_FCST: "scatter"
-  OMP_NUM_THREADS_RUN_FCST: 2    # ATM_omp_num_threads in ufs.configure
-  OMP_STACKSIZE_RUN_FCST: "1024m"
-  #
-  #-----------------------------------------------------------------------
-  #
-  # Set model_configure parameters.  Definitions:
-  #
-  # RESTART_INTERVAL:
-  # frequency of the output restart files (unit:hour). 
-  # Default=0: restart files are produced at the end of a forecast run
-  # For example, i) RESTART_INTERVAL: 1 -1 => restart files are produced 
-  # every hour with the prefix "YYYYMMDD.HHmmSS." in the RESTART directory
-  # ii) RESTART_INTERVAL: 1 2 5 => restart files are produced only when 
-  # fh = 1, 2, and 5.
-  #
-  # WRITE_DOPOST:
-  # Flag that determines whether or not to use the inline post feature
-  # [i.e. calling the Unified Post Processor (UPP) from within the
-  # weather model].  If this is set to true, the the run_post task will
-  # be deactivated.
-  #
-  # ITASKS:
-  # Variable denoting the number of write tasks in the i direction in the
-  # current group.  Used for inline post 2D decomposition.  Setting this
-  # variable to a value greater than 1 will enable 2D decomposition.
-  # Default setting is 1.
-  # Note that 2D decomposition does not yet work with GNU compilers, so this value 
-  # will be reset to 1 automatically when using GNU compilers (i.e., when COMPILER: gnu).
-  #
-  #-----------------------------------------------------------------------
-  #
-  RESTART_INTERVAL: 0
-  ITASKS: 1
-  #
-  #-----------------------------------------------------------------------
   #
   # Set computational parameters for the forecast.  Definitions:
   #
@@ -2191,7 +2036,7 @@ task_run_fcst:
   #
   PRINT_ESMF: false
 
-  PE_MEMBER01: !int '{{ task_run_fcst.OMP_NUM_THREADS_RUN_FCST * (task_run_fcst.LAYOUT_Y * task_run_fcst.LAYOUT_X + task_run_fcst.WRTCMP_write_groups * task_run_fcst.WRTCMP_write_tasks_per_group) if task_run_fcst.QUILTING else task_run_fcst.OMP_NUM_THREADS_RUN_FCST * task_run_fcst.LAYOUT_Y * task_run_fcst.LAYOUT_X}}'
+  PE_MEMBER01: !int '{{ task_run_fcst.fv3.execution.threads * (task_run_fcst.LAYOUT_Y * task_run_fcst.LAYOUT_X + task_run_fcst.WRTCMP_write_groups * task_run_fcst.WRTCMP_write_tasks_per_group) if task_run_fcst.QUILTING else task_run_fcst.fv3.execution.threads * task_run_fcst.LAYOUT_Y * task_run_fcst.LAYOUT_X}}'
   
   WRTCMP_write_groups: ""
   WRTCMP_write_tasks_per_group: ""
@@ -2222,12 +2067,6 @@ task_run_fcst:
   #
   #-----------------------------------------------------------------------
   #
-  # USE_MERRA_CLIMO: Flag that determines whether MERRA2 aerosol climatology 
-  # data and lookup tables for optics properties are obtained
-  #
-  #-----------------------------------------------------------------------
-  #
-  USE_MERRA_CLIMO: '{{ workflow.CCPP_PHYS_SUITE == "FV3_GFS_v15_thompson_mynn_lam3km" or workflow.CCPP_PHYS_SUITE == "FV3_GFS_v17_p8" }}'
   #
   #-----------------------------------------------------------------------
   #

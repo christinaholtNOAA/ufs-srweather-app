@@ -156,6 +156,7 @@ def load_config_for_setup(ushdir, default_config_path, user_config_path):
     ccpp_config = get_yaml_config(ushdir / "ccpp_suites_defaults.yaml").get(ccpp_suite, {})
     default_config.update_from(ccpp_config)
 
+
     # Load external model-specific settings
     external_cfg = get_yaml_config(ushdir / "external_model_defaults.yaml")
     for bcs in ("ics", "lbcs"):
@@ -168,10 +169,10 @@ def load_config_for_setup(ushdir, default_config_path, user_config_path):
 
     # Load stochastic physics params
     stochastic_params = get_yaml_config(Path(ushdir, "stochastic_params.yaml"))
-    fcst_config = cfg_d["task_run_fcst"]["fv3"]
+    fcst_config = default_config["task_run_fcst"]["fv3"]
     fcst_nml_config = get_yaml_config(fcst_config["namelist"]["update_values"])
     for switch_name in ("do_spp", "do_sppt", "do_shum", "do_skeb", "do_lsm_spp"):
-        if cfg_d["global"][switch_name.upper()]:
+        if default_config["global"][switch_name.upper()]:
             fcst_nml_config.update_from(stochastic_params.get(switch_name))
 
     # Set "Home" directory, the top-level ufs-srweather-app directory
@@ -718,7 +719,7 @@ def setup(USHdir, user_config_fn="config.yaml", debug: bool = False):
 
     # This logic belongs in predef_grid_params.yaml once merged with make_grid integration.
     if predef_grid_name == "RRFS_NA_3km":
-        fv3_namelist = expt_config["task_run_fcst"]["fv3"]["namelist"]
+        fv3_namelist = fcst_config["fv3"]["namelist"]
         fv3_namlelist["update_values"]["fms2_io_nml"][
             "netcdf_default_format"
         ] = "netcdf4"
@@ -728,7 +729,7 @@ def setup(USHdir, user_config_fn="config.yaml", debug: bool = False):
     if not quilting:
         update_dict(quilting_cfg["no_quilting"], expt_config)
     else:
-        write_grid = expt_config["task_run_fcst"]["WRTCMP_output_grid"]
+        write_grid = fcst_config["WRTCMP_output_grid"]
         update_dict(quilting_cfg[write_grid], expt_config)
 
     run_envir = expt_config["user"].get("RUN_ENVIR", "")
@@ -875,10 +876,25 @@ def setup(USHdir, user_config_fn="config.yaml", debug: bool = False):
     #
     # -----------------------------------------------------------------------
     #
-    # Update the FV3 namelist based on switches that turn on/off various
-    # stocastic schemes.
+    # Update the FV3 configuration, if needed
     #
     # -----------------------------------------------------------------------
+
+    # Add more fix files if MERRA2 files are needed
+    if workflow_config["USE_MERRA_CLIMO"]:
+        aero_files = {}
+        fix_clim = Path(workflow_config["FIXclim"])
+        fix_files = glob.glob("merra2.aerclim*.nc",
+                root_dir=Path(workflow_config["FIXaer"]))
+        for fp in fix_files:
+            fn_month = fp.stem.split(".")[-1]
+            aero_files[f"aeroclim.{fn_month}.nc"] = str(fix_clim / fp.name)
+
+        fix_files = glob.glob("optics*.dat",
+                root_dir=Path(workflow_config["FIXlut"]))
+        for fp in fix_files:
+            aero_files[fp.name] = str(fix_clim / fp.name)
+        default_config.update_from({"task_run_fcst": {"fv3": {"files_to_link": aero_files}}})
 
     # Check to make sure all SPP and LSM_SPP lists are the same length.
     stoch_config = fcst_config["fv3"]["namelist"]["update_values"]["nam_sppperts"]
@@ -1311,7 +1327,7 @@ def setup(USHdir, user_config_fn="config.yaml", debug: bool = False):
         # Add thompson-specific fix files to the FV3 configuration
         fixam = workflow_config["FIXam"]
         thompson_fix_links = {fn: f"{fixam}/{fn}" for fn in thompson_files}
-        expt_config["task_run_fcst"]["fv3"]["files_to_link"].update(thompson_fix_links)
+        fcst_config["fv3"]["files_to_link"].update(thompson_fix_links)
 
     #
     # -----------------------------------------------------------------------
