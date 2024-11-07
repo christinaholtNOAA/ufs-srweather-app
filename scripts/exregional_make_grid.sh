@@ -736,11 +736,6 @@ failed."
 #
 #-----------------------------------------------------------------------
 #
-python3 $USHdir/set_fv3nml_sfc_climo_filenames.py \
-  --path-to-defns ${GLOBAL_VAR_DEFNS_FP} \
-    || print_err_msg_exit "\
-Call to function to set surface climatology file names in the FV3 namelist
-file failed."
 #
 #-----------------------------------------------------------------------
 #
