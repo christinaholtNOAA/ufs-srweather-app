@@ -724,9 +724,6 @@ python3 $USHdir/link_fix.py \
 print_err_msg_exit "\
 Call to function to create symlinks to the various grid and mosaic files
 failed."
-
-
-
 print_info_msg "
 ========================================================================
 Grid files with various halo widths generated successfully!!!
