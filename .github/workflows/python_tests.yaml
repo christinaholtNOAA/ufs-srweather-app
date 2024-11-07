@@ -4,6 +4,7 @@ on:
     branches:
       - develop
       - 'release/*'
+      - uwtools_integration
   pull_request:
     branches:
       - develop
@@ -43,6 +44,7 @@ jobs:
           pylint ush/generate_FV3LAM_wflow.py
           pylint ush/set_fv3nml*.py
           pylint ush/update_input_nml.py
+          pylint scripts/*.py
 
       - name: Run python unittests
         run: |

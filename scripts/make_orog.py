@@ -11,7 +11,6 @@ from argparse import ArgumentParser
 from pathlib import Path
 
 from uwtools.api.config import get_yaml_config
-from uwtools.api.driver import Driver
 from uwtools.api.filter_topo import FilterTopo
 from uwtools.api.logging import use_uwtools_logger
 from uwtools.api.orog import Orog
@@ -104,7 +103,7 @@ def make_orog(config_file, key_path):
 
     # Run shave for 0- and 4-cell-wide halo
     for sub_path in ["shave0", "shave4"]:
-        driver = run_driver(
+        run_driver(
             driver_class=Shave,
             config_file=config_file,
             key_path=[*key_path, sub_path],

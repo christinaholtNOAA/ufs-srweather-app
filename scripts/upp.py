@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-The run script for UPP
+The run script for UPP.
 """
 
 import datetime as dt
@@ -31,6 +31,7 @@ def _timedelta_from_str(tds):
     logging.error(msg)
     sys.exit(1)
 
+
 def _walk_key_path(config, key_path):
     """
     Navigate to the sub-config at the end of the path of given keys.
@@ -50,6 +51,7 @@ def _walk_key_path(config, key_path):
             sys.exit(1)
         config = subconfig
     return config
+
 
 def parse_args(argv):
     """
@@ -98,7 +100,7 @@ def run_upp(config_file, cycle, leadtime, key_path, member):
     Setup and run the UPP Driver.
     """
 
-    # The experiment config will have {{ MEMBER | env }} expressions in it that need to be
+    # The experiment config will have {{ "MEMBER" | env }} expressions in it that need to be
     # dereferenced during driver initialization.
     os.environ["MEMBER"] = member
 
@@ -136,8 +138,7 @@ def run_upp(config_file, cycle, leadtime, key_path, member):
         upp_block = _walk_key_path(expt_config_cp, key_path)
         desired_output_fn = upp_block["desired_output_name"]
         upp_output_fn = (
-            rundir
-            / f"{label.upper()}.GrbF{int(leadtime.total_seconds() // 3600):02d}"
+            rundir / f"{label.upper()}.GrbF{int(leadtime.total_seconds() // 3600):02d}"
         )
         links[desired_output_fn] = str(upp_output_fn)
 

@@ -516,7 +516,7 @@ create_symlink_to_file ${FIELD_DICT_FP} ${DATA}/${FIELD_DICT_FN} ${relative_link
 set -x
 if [ $(boolify ${WRITE_DOPOST}) = "TRUE" ]; then
   cycle="${PDY:0:4}-${PDY:4:2}-${PDY:6:2}T$cyc"
-  for task in files_copied files_linked namelist_file ; do
+  for task in control_file files_copied files_linked namelist_file ; do
     uw upp $task -c ${GLOBAL_VAR_DEFNS_FP} --leadtime 999 --cycle $cycle --key-path task_run_post
   done
   mv $DATA/postprd/999/* .

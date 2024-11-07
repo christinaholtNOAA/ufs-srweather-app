@@ -1384,7 +1384,11 @@ task_make_grid:
 # MAKE OROG config parameters
 #-----------------------------
 task_make_orog:
+  # The top-level run direcotry for the whole task. All UW drivers will be run in subdirectories.
   rundir: '{{ workflow.EXPTDIR }}/orog'
+
+  # The entries in orog: section follow along with the UW YAML, documented by uwtools:
+  # https://uwtools.readthedocs.io/en/main/sections/user_guide/yaml/components/orog.html
   orog:
     execution:
       batchargs:
@@ -1413,6 +1417,8 @@ task_make_orog:
     grid_file: "{{ workflow.FIXlam }}/{{ 'CRES' | env }}_grid.tile7.halo{{ grid_params.NHW }}.nc"
     orog_file: "none"
     rundir: "{{ task_make_orog.rundir }}/orog"
+  # The entries in filter_topo: section follow along with the UW YAML, documented by uwtools:
+  # https://uwtools.readthedocs.io/en/main/sections/user_guide/yaml/components/filter_topo.html
   filter_topo:
     config:
       filtered_orog: "{{ 'CRES' | env }}_filtered_orog.tile{{ constants.TILE_RGNL }}.nc"
@@ -1437,6 +1443,9 @@ task_make_orog:
           stretch_fac: !float "{{ grid_params.STRETCH_FAC }}"
           res: !int "{{ ('CRES' | env)[1:] }}"
     rundir: "{{ task_make_orog.rundir }}/filtered_topo"
+  # The entries in shave: sections follow along with the UW YAML, documented by uwtools:
+  # https://uwtools.readthedocs.io/en/main/sections/user_guide/yaml/components/shave.html
+  # There are two shave sections here with slightly different configurations.
   shave0:
     shave:
       execution: &shave_execution
@@ -1464,8 +1473,14 @@ task_make_orog:
         nhalo: !int "{{ constants.NH4 }}"
         output_grid_file: "{{ task_make_orog.rundir }}/{{ 'CRES' | env }}_oro_data.tile{{ constants.TILE_RGNL }}.halo{{ constants.NH4 }}.nc"
       rundir: "{{ task_make_orog.rundir }}/shave4"
+
+  # Describes the location and name of the output from filtered orog as a helper entry for SRW since
+  # it is needed in the downstream shave tasks.
   filtered_output: "{{ task_make_orog.filter_topo.rundir }}/{{ task_make_orog.filter_topo.config.filtered_orog }}"
+
 task_make_sfc_climo:
+  # The entries in sfc_climo_gen: sections follow along with the UW YAML, documented by uwtools:
+  # https://uwtools.readthedocs.io/en/main/sections/user_guide/yaml/components/sfc_climo_gen.html
   sfc_climo_gen:
     execution:
       batchargs:
@@ -1688,60 +1703,9 @@ task_get_extrn_lbcs:
 # MAKE ICS config parameters
 #-----------------------------
 task_make_ics:
-  #-----------------------------------------------------------------------
-  # KMP_AFFINITY_MAKE_ICS: 
-  # Intel Thread Affinity Interface for the make_ics task. 
-  #
-  # OMP_NUM_THREADS_MAKE_ICS: 
-  # The number of OpenMP threads to use for parallel regions.
-  #
-  # OMP_STACKSIZE_MAKE_ICS: 
-  # Controls the size of the stack for threads created by the OpenMP 
-  # implementation.
-  #-----------------------------------------------------------------------
-  envvars:
-    KMP_AFFINITY_MAKE_ICS: "scatter"
-    OMP_NUM_THREADS_MAKE_ICS: 1
-    OMP_STACKSIZE_MAKE_ICS: "1024m"
-    #
-    #-----------------------------------------------------------------------
-    #
-    # USE_FVCOM:
-    # Flag set to update surface conditions in FV3-LAM with fields generated
-    # from the Finite Volume Community Ocean Model (FVCOM). This will
-    # replace lake/sea surface temperature, ice surface temperature, and ice
-    # placement. This flag will be used in make_ics to modify sfc_data.nc
-    # after chgres_cube is run by running the routine process_FVCOM.exe 
-    # FVCOM data must already be interpolated to the desired FV3-LAM grid. 
-    #
-    # FVCOM_WCSTART:
-    # Define whether this is a "warm" start or a "cold" start. Setting this to 
-    # "warm" will read in the sfc_data.nc file generated in a RESTART directory.
-    # Setting this to "cold" will read in the sfc_data.nc file generated from 
-    # chgres_cube in the make_ics portion of the workflow.
-    #
-    # FVCOM_DIR:
-    # User defined directory where FVCOM data already interpolated to FV3-LAM
-    # grid is located. The file in this directory must be named fvcom.nc
-    #
-    # FVCOM_FILE:
-    # Name of file located in FVCOM_DIR that has FVCOM data interpolated to 
-    # FV3-LAM grid. This file will be copied later to a new location and name
-    # changed to fvcom.nc
-    #
-    # VCOORD_FILE:
-    # Full path to the file used to set the vertical coordinate in FV3.
-    # This file should be the same in both make_ics and make_lbcs.
-    #
-    #------------------------------------------------------------------------
-    #
-    USE_FVCOM: false
-    FVCOM_WCSTART: "cold"
-    FVCOM_DIR: ""
-    FVCOM_FILE: "fvcom.nc"
-    VCOORD_FILE: "{{ workflow.FIXam }}/global_hyblev.l65.txt"
-  #------------------------------------------------------------------------
-  input_files_metadata_path: '{{ task_get_extrn_ics.envvars.rundir }}/{{ workflow.EXTRN_MDL_VAR_DEFNS_FN }}.yaml'
+
+  # The entries in the chgres_cube: section follow along with the UW YAML, documented by uwtools:
+  # https://uwtools.readthedocs.io/en/main/sections/user_guide/yaml/components/chgres_cube.html
   chgres_cube:
     execution: &chgres_cube_execution
       batchargs:
@@ -1782,6 +1746,12 @@ task_make_ics:
           vgtyp_from_climo: true
           vgfrc_from_climo: true
     rundir: '{{ task_run_fcst.rundir }}/tmp_MAKE_ICS'
+
+  # The location of the metadata path created by retrieve_data.py
+  input_files_metadata_path: '{{ task_get_extrn_ics.envvars.rundir }}/{{ workflow.EXTRN_MDL_VAR_DEFNS_FN }}.yaml'
+
+  # This section is used with uwcopy or uwlink and maps the output from chgres_cube to SRW-specific
+  # file paths.
   output_file_links:
     '{{ nco.NET_default }}.t{{ timevars.hh }}z.sfc_data.tile{{ constants.TILE_RGNL }}.halo{{ constants.NH0 }}.nc': out.sfc.tile{{ constants.TILE_RGNL }}.nc
     '{{ nco.NET_default }}.t{{ timevars.hh }}z.gfs_data.tile{{ constants.TILE_RGNL }}.halo{{ constants.NH0 }}.nc': out.atm.tile{{ constants.TILE_RGNL }}.nc
@@ -1792,29 +1762,8 @@ task_make_ics:
 # MAKE LBCS config parameters
 #-----------------------------
 task_make_lbcs:
-  #------------------------------------------------------------------------
-  #
-  # KMP_AFFINITY_MAKE_LBCS: 
-  # Intel Thread Affinity Interface for the make_lbcs task. 
-  # 
-  # OMP_NUM_THREADS_MAKE_LBCS: 
-  # The number of OpenMP threads to use for parallel regions.
-  # 
-  # OMP_STACKSIZE_MAKE_LBCS: 
-  # Controls the size of the stack for threads created by the OpenMP implementation.
-  #
-  # VCOORD_FILE: 
-  # Full path to the file used to set the vertical coordinates in FV3. 
-  # This file should be the same in both make_ics and make_lbcs.
-  #
-  #------------------------------------------------------------------------
-  envvars:
-    KMP_AFFINITY_MAKE_LBCS: "scatter"
-    OMP_NUM_THREADS_MAKE_LBCS: 1
-    OMP_STACKSIZE_MAKE_LBCS: "1024m"
-    VCOORD_FILE: "{{ workflow.FIXam }}/global_hyblev.l65.txt"
-  #------------------------------------------------------------------------
-  input_files_metadata_path: '{{ task_get_extrn_lbcs.envvars.rundir }}/{{ workflow.EXTRN_MDL_VAR_DEFNS_FN }}.yaml'
+  # The entries in the chgres_cube: section follow along with the UW YAML, documented by uwtools:
+  # https://uwtools.readthedocs.io/en/main/sections/user_guide/yaml/components/chgres_cube.html
   chgres_cube:
     execution:
       <<: *chgres_cube_execution
@@ -1838,6 +1787,12 @@ task_make_lbcs:
           varmap_file: "{{ user.PARMdir }}/ufs_utils/varmap_tables/GFSphys_var_map.txt"
           vcoord_file_target_grid: "{{ workflow.FIXam }}/global_hyblev.l65.txt"
     rundir: '{{ task_run_fcst.rundir}}/tmp_MAKE_LBCS_{{ timevars.yyyymmddhh }}'
+
+  # The location of the metadata path created by retrieve_data.py
+  input_files_metadata_path: '{{ task_get_extrn_lbcs.envvars.rundir }}/{{ workflow.EXTRN_MDL_VAR_DEFNS_FN }}.yaml'
+
+  # This section is used with uwcopy or uwlink and maps the output from chgres_cube to SRW-specific
+  # file paths.
   output_file_links:
     '{{ nco.NET_default }}.t{{ timevars.hh }}z.gfs_bndy.tile7.f{{ "%03d" % (leadtime.total_seconds() // 3600) }}.nc': gfs.bndy.nc
 
@@ -2147,6 +2102,8 @@ task_run_fcst:
 # POST config parameters
 #-----------------------------
 task_run_post:
+  # The entries in the upp: section follow along with the UW YAML, documented by uwtools:
+  # https://uwtools.readthedocs.io/en/main/sections/user_guide/yaml/components/upp.html
   upp: &det_upp
     execution:
       batchargs:
@@ -2158,11 +2115,11 @@ task_run_post:
         - module load build_{{ user.MACHINE|lower }}_{{ workflow.COMPILER }}
       executable: '{{ user.EXECdir }}/upp.x'
       mpicmd: '{{ platform.BATCH_RUN_CMD }}'
+    control_file: '{{ user.UFS_WTHR_MDL_DIR }}/tests/parm/postxconfig-NT-fv3lam.txt'
     files_to_copy:
       eta_micro_lookup.dat: '{{ user.PARMdir }}/upp/nam_micro_lookup.dat'
       params_grib2_tbl_new: '{{ user.PARMdir }}/upp/params_grib2_tbl_new'
-      postxconfig-NT.txt: '{{ user.UFS_WTHR_MDL_DIR }}/tests/parm/postxconfig-NT-fv3lam.txt'
-      postxconfig-NT_FH00.txt: '{{ task_run_post.upp.files_to_copy["postxconfig-NT.txt"] }}'
+      postxconfig-NT_FH00.txt: '{{ task_run_post.upp.control_file }}'
     namelist:
       update_values:
         model_inputs:
@@ -2179,12 +2136,20 @@ task_run_post:
   platform:
     account: '{{ user.ACCOUNT }}'
     scheduler: '{{ platform.SCHED }}'
+
+  # The output domain used when renaming UPP native output. This is also used by verification tasks.
   post_output_domain_name: '{{ workflow.PREDEF_GRID_NAME }}'
+
+  # The desired output file name of the UPP native output.
   desired_output_name: '{{ nco.NET_default }}.t{{ timevars.hh }}z.{{ file_label }}.f{{ timevars.fff }}.{{ task_run_post.post_output_domain_name }}.grib2'
+
+  # The expected prefixes for the output files from UPP.
   output_file_labels:
     - prslev
     - natlev
 
+# This is a helper section to help alleviate repetitive and/or tedious syntax for working with
+# datetime objects. Keys map to commonly used variable names.
 timevars:
   yyyymmddhh: '{{ cycle.strftime("%Y%m%d%H") }}'
   hh: '{{ cycle.strftime("%H") }}'
