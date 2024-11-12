@@ -2,6 +2,7 @@
 
 import copy
 import datetime
+import glob
 import logging
 import json
 import os
@@ -432,6 +433,7 @@ def setup(USHdir, user_config_fn="config.yaml", debug: bool = False):
     # -----------------------------------------------------------------------
     #
 
+    platform_config = expt_config["platform"]
     rocoto_config = expt_config.get("rocoto", {})
     rocoto_tasks = rocoto_config.get("tasks")
     run_make_grid = rocoto_tasks.get("task_make_grid") is not None
@@ -439,7 +441,7 @@ def setup(USHdir, user_config_fn="config.yaml", debug: bool = False):
     run_make_sfc_climo = rocoto_tasks.get("task_make_sfc_climo") is not None
 
     # Necessary tasks are turned on
-    pregen_basedir = expt_config["platform"].get("DOMAIN_PREGEN_BASEDIR")
+    pregen_basedir = platform_config.get("DOMAIN_PREGEN_BASEDIR")
     if pregen_basedir is None and not (
         run_make_grid and run_make_orog and run_make_sfc_climo
     ):
@@ -453,13 +455,13 @@ def setup(USHdir, user_config_fn="config.yaml", debug: bool = False):
         )
 
     # A batch system account is specified
-    if expt_config["platform"].get("WORKFLOW_MANAGER") is not None:
+    if platform_config.get("WORKFLOW_MANAGER") is not None:
         if not expt_config.get("user").get("ACCOUNT"):
             raise Exception(
                 dedent(
                     f"""
                   ACCOUNT must be specified in config or machine file if using a workflow manager.
-                  WORKFLOW_MANAGER = {expt_config["platform"].get("WORKFLOW_MANAGER")}\n"""
+                  WORKFLOW_MANAGER = {platform_config.get("WORKFLOW_MANAGER")}\n"""
                 )
             )
 
@@ -476,12 +478,12 @@ def setup(USHdir, user_config_fn="config.yaml", debug: bool = False):
                 _remove_tag(task_settings, tag)
 
     # Remove all memory tags for platforms that do not support them
-    remove_memory = expt_config["platform"].get("REMOVE_MEMORY")
+    remove_memory = platform_config.get("REMOVE_MEMORY")
     if remove_memory:
         _remove_tag(rocoto_tasks, "memory")
 
     for part in ["PARTITION_HPSS", "PARTITION_DEFAULT", "PARTITION_FCST"]:
-        partition = expt_config["platform"].get(part)
+        partition = platform_config.get(part)
         if not partition:
             _remove_tag(rocoto_tasks, 'partition')
 
@@ -885,21 +887,23 @@ def setup(USHdir, user_config_fn="config.yaml", debug: bool = False):
         aero_files = {}
         fix_clim = Path(workflow_config["FIXclim"])
         fix_files = glob.glob("merra2.aerclim*.nc",
-                root_dir=Path(workflow_config["FIXaer"]))
-        for fp in fix_files:
+                root_dir=Path(platform_config["FIXaer"]))
+        for file_path in fix_files:
+            fp = Path(file_path)
             fn_month = fp.stem.split(".")[-1]
             aero_files[f"aeroclim.{fn_month}.nc"] = str(fix_clim / fp.name)
 
         fix_files = glob.glob("optics*.dat",
-                root_dir=Path(workflow_config["FIXlut"]))
-        for fp in fix_files:
+                root_dir=Path(platform_config["FIXlut"]))
+        for file_path in fix_files:
+            fp = Path(file_path)
             aero_files[fp.name] = str(fix_clim / fp.name)
-        default_config.update_from({"task_run_fcst": {"fv3": {"files_to_link": aero_files}}})
+        expt_config.update_from({"task_run_fcst": {"fv3": {"files_to_link": aero_files}}})
 
     # Check to make sure all SPP and LSM_SPP lists are the same length.
-    stoch_config = fcst_config["fv3"]["namelist"]["update_values"]["nam_sppperts"]
     global_sect = expt_config["global"]
     if global_sect.get("DO_SPP"):
+        stoch_config = fcst_config["fv3"]["namelist"]["update_values"]["nam_sppperts"]
         list_vars = (
             "iseed_spp",
             "spp_lscale",
@@ -926,8 +930,8 @@ def setup(USHdir, user_config_fn="config.yaml", debug: bool = False):
                 """
             )
 
-    stoch_config = fcst_config["fv3"]["namelist"]["update_values"]["nam_sfcperts"]
     if global_sect.get("DO_LSM_SPP"):
+        stoch_config = fcst_config["fv3"]["namelist"]["update_values"]["nam_sfcperts"]
         list_vars = ("lndp_tau", "lndp_lscale", "lndp_var_list", "lndp_prt_list")
         list_len = fcst_config["namelist"]["update_values"]["n_var_lndp"]
         if any([len(stoch_config[v]) != list_len for v in list_vars]):
@@ -1024,7 +1028,7 @@ def setup(USHdir, user_config_fn="config.yaml", debug: bool = False):
     # -----------------------------------------------------------------------
     #
     # Use env variables for NCO variables and create NCO directories
-    workflow_manager = expt_config["platform"].get("WORKFLOW_MANAGER")
+    workflow_manager = platform_config.get("WORKFLOW_MANAGER")
     if run_envir == "nco" and workflow_manager == "rocoto":
         # Update the rocoto string for the fcst output location if
         # running an ensemble in nco mode

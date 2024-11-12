@@ -186,10 +186,10 @@ metatask_run_ensemble:
     join:
       cyclestr:
         value: '&LOGDIR;/{{ jobname }}_@Y@m@d@H&LOGEXT;'
-    nodes: '{{ task_run_fcst.run_fcst.execution.batchargs.nodes }}:ppn={{ task_run_fcst.run_fcst.execution.batchargs.tasks_per_node }}'
+    nodes: '{{ task_run_fcst.fv3.execution.batchargs.nodes // 1 }}:ppn={{ task_run_fcst.fv3.execution.batchargs.tasks_per_node // 1 }}'
     partition: '{{ "&PARTITION_FCST;" if platform.get("PARTITION_FCST") }}'
     queue: '&QUEUE_FCST;'
-    walltime: '{{ task_run_fcst.execution.batchargs.walltime }}'
+    walltime: '{{ task_run_fcst.fv3.execution.batchargs.walltime }}'
     dependency:
       and:
         taskdep_make_ics:

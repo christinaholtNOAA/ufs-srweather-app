@@ -238,33 +238,6 @@ def generate_FV3LAM_wflow(
             cp_vrfy(os.path.join(FIXaer, "merra2.aerclim*.nc"), FIXclim)
             cp_vrfy(os.path.join(FIXlut, "optics*.dat"), FIXclim)
     #
-    # -----------------------------------------------------------------------
-    #
-    # Copy templates of various input files to the experiment directory.
-    #
-    # -----------------------------------------------------------------------
-    #
-    log_info(
-        """
-        Copying templates of various input files to the experiment directory...""",
-        verbose=debug,
-    )
-
-    log_info(
-        """
-        Copying the template data table file to the experiment directory...""",
-        verbose=debug,
-    )
-    cp_vrfy(DATA_TABLE_TMPL_FP, DATA_TABLE_FP)
-
-    log_info(
-        """
-        Copying the template field table file to the experiment directory...""",
-        verbose=debug,
-    )
-    cp_vrfy(FIELD_TABLE_TMPL_FP, FIELD_TABLE_FP)
-
-    #
     # Copy the CCPP physics suite definition file from its location in the
     # clone of the FV3 code repository to the experiment directory (EXPT-
     # DIR).
@@ -289,22 +262,6 @@ def generate_FV3LAM_wflow(
         verbose=debug,
     )
     cp_vrfy(FIELD_DICT_IN_UWM_FP, FIELD_DICT_FP)
-
-    #
-    # If not running the TN_MAKE_GRID task (which implies the workflow will
-    # use pregenerated grid files), set the namelist variables specifying
-    # the paths to surface climatology files.  These files are located in
-    # (or have symlinks that point to them) in the FIXlam directory.
-    #
-    # Note that if running the TN_MAKE_GRID task, this action usually cannot
-    # be performed here but must be performed in that task because the names
-    # of the surface climatology files depend on the CRES parameter (which is
-    # the C-resolution of the grid), and this parameter is in most workflow
-    # configurations is not known until the grid is created.
-    #
-    if not expt_config["rocoto"]["tasks"].get("task_make_grid"):
-
-        set_fv3nml_sfc_climo_filenames(flatten_dict(expt_config), debug)
 
     #
     # -----------------------------------------------------------------------

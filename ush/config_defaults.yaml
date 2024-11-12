@@ -546,25 +546,6 @@ workflow:
   # Name of file containing the namelist settings for the code that generates
   # a "ESGgrid" type of regional grid.
   #
-  # FV3_NML_YAML_CONFIG_FN:
-  # Name of YAML configuration file containing the forecast model's namelist
-  # settings for various physics suites.
-  #
-  # FV3_NML_BASE_ENS_FN:
-  # Name of Fortran namelist file containing the forecast model's base 
-  # ensemble namelist, i.e. the the namelist file that is the starting point 
-  # from which the namelist files for each of the enesemble members are
-  # generated.
-  #
-  # DATA_TABLE_FN: 
-  # Name of the file that contains the data table read in by the forecast model. 
-  # 
-  # UFS_CONFIG_FN:
-  # Name of a template file that contains information about the various UFS 
-  # components and their run sequence (ufs-weather-model: ufs.configure). 
-  # Its default value is the name of the file that the ufs weather model expects 
-  # to read in.
-  #
   # AQM_RC_FN: 
   # Name of resource file for NOAA Air Quality Model (AQM). 
   # 
@@ -582,17 +563,6 @@ workflow:
 
   # 
   #-----------------------------------------------------------------------
-  # FV3_NML_YAML_CONFIG_FP: 
-  # Path to the FV3_NML_YAML_CONFIG_FN file.
-  # 
-  # FV3_NML_BASE_ENS_FP: 
-  # Path to the FV3_NML_BASE_ENS_FN file. 
-  # 
-  # DATA_TABLE_TMPL_FP: 
-  # Path to the DATA_TABLE_FN file. 
-  # 
-  # UFS_CONFIG_TMPL_FP: 
-  # Path to the UFS_CONFIG_FN file. 
   # 
   # AQM_RC_TMPL_FP: 
   # Path to the AQM_RC_TMPL_FN file. 
@@ -605,15 +575,6 @@ workflow:
   # 
   #-----------------------------------------------------------------------
   # These are staged in the exptdir at configuration time
-  # 
-  # DATA_TABLE_FP: 
-  # Path to the data table in the experiment directory. 
-  # 
-  # UFS_CONFIG_FP: 
-  # Path to the UFS_CONFIG_FN file in the experiment directory. 
-  # 
-  # FV3_NML_FP: 
-  # Path to the FV3_NML_FN file in the experiment directory.
   # 
   # FCST_MODEL:
   # Name of forecast model (default=ufs-weather-model)
@@ -667,11 +628,6 @@ workflow:
   # 
   #-----------------------------------------------------------------------
   #
-  DATA_TABLE_FP: '{{ workflow.EXPTDIR }}/{{ workflow.DATA_TABLE_FN }}'
-  UFS_CONFIG_FP: '{{ workflow.EXPTDIR }}/{{ workflow.UFS_CONFIG_FN }}'
-  FV3_NML_FP: '{{ workflow.EXPTDIR }}/{{ workflow.FV3_NML_FN }}'
-  FV3_NML_STOCH_FP: '{{ workflow.EXPTDIR }}/{{ workflow.FV3_NML_FN }}_stoch'
-
   FCST_MODEL: "ufs-weather-model"
   WFLOW_XML_FN: "FV3LAM_wflow.xml"
   GLOBAL_VAR_DEFNS_FN: "var_defns.yaml"
@@ -1857,19 +1813,19 @@ task_run_fcst:
       base_file: "{{ user.PARMdir }}/input.nml.FV3"
       update_values:
         atmos_model_nml:
-          blocksize: !int '{{ task_run_fcst.BLOCKSIZE }}'
+          blocksize: !int '{{ task_run_fcst.BLOCKSIZE|int }}'
           ccpp_suite: '{{ workflow.CCPP_PHYS_SUITE }}'
         fv_core_nml:
-          target_lon: !int '{{ grid_params.LON_CTR }}'
-          target_lat: !int '{{ grid_params.LAT_CTR }}'
-          nrows_blend: !int '{{ grid_params.HALO_BLEND }}'
-          stretch_fac: !int '{{ grid_params.STRETCH_FAC }}'
+          target_lon: !float '{{ grid_params.LON_CTR }}'
+          target_lat: !float '{{ grid_params.LAT_CTR }}'
+          nrows_blend: !int '{{ global.HALO_BLEND }}'
+          stretch_fac: !float '{{ grid_params.STRETCH_FAC }}'
           npx: !int '{{ grid_params.NX + 1 }}'
           npy: !int '{{ grid_params.NY + 1 }}'
           layout:
-            - !int '{{ task_run_fcst.LAYOUT_X }}'
-            - !int '{{ task_run_fcst.LAYOUT_Y }}'
-          bc_update_interval: !int '{{ task_get_extrn_lbcs.LBC_SPEC_INTVL_HRS }}'
+            - !int '{{ task_run_fcst.LAYOUT_X|int }}'
+            - !int '{{ task_run_fcst.LAYOUT_Y|int }}'
+          bc_update_interval: !int '{{ task_get_extrn_lbcs.envvars.LBC_SPEC_INTVL_HRS }}'
         gfs_physics_nml:
           kice: !int '{{ 9 if workflow.SDF_USES_RUC_LSM else 2 }}'
           print_diff_pgr: false
@@ -1886,14 +1842,14 @@ task_run_fcst:
           fnslpc: '{{ workflow.FIXlam }}/{{ "CRES" | env }}.slope_type.tileX.nc'
           fnabsc: '{{ workflow.FIXlam }}/{{ "CRES" | env }}.maximum_snow_albedo.tileX.nc'
           # General fix files
-          fnglac: '{{ workflow.FIXlam }}/global_glacier.2x2.grb'
-          fnmxic: '{{ workflow.FIXlam }}/global_maxice.2x2.grb'
-          fntsfc: '{{ workflow.FIXlam }}/RTGSST.1982.2012.monthly.clim.grb'
-          fnsnoc: '{{ workflow.FIXlam }}/global_snoclim.1.875.grb'
-          fnzorc: '{{ workflow.FIXlam }}/igbp'
-          fnaisc: '{{ workflow.FIXlam }}/CFSR.SEAICE.1982.2012.monthly.clim.grb'
-          fnsmcc: '{{ workflow.FIXlam }}/global_soilmgldas.t126.384.190.grb'
-          fnmskh: '{{ workflow.FIXlam }}/seaice_newland.grb'
+          fnglac: '{{ workflow.FIXam }}/global_glacier.2x2.grb'
+          fnmxic: '{{ workflow.FIXam }}/global_maxice.2x2.grb'
+          fntsfc: '{{ workflow.FIXam }}/RTGSST.1982.2012.monthly.clim.grb'
+          fnsnoc: '{{ workflow.FIXam }}/global_snoclim.1.875.grb'
+          fnzorc: '{{ workflow.FIXam }}/vegetation_type.igbp.0.05.nc'
+          fnaisc: '{{ workflow.FIXam }}/CFSR.SEAICE.1982.2012.monthly.clim.grb'
+          fnsmcc: '{{ workflow.FIXam }}/global_soilmgldas.t126.384.190.grb'
+          fnmskh: '{{ workflow.FIXam }}/seaice_newland.grb'
       validate: true
     rundir: '{{ workflow.EXPTDIR }}/{{ timevars.yyyymmddhh }}{{ "/mem%s" % ("MEMBER"|env) if global.DO_ENSEMBLE }}'
   #
@@ -1926,9 +1882,9 @@ task_run_fcst:
   #
   #-----------------------------------------------------------------------
   #
-  LAYOUT_X: '{{ task_run_fcst.LAYOUT_X }}'
-  LAYOUT_Y: '{{ task_run_fcst.LAYOUT_Y }}'
-  BLOCKSIZE: '{{ task_run_fcst.BLOCKSIZE }}'
+  LAYOUT_X:
+  LAYOUT_Y:
+  BLOCKSIZE:
   #
   #-----------------------------------------------------------------------
   #
@@ -2036,7 +1992,7 @@ task_run_fcst:
   #
   PRINT_ESMF: false
 
-  PE_MEMBER01: !int '{{ task_run_fcst.fv3.execution.threads * (task_run_fcst.LAYOUT_Y * task_run_fcst.LAYOUT_X + task_run_fcst.WRTCMP_write_groups * task_run_fcst.WRTCMP_write_tasks_per_group) if task_run_fcst.QUILTING else task_run_fcst.fv3.execution.threads * task_run_fcst.LAYOUT_Y * task_run_fcst.LAYOUT_X}}'
+  PE_MEMBER01: !int '{{ task_run_fcst.fv3.execution.threads * (task_run_fcst.LAYOUT_Y * task_run_fcst.LAYOUT_X + task_run_fcst.WRTCMP_write_groups|int * task_run_fcst.WRTCMP_write_tasks_per_group|int) if task_run_fcst.fv3.model_configure.update_values.quilting else task_run_fcst.fv3.execution.threads * task_run_fcst.LAYOUT_Y * task_run_fcst.LAYOUT_X}}'
   
   WRTCMP_write_groups: ""
   WRTCMP_write_tasks_per_group: ""
@@ -2333,10 +2289,6 @@ global:
   # A list of names for the ensemble member names following the format
   # mem001, mem002, etc.
   #
-  # FV3_NML_ENSMEM_FPS:
-  # Paths to the ensemble member corresponding namelists in the
-  # experiment directory
-  #
   # ENS_TIME_LAG_HRS:
   # Time lag (in hours) to use for each ensemble member. For a deterministic
   # forecast, this is a one-element array. Default values of array elements
@@ -2347,7 +2299,6 @@ global:
   DO_ENSEMBLE: false
   NUM_ENS_MEMBERS: 0
   ENSMEM_NAMES: '{% for m in range(global.NUM_ENS_MEMBERS) %}{{ "mem%03d, " % m }}{% endfor %}'
-  FV3_NML_ENSMEM_FPS: '{% for mem in global.ENSMEM_NAMES %}{{"%s/%s_%s" % workflow.EXPTDIR, workflow.FV3_NML_FN, mem }}{% endfor %}'
   ENS_TIME_LAG_HRS: '[ {% for m in range([1,global.NUM_ENS_MEMBERS]|max) %} 0, {% endfor %} ]'
   #
   #-----------------------------------------------------------------------
