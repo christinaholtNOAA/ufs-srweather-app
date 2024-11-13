@@ -57,7 +57,6 @@
 #    RUN_CMD_SERIAL
 
 #  workflow:
-#    DOT_OR_USCORE
 #    GRID_GEN_METHOD
 #    RES_IN_FIXLAM_FILENAMES
 #    RGNL_GRID_NML_FN
@@ -114,6 +113,7 @@ sections=(
 for sect in ${sections[*]} ; do
   source_yaml ${GLOBAL_VAR_DEFNS_FP} ${sect}
 done
+DOT_OR_USCORE="_"
 #
 #-----------------------------------------------------------------------
 #
