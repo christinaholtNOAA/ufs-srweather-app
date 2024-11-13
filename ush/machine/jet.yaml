@@ -25,7 +25,7 @@ platform:
   TEST_PREGEN_BASEDIR: /mnt/lfs5/HFIP/hfv3gfs/role.epic/UFS_SRW_data/develop/FV3LAM_pregen
   TEST_ALT_EXTRN_MDL_SYSBASEDIR_ICS: /mnt/lfs5/HFIP/hfv3gfs/role.epic/UFS_SRW_data/develop/dummy_FV3GFS_sys_dir
   TEST_ALT_EXTRN_MDL_SYSBASEDIR_LBCS: /mnt/lfs5/HFIP/hfv3gfs/role.epic/UFS_SRW_data/develop/dummy_FV3GFS_sys_dir
-  TEST_VX_FCST_INPUT_BASEDIR: '{{ "/mnt/lfs5/HFIP/hfv3gfs/role.epic/UFS_SRW_data/develop/output_data/fcst_" }}{{ "ens" if (global.NUM_ENS_MEMBERS > 0) else "det" }}{{ "/{{workflow.PREDEF_GRID_NAME}}" }}{% raw %}{% endraw %}'
+  TEST_VX_FCST_INPUT_BASEDIR: /mnt/lfs5/HFIP/hfv3gfs/role.epic/UFS_SRW_data/develop/output_data/fcst_{{ "ens" if (global.NUM_ENS_MEMBERS > 0) else "det" }}{{ workflow.PREDEF_GRID_NAME }}
   FIXaer: /mnt/lfs5/HFIP/hfv3gfs/role.epic/UFS_SRW_data/develop/fix/fix_aer
   FIXgsm: /mnt/lfs5/HFIP/hfv3gfs/role.epic/UFS_SRW_data/develop/fix/fix_am
   FIXlut: /mnt/lfs5/HFIP/hfv3gfs/role.epic/UFS_SRW_data/develop/fix/fix_lut
@@ -49,10 +49,6 @@ rocoto:
   tasks:
     metatask_run_ensemble:
       task_run_fcst_mem#mem#:
-        cores:
+        cores: !remove
         native: '--cpus-per-task {{ task_run_fcst.fv3.execution.threads|int }} --exclusive {{ platform.SCHED_NATIVE_CMD }}'
         nodes: '{{ task_run_fcst.fv3.execution.batchargs.nodes }}:ppn={{ task_run_fcst.fv3.execution.batchargs.tasks_per_node }}'
-        nnodes:
-        nodesize:
-        ppn:
-

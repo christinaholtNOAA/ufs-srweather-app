@@ -33,7 +33,7 @@ from check_python_version import check_python_version
 from get_crontab_contents import add_crontab_line
 from setup import setup
 
-from uwtools.api.config import get_yaml_config
+from uwtools.api.config import get_nml_config, get_yaml_config, realize
 from uwtools.api.template import render
 from uwtools.api import rocoto as uwrocoto
 

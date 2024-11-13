@@ -630,20 +630,23 @@ def setup(USHdir, user_config_fn="config.yaml", debug: bool = False):
 
     # Make sure the vertical coordinate file for both make_lbcs and
     # make_ics is the same.
-    if ics_vcoord := expt_config.get("task_make_ics", {}).get("envvars").get("VCOORD_FILE") != \
-            (lbcs_vcoord := expt_config.get("task_make_lbcs", {}).get("envvars").get("VCOORD_FILE")):
-         raise ValueError(
-             f"""
-             The VCOORD_FILE must be set to the same value for both the
-             make_ics task and the make_lbcs task. They are currently
-             set to:
+    vcoord_files = {}
+    for bcs_task in ("task_make_ics", "task_make_lbcs"):
+        vcoord_files[bcs_task] = (
+            expt_config[bcs_task]["chgres_cube"]["namelist"]
+            .get("config", {})
+            .get("vcoord_file_target_grid")
+        )
 
-             make_ics:
-               VCOORD_FILE: {ics_vcoord}
+    if not all(x == list(vcoord_files.values())[0] for x in vcoord_files.values()):
+        raise ValueError(
+            f"""
+            The VCOORD_FILE must be set to the same value for both the
+            make_ics task and the make_lbcs task. They are currently
+            set to:
 
-             make_lbcs:
-               VCOORD_FILE: {lbcs_vcoord}
-             """
+            {json.dumps(vcoord_files)}
+            """
         )
 
     #

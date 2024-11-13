@@ -33,9 +33,6 @@ rocoto:
   tasks:
     metatask_run_ensemble:
       task_run_fcst_mem#mem#:
-        cores: '{{ task_run_fcst.PE_MEMBER01 // 1 }}'
+        cores: !int '{{ task_run_fcst.PE_MEMBER01 // 1 }}'
         native: '--cpus-per-task {{ task_run_fcst.fv3.execution.threads|int }} --exclusive {{ platform.SCHED_NATIVE_CMD }}'
-        nodes:
-        nnodes:
-        nodesize:
-        ppn:
+        nodes: !remove
