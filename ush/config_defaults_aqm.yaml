@@ -11,6 +11,23 @@ task_run_post:
     - cmaq
 
 task_run_fcst:
+  aqm:
+    control_file:
+      template_file: "{{ workflow.PARMdir }}/aqm.rc"
+      template_values:
+        do_aqm_dust: true
+        do_aqm_canopy: false
+        do_aqm_product: true
+        ccpp_phys_suite: "{{ workflow.CCPP_PHYS_SUITE }}"
+        init_concentrations: true
+        aqm_rc_bio_file_fp: "{{ platform.FIXaqm }}/bio/BEIS_SARC401.ncf"
+        fixaqm: "{{ platform.FIXaqm }}"
+        aqm_rc_fire_file_fp: "{{ 'COMIN' | env }}/GBBEPx_C401GRID.emissions_v003_{{ timevars.yyyymmdd }}_t{{ timevars.hh }}z.nc"
+        aqm_rc_fire_frequency: static
+        aqm_rc_dust_file_fp: "{{ platform.FIXaqm }}/dust/FENGSHA_p8_10km_inputs_{{ workflow.PREDEF_GRID_NAME }}.nc"
+        aqm_rc_canopy_file_fp: "{{ platform.FIXaqm }}/canopy/gfs.t12z.geo.{{ cdate.strftime('%m') }}.canopy_regrid.nc"
+        aqm_rc_product_fn: aqm.prod.rc
+        aqm_rc_product_frequency: hourly
   fv3:
     namelist:
       update_values:

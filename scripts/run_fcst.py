@@ -6,15 +6,36 @@ The run script for run_fcst.
 import datetime as dt
 import logging
 import os
-import re
 import sys
 from argparse import ArgumentParser
-from copy import deepcopy
 from pathlib import Path
 
 from uwtools.api.logging import use_uwtools_logger
 from uwtools.api.fv3 import FV3
 from uwtools.api.config import get_yaml_config
+from uwtools.api.template import render
+from uwtools.api.upp import UPP
+
+
+def _walk_key_path(config, key_path):
+    """
+    Navigate to the sub-config at the end of the path of given keys.
+    """
+    keys = []
+    pathstr = "<unknown>"
+    for key in key_path:
+        keys.append(key)
+        pathstr = " -> ".join(keys)
+        try:
+            subconfig = config[key]
+        except KeyError:
+            logging.error(f"Bad config path: {pathstr}")
+            raise
+        if not isinstance(subconfig, dict):
+            logging.error(f"Value at {pathstr} must be a dictionary")
+            sys.exit(1)
+        config = subconfig
+    return config
 
 
 def link_files(dest_dir, files):
@@ -28,6 +49,7 @@ def link_files(dest_dir, files):
             linkname.unlink()
         logging.info(f"Linking {linkname} -> {path}")
         linkname.symlink_to(path)
+
 
 def parse_args(argv):
     """
@@ -77,35 +99,74 @@ def run_fcst(config_file, cycle, key_path, member):
     os.environ["DOT_ENSMEM"] = f".mem{member}"
     os.environ["MEMBER"] = member
 
+    restart = False
     if restart:
         restart_settings = {
-        "fv_core_nml": {
-            "external_ic": False,
-            "make_nh": False,
-            "mountain": True,
-            "na_init": 0,
-            "nggps_ic": False,
-            "warm_start": True,
-        },
-        "gfs_physics_nml": {
-            "nstf_name": [2, 0, 0, 0, 0],
+            "fv_core_nml": {
+                "external_ic": False,
+                "make_nh": False,
+                "mountain": True,
+                "na_init": 0,
+                "nggps_ic": False,
+                "warm_start": True,
+            },
+            "gfs_physics_nml": {
+                "nstf_name": [2, 0, 0, 0, 0],
+            },
         }
-        expt_config.update_from({
-            "task_run_fcst": {"fv3": {"namelist": "update_values": restart_settings}}})
+        expt_config.update_from(
+            {
+                "task_run_fcst": {
+                    "fv3": {"namelist": {"update_values": restart_settings}}
+                }
+            }
+        )
 
-    if aqm:
-        pass
-        # TODO: Create aqm rc file
-
-    # TODO Create ufs.configure file
-
-    # Run the FV3 program via UW driver
     fv3_driver = FV3(
         config=expt_config,
         cycle=cycle,
         key_path=key_path,
     )
     rundir = Path(fv3_driver.config["rundir"])
+
+    if expt_config["cpl_aqm_parm"]["CPL_AQM"]:
+        restart_overrides = {}
+        if restart:
+            restart_overrides["init_concentrations"] = False
+
+        # Prepare the rc file from a template
+        aqm_block = _walk_key_path(expt_config, key_path + ["aqm"])
+        render(
+            input_file=aqm_block["template_file"],
+            output_file=rundir / "aqm.rc",
+            overrides=restart_overrides,
+            values_src=aqm_block["template_values"],
+        )
+
+    # Prepare config files for inline post, if needed
+    model_configure_block = _walk_key_path(
+        fv3_driver.config,
+        ["model_configure", "update_values"],
+    )
+    if model_configure_block["write_dopost"]:
+        upp_driver = UPP(
+            config=expt_config,
+            cycle=cycle,
+            leadtime=999,
+            key_path=key_path,
+        )
+        upp_driver.files_copied()
+        upp_driver.files_linked()
+        upp_driver.namelist_file()
+
+    ufs_configure_block = _walk_key_path(expt_config, key_path + ["ufs_configure"])
+    render(
+        input_file=ufs_configure_block["template_file"],
+        output_file=rundir / "ufs.configure",
+        values_src=ufs_configure_block["template_values"],
+    )
+
+    # Run the FV3 program via UW driver
     logging.info(f"Will run FV3 in {rundir}")
     fv3_driver.run()
 

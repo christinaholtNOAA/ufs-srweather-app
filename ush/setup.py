@@ -814,6 +814,14 @@ def setup(USHdir, user_config_fn="config.yaml", debug: bool = False):
                   LBC_SPEC_INTVL_HRS = {lbc_spec_intvl_hrs}"""
                 )
 
+    # if inline post is selected, add a upp block to task_run_fcst
+    if fcst_config["fv3"]["model_configure"]["update_values"]["write_dopost"]:
+        upp_config = copy.deepcopy(expt_config["task_run_post"]["upp"])
+        upp_namelist_config = upp_config["namelist"]["update_values"]
+        for key in ("datestr", "filename", "filenameflux", "grib", "ioform"):
+            upp_namelist_config["model_inputs"].pop(key)
+        upp_config["rundir"] = fcst_config["fv3"]["rundir"]
+        fcst_config["upp"] = upp_config
     #
     # -----------------------------------------------------------------------
     #

@@ -1852,6 +1852,15 @@ task_run_fcst:
           fnmskh: '{{ workflow.FIXam }}/seaice_newland.grb'
       validate: true
     rundir: '{{ workflow.EXPTDIR }}/{{ timevars.yyyymmddhh }}{{ "/mem%s" % ("MEMBER"|env) if global.DO_ENSEMBLE }}'
+  ufs_configure:
+    template_file: '{{ user.PARMdir }}/ufs.configure'
+    template_values:
+      dt_atmos: '{{ task_run_fcst.fv3.model_configure.update_values.dt_atmos }}'
+      print_esmf: '{{ task_run_fcst.PRINT_ESMF }}'
+      cpl_aqm: '{{ cpl_aqm_parm.CPL_AQM }}'
+      pe_member01_m1: '{{ task_run_fcst.PE_MEMBER01 - 1 }}'
+      aqm_pe_member01_m1: '{{ task_run_fcst.LAYOUT_X * task_run_fcst.LAYOUT_Y ) - 1 }}'
+      atm_omp_num_threads: '{{ task_run_fcst.fv3.execution.threads }}'
   #
   # Set computational parameters for the forecast.  Definitions:
   #
@@ -2076,6 +2085,7 @@ task_run_post:
     - natlev
 
 timevars:
+  yyyymmdd: '{{ cycle.strftime("%Y%m%d") }}'
   yyyymmddhh: '{{ cycle.strftime("%Y%m%d%H") }}'
   hh: '{{ cycle.strftime("%H") }}'
   valid_time: "{{ (cycle + leadtime).strftime('%Y-%m-%d_%H:%M:%S') }}"
