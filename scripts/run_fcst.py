@@ -96,7 +96,7 @@ def run_fcst(config_file, cycle, key_path, member):
     # The experiment config will have {{ CRES | env }} and {{ MEMBER | env }} expressions in it that need to be
     # dereferenced during driver initialization
     os.environ["CRES"] = expt_config["workflow"]["CRES"]
-    os.environ["DOT_ENSMEM"] = f".mem{member}"
+    os.environ["DOT_ENSMEM"] = f".mem{member}" if int(member) else ""
     os.environ["MEMBER"] = member
 
     restart = False

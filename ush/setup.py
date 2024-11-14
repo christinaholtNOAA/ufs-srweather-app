@@ -893,8 +893,13 @@ def setup(USHdir, user_config_fn="config.yaml", debug: bool = False):
     #
     # -----------------------------------------------------------------------
 
+    use_merra_climo = workflow_config["CCPP_PHYS_SUITE"] in [
+            "FV3_GFS_v15_thompson_mynn_lam3km",
+            "FV3_GFS_v17_p8",
+            ]
+    workflow_config["USE_MERRA_CLIMO"] = use_merra_climo
     # Add more fix files if MERRA2 files are needed
-    if workflow_config["USE_MERRA_CLIMO"]:
+    if use_merra_climo:
         aero_files = {}
         fix_clim = Path(workflow_config["FIXclim"])
         fix_files = glob.glob("merra2.aerclim*.nc",
@@ -1279,6 +1284,13 @@ def setup(USHdir, user_config_fn="config.yaml", debug: bool = False):
     workflow_config["RES_IN_FIXLAM_FILENAMES"] = res_in_fixlam_filenames
     if res_in_fixlam_filenames:
         workflow_config["CRES"] = f"C{res_in_fixlam_filenames}"
+    elif cres := os.getenv("CRES"):
+        workflow_config["CRES"] = cres
+
+
+
+
+
 
     #
     # -----------------------------------------------------------------------

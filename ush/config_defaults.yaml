@@ -713,15 +713,6 @@ workflow:
   CCPP_PHYS_SUITE_FP: '{{ workflow.EXPTDIR }}/{{ workflow.CCPP_PHYS_SUITE_FN }}'
   #
   #-----------------------------------------------------------------------
-  # 
-  # USE_MERRA_CLIMO: Flag that determines whether MERRA2 aerosol climatology 
-  # data and lookup tables for optics properties are obtained
-  #
-  #-----------------------------------------------------------------------
-  #
-  USE_MERRA_CLIMO: '{{ workflow.CCPP_PHYS_SUITE == "FV3_GFS_v15_thompson_mynn_lam3km" or workflow.CCPP_PHYS_SUITE == "FV3_GFS_v17_p8" }}'
-  #
-  #-----------------------------------------------------------------------
   #
   # Set the field dictionary file name and paths.
   #
@@ -1535,7 +1526,7 @@ task_get_extrn_lbcs:
   envvars:
     EXTRN_MDL_NAME_LBCS: "FV3GFS"
     LBC_SPEC_INTVL_HRS: 6
-    EXTRN_MDL_LBCS_OFFSET_HRS: '{{ 3 if task_get_extrn_lbcs.envvars.EXTRN_MDL_NAME_LBCS == "RAP" else 0 }}'
+    EXTRN_MDL_LBCS_OFFSET_HRS: !int '{{ 3 if task_get_extrn_lbcs.envvars.EXTRN_MDL_NAME_LBCS == "RAP" else 0 }}'
     FV3GFS_FILE_FMT_LBCS: "nemsio"
     #
     #-----------------------------------------------------------------------
@@ -1618,7 +1609,7 @@ task_make_ics:
           vcoord_file_target_grid: "{{ workflow.FIXam }}/global_hyblev.l65.txt"
           vgtyp_from_climo: true
           vgfrc_from_climo: true
-    rundir: '{{ task_run_fcst.rundir }}/tmp_MAKE_ICS'
+    rundir: '{{ task_run_fcst.fv3.rundir }}/tmp_MAKE_ICS'
 
   # The location of the metadata path created by retrieve_data.py
   input_files_metadata_path: '{{ task_get_extrn_ics.envvars.rundir }}/{{ workflow.EXTRN_MDL_VAR_DEFNS_FN }}.yaml'
@@ -1659,7 +1650,7 @@ task_make_lbcs:
           regional: 2
           varmap_file: "{{ user.PARMdir }}/ufs_utils/varmap_tables/GFSphys_var_map.txt"
           vcoord_file_target_grid: "{{ workflow.FIXam }}/global_hyblev.l65.txt"
-    rundir: '{{ task_run_fcst.rundir}}/tmp_MAKE_LBCS_{{ timevars.yyyymmddhh }}'
+    rundir: '{{ task_run_fcst.fv3.rundir}}/tmp_MAKE_LBCS_{{ timevars.yyyymmddhh }}'
 
   # The location of the metadata path created by retrieve_data.py
   input_files_metadata_path: '{{ task_get_extrn_lbcs.envvars.rundir }}/{{ workflow.EXTRN_MDL_VAR_DEFNS_FN }}.yaml'
@@ -1697,10 +1688,10 @@ task_run_fcst:
     field_table:
       base_file: '{{ user.PARMdir }}/field_table.{{ workflow.CCPP_PHYS_SUITE }}'
     files_to_copy:
-      INPUT/gfs_ctrl.nc: '{{ workflow.EXPTDIR }}/run_fcst/INPUT/{{ nco.NET_default }}.{{ cycle }}{{ "dot_ensmem" | env  }}.gfs_ctrl.nc'
-      INPUT/gfs_data.nc: '{{ task_run_fcst.fv3.rundir }}/INPUT/{{ nco.NET_default }}.{{ cycle }}{{ "dot_ensmem" | env }}.gfs_data.tile{{ constants.TILE_RGNL }}.halo{{ constants.NH0 }}.nc'
-      INPUT/sfc_data.nc: '{{ task_run_fcst.fv3.rundir }}/INPUT/{{ nco.NET_default }}.{{ cycle }}{{ "dot_ensmem" | env }}.sfc_data.tile{{ constants.TILE_RGNL }}.halo{{ constants.NH0 }}.nc'
-      noahmptable.tbl: '{{ user.UFS_WTHR_MDL_DIR }}/FV3/ccpp/physics/physics/SFC_Models/Land/Noahmp'
+      INPUT/gfs_ctrl.nc: '{{ task_run_fcst.fv3.rundir }}/INPUT/{{ nco.NET_default }}.t{{ timevars.hh }}z{{ "DOT_ENSMEM" | env  }}.gfs_ctrl.nc'
+      INPUT/gfs_data.nc: '{{ task_run_fcst.fv3.rundir }}/INPUT/{{ nco.NET_default }}.t{{ timevars.hh }}z{{ "DOT_ENSMEM" | env }}.gfs_data.tile{{ constants.TILE_RGNL }}.halo{{ constants.NH0 }}.nc'
+      INPUT/sfc_data.nc: '{{ task_run_fcst.fv3.rundir }}/INPUT/{{ nco.NET_default }}.t{{ timevars.hh }}z{{ "DOT_ENSMEM" | env }}.sfc_data.tile{{ constants.TILE_RGNL }}.halo{{ constants.NH0 }}.nc'
+      noahmptable.tbl: '{{ user.UFS_WTHR_MDL_DIR }}/FV3/ccpp/physics/physics/SFC_Models/Land/Noahmp/noahmptable.tbl'
     files_to_link:
       aerosol.dat: '{{ workflow.FIXam }}/global_climaeropac_global.txt'
       co2historicaldata_2010.txt: '{{ workflow.FIXam }}/fix_co2_proj/global_co2historicaldata_2010.txt'
@@ -1726,8 +1717,8 @@ task_run_fcst:
       global_o3prdlos.f77: '{{ workflow.FIXam }}/ozprdlos_2015_new_sbuvO3_tclm15_nuchem.f77'
     lateral_boundary_conditions:
       interval_hours: !int '{{ task_get_extrn_lbcs.envvars.LBC_SPEC_INTVL_HRS }}'
-      offset: !int '{{ task_get_extrn_lbcs.envvars.EXTRN_MDL_LBCS_OFFSET_HRS }}'
-      path: '{{ task_run_fcst.fv3.rundir }}/INPUT/{{ nco.NET_default }}.{{ cycle }}{{ "DOT_ENSMEM" | env  }}.gfs_bndy.tile{{ constants.TILE_RGNL }}.f{{ task_get_extrn_lbcs.envvars.EXTRN_MDL_LBCS_OFFSET_HRS }}.nc' 
+      offset: !int '{{ task_get_extrn_lbcs.envvars.EXTRN_MDL_LBCS_OFFSET_HRS // 1 }}'
+      path: '{{ task_run_fcst.fv3.rundir }}/INPUT/{{ nco.NET_default }}.t{{ timevars.hh }}z{{ "DOT_ENSMEM" | env  }}.gfs_bndy.tile{{ constants.TILE_RGNL }}.f{{ "%03d" % (task_get_extrn_lbcs.envvars.EXTRN_MDL_LBCS_OFFSET_HRS) }}.nc' 
     length: !int '{{ workflow.FCST_LEN_HRS }}'
     model_configure:
       update_values:
@@ -1756,8 +1747,8 @@ task_run_fcst:
         kchunk3d: -1
         itasks: 1
         quilting: true
-        write_groups: !int '{{ task_run_fcst.WRTCMP_write_groups }}'
-        write_tasks_per_group: !int '{{ task_run_fcst.WRTCMP_write_tasks_per_group }}'
+        write_groups: !int '{{ task_run_fcst.WRTCMP_write_groups // 1 }}'
+        write_tasks_per_group: !int '{{ task_run_fcst.WRTCMP_write_tasks_per_group // 1 }}'
         num_files: 2
         filename_base: 'dyn phy'
         output_file: 'netcdf netcdf'
@@ -2023,15 +2014,15 @@ task_run_post:
       update_values:
         model_inputs:
           datestr: "{{ timevars.valid_time }}"
-          filename: '{{ task_run_fcst.rundir }}/dynf{{ timevars.fff }}.nc'
-          filenameflux: '{{ task_run_fcst.rundir }}/phyf{{ timevars.fff }}.nc'
+          filename: '{{ task_run_fcst.fv3.rundir }}/dynf{{ timevars.fff }}.nc'
+          filenameflux: '{{ task_run_fcst.fv3.rundir }}/phyf{{ timevars.fff }}.nc'
           grib: grib2
           ioform: netcdf
           modelname: FV3R
         nampgb:
           kpo: 47
           po: [1000.,975.,950.,925.,900.,875.,850.,825.,800.,775.,750.,725.,700.,675.,650.,625.,600.,575.,550.,525.,500.,475.,450.,425.,400.,375.,350.,325.,300.,275.,250.,225.,200.,175.,150.,125.,100.,70.,50.,30.,20.,10.,7.,5.,3.,2.,1.]
-    rundir: '{{ task_run_fcst.rundir }}/postprd/{{ timevars.fff }}'
+    rundir: '{{ task_run_fcst.fv3.rundir }}/postprd/{{ timevars.fff }}'
   platform:
     account: '{{ user.ACCOUNT }}'
     scheduler: '{{ platform.SCHED }}'
