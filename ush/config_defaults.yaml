@@ -1681,8 +1681,6 @@ task_run_fcst:
         - export ESMF_RUNTIME_PROFILE={{ "ON" if task_run_fcst.PRINT_ESMF }}
         - export ESMF_RUNTIME_PROFILE_OUTPUT={{ "SUMMARY" if task_run_fcst.PRINT_ESMF }}
       executable: '{{ user.EXECdir }}/ufs_model'
-      mpiargs:
-        - "--export=NONE"
       mpicmd: '{{ platform.BATCH_RUN_CMD }}' 
       threads: 2
     field_table:
@@ -1715,10 +1713,16 @@ task_run_fcst:
       sfc_emissivity_idx.txt: '{{ workflow.FIXam }}/global_sfc_emissivity_idx.txt'
       solarconstant_noaa_an.txt: '{{ workflow.FIXam }}/global_solarconstant_noaa_an.txt'
       global_o3prdlos.f77: '{{ workflow.FIXam }}/ozprdlos_2015_new_sbuvO3_tclm15_nuchem.f77'
+      fd_ufs.yaml: '{{ user.UFS_WTHR_MDL_DIR }}/tests/parm/fd_ufs.yaml'
+      INPUT/grid_spec.nc: '{{ task_make_grid.GRID_DIR }}/{{ "CRES" | env }}_mosaic.halo{{ constants.NH3 }}.nc'
+      INPUT/grid.tile7.halo4.nc: '{{ task_make_grid.GRID_DIR }}/{{ "CRES" | env }}_grid.tile7.halo{{ constants.NH4 }}.nc'
+      INPUT/{{ "CRES" | env }}_grid.tile7.halo{{ constants.NH3 }}.nc: '{{ task_make_grid.GRID_DIR }}/{{ "CRES" | env }}_grid.tile7.halo{{ constants.NH3 }}.nc'
+      INPUT/oro_data.nc: '{{ workflow.FIXlam }}/{{ "CRES" | env }}_oro_data.tile7.halo{{ constants.NH0 }}.nc'
+      INPUT/oro_data.tile7.halo{{ constants.NH4 }}.nc: '{{ workflow.FIXlam }}/{{ "CRES" | env }}_oro_data.tile7.halo{{ constants.NH4 }}.nc'
     lateral_boundary_conditions:
       interval_hours: !int '{{ task_get_extrn_lbcs.envvars.LBC_SPEC_INTVL_HRS }}'
-      offset: !int '{{ task_get_extrn_lbcs.envvars.EXTRN_MDL_LBCS_OFFSET_HRS // 1 }}'
-      path: '{{ task_run_fcst.fv3.rundir }}/INPUT/{{ nco.NET_default }}.t{{ timevars.hh }}z{{ "DOT_ENSMEM" | env  }}.gfs_bndy.tile{{ constants.TILE_RGNL }}.f{{ "%03d" % (task_get_extrn_lbcs.envvars.EXTRN_MDL_LBCS_OFFSET_HRS) }}.nc' 
+      offset: 0
+      path: '{{ task_run_fcst.fv3.rundir }}/INPUT/{{ nco.NET_default }}.t{{ timevars.hh }}z{{ "DOT_ENSMEM" | env  }}.gfs_bndy.tile{tile}.f{forecast_hour:03d}.nc'
     length: !int '{{ workflow.FCST_LEN_HRS }}'
     model_configure:
       update_values:
@@ -1732,7 +1736,7 @@ task_run_fcst:
         fhrot: 0
         run_continue: false
         ens_sps: false
-        dt_atmos: ""
+        dt_atmos: !int '{{ task_run_fcst.DT_ATMOS // 1 }}'
         calendar: julian
         memuse_verbose: false
         restart_interval: 0
@@ -1759,7 +1763,7 @@ task_run_fcst:
       base_file: "{{ user.PARMdir }}/input.nml.FV3"
       update_values:
         atmos_model_nml:
-          blocksize: !int '{{ task_run_fcst.BLOCKSIZE|int }}'
+          blocksize: !int '{{ task_run_fcst.BLOCKSIZE // 1 }}'
           ccpp_suite: '{{ workflow.CCPP_PHYS_SUITE }}'
         fv_core_nml:
           target_lon: !float '{{ grid_params.LON_CTR }}'
@@ -1769,8 +1773,8 @@ task_run_fcst:
           npx: !int '{{ grid_params.NX + 1 }}'
           npy: !int '{{ grid_params.NY + 1 }}'
           layout:
-            - !int '{{ task_run_fcst.LAYOUT_X|int }}'
-            - !int '{{ task_run_fcst.LAYOUT_Y|int }}'
+            - !int '{{ task_run_fcst.LAYOUT_X // 1 }}'
+            - !int '{{ task_run_fcst.LAYOUT_Y // 1 }}'
           bc_update_interval: !int '{{ task_get_extrn_lbcs.envvars.LBC_SPEC_INTVL_HRS }}'
         gfs_physics_nml:
           kice: !int '{{ 9 if workflow.SDF_USES_RUC_LSM else 2 }}'
@@ -1801,11 +1805,11 @@ task_run_fcst:
   ufs_configure:
     template_file: '{{ user.PARMdir }}/ufs.configure'
     template_values:
-      dt_atmos: '{{ task_run_fcst.fv3.model_configure.update_values.dt_atmos }}'
-      print_esmf: '{{ task_run_fcst.PRINT_ESMF }}'
-      cpl_aqm: '{{ cpl_aqm_parm.CPL_AQM }}'
+      dt_atmos: '{{ task_run_fcst.fv3.model_configure.update_values.dt_atmos // 1 }}'
+      print_esmf: !bool '{{ task_run_fcst.PRINT_ESMF }}'
+      cpl_aqm: !bool '{{ cpl_aqm_parm.CPL_AQM }}'
       pe_member01_m1: '{{ task_run_fcst.PE_MEMBER01 - 1 }}'
-      aqm_pe_member01_m1: '{{ task_run_fcst.LAYOUT_X * task_run_fcst.LAYOUT_Y ) - 1 }}'
+      aqm_pe_member01_m1: '{{ ( task_run_fcst.LAYOUT_X * task_run_fcst.LAYOUT_Y ) - 1 }}'
       atm_omp_num_threads: '{{ task_run_fcst.fv3.execution.threads }}'
   #
   # Set computational parameters for the forecast.  Definitions:
@@ -1840,6 +1844,7 @@ task_run_fcst:
   LAYOUT_X:
   LAYOUT_Y:
   BLOCKSIZE:
+  DT_ATMOS:
   #
   #-----------------------------------------------------------------------
   #
@@ -1952,7 +1957,6 @@ task_run_fcst:
   WRTCMP_write_groups: ""
   WRTCMP_write_tasks_per_group: ""
   
-  WRTCMP_output_grid: "''"
   WRTCMP_cen_lon: ""
   WRTCMP_cen_lat: ""
   WRTCMP_lon_lwr_left: ""
