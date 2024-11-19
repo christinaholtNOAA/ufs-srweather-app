@@ -8,11 +8,13 @@ import logging
 import os
 import sys
 from argparse import ArgumentParser
+from copy import deepcopy
 from pathlib import Path
 
-from uwtools.api.logging import use_uwtools_logger
-from uwtools.api.fv3 import FV3
 from uwtools.api.config import get_yaml_config
+from uwtools.api.fs import link as uwlink
+from uwtools.api.fv3 import FV3
+from uwtools.api.logging import use_uwtools_logger
 from uwtools.api.template import render
 from uwtools.api.upp import UPP
 
@@ -93,8 +95,8 @@ def run_fcst(config_file, cycle, key_path, member):
     """
     expt_config = get_yaml_config(config_file)
 
-    # The experiment config will have {{ CRES | env }} and {{ MEMBER | env }} expressions in it that need to be
-    # dereferenced during driver initialization
+    # The experiment config will have {{ CRES | env }} and {{ MEMBER | env }} expressions in it that
+    # need to be dereferenced during driver initialization
     os.environ["CRES"] = expt_config["workflow"]["CRES"]
     os.environ["DOT_ENSMEM"] = f".mem{member}" if int(member) else ""
     os.environ["MEMBER"] = member
@@ -115,11 +117,7 @@ def run_fcst(config_file, cycle, key_path, member):
             },
         }
         expt_config.update_from(
-            {
-                "task_run_fcst": {
-                    "fv3": {"namelist": {"update_values": restart_settings}}
-                }
-            }
+            {"task_run_fcst": {"fv3": {"namelist": {"update_values": restart_settings}}}}
         )
 
     fv3_driver = FV3(
@@ -148,7 +146,7 @@ def run_fcst(config_file, cycle, key_path, member):
         fv3_driver.config,
         ["model_configure", "update_values"],
     )
-    if model_configure_block["write_dopost"]:
+    if do_post := model_configure_block["write_dopost"]:
         upp_driver = UPP(
             config=expt_config,
             cycle=cycle,
@@ -174,7 +172,36 @@ def run_fcst(config_file, cycle, key_path, member):
         logging.error("Error occurred running FV3. Please see component error logs.")
         sys.exit(1)
 
-        # TODO: Link output data to preferred names
+    # Deliver output data
+    if do_post:
+        fcst_len = fv3_driver.config["length"]
+        output_fh = fv3_driver.config["model_configure"]["update_values"]["output_fh"].split()
+        if len(output_fh) == 2 and output_fh[-1] == -1:
+            expected_output_hours = range(0, fcst_len + 1, int(output_fh[0]))
+        else:
+            expected_output_hours = [int(x) for x in output_fh]
+
+        upp_config = _walk_key_path(expt_config, key_path)
+
+        for fcst_hr in expected_output_hours:
+            links = {}
+            for label in upp_config["output_file_labels"]:
+                # deepcopy here because desired_output_name is parameterized within the loop
+                expt_config_cp = get_yaml_config(deepcopy(expt_config.data))
+                expt_config_cp.dereference(
+                    context={
+                        "cycle": cycle,
+                        "leadtime": dt.timedelta(hours=fcst_hr),
+                        "file_label": label,
+                        **expt_config_cp,
+                    }
+                )
+                upp_block = _walk_key_path(expt_config_cp, key_path)
+                desired_output_fn = upp_block["desired_output_name"]
+                upp_output_fn = rundir / f"{label.upper()}.GrbF{fcst_hr:02d}"
+                links[desired_output_fn] = str(upp_output_fn)
+
+            uwlink(target_dir=rundir / "postprd", config=links)
 
 
 if __name__ == "__main__":
