@@ -23,6 +23,11 @@ orog_gsl_defaults: &orog_gsl_defaults
       - module load build_{{ user.MACHINE|lower }}_{{ workflow.COMPILER }}
   rundir: "{{ task_make_orog.rundir }}/orog_gsl"
 
+run_fcst_hrrr_fix_files:
+  files_to_link: &FV3_HRRR_fix_files
+    oro_data_ls.nc: '{{ workflow.FIXlam }}/{{ "CRES" | env }}_oro_data_ls.tile7.halo{{ constants.NH0 }}.nc'
+    oro_data_ss.nc: '{{ workflow.FIXlam }}/{{ "CRES" | env }}_oro_data_ss.tile7.halo{{ constants.NH0 }}.nc'
+
 fv3_nml_gfs_gfdl_cloud_mp_defaults:
   gfdl_cloud_microphysics_nml: &gfs_gfdl_cloud_mp
     c_cracw: 0.8
@@ -108,7 +113,7 @@ FV3_GFS_v15p2:
             bl_mynn_edmf_mom: !remove
             bl_mynn_tkeadvect: !remove
             cnvcld: True
-            cnvgwd: True....
+            cnvgwd: True
             cplflx: !remove
             do_myjpbl: False
             do_myjsfc: False
@@ -169,6 +174,7 @@ FV3_GFS_v15_thompson_mynn_lam3km:
     orog_gsl:
       <<: *orog_gsl_defaults
   task_run_fcst:
+    files_to_link: *FV3_HRRR_fix_files
     fv3:
       namelist:
         update_values:
@@ -223,7 +229,7 @@ FV3_GFS_v15_thompson_mynn_lam3km:
             lsm: 1
             lsoil: !remove
             lsoil_lsm: !remove
-            ltaerosol: False....
+            ltaerosol: False
             print_diff_pgr: True
             sfclay_compute_flux: !remove
             xkzminv: 0.3
@@ -250,14 +256,14 @@ FV3_GFS_v16:
             hord_dp: -5
             hord_mt: 5
             hord_tm: 5
-            hord_tr: !int '{{ 8 if cpl_aqm_parm.CPL_AQM 10 }}'
+            hord_tr: !int '{{ 8 if cpl_aqm_parm.CPL_AQM else 10 }}'
             hord_vt: 5
             k_split: 6
             make_nh: False
             n_split: 6
             n_sponge: 10
             na_init: 0
-            nord: !int '{{ 2 if cpl_aqm_parm.CPL_AQM 3 }}'
+            nord: !int '{{ 2 if cpl_aqm_parm.CPL_AQM else 3 }}'
             nudge_dz: False
             res_latlon_dynamics: ''
             rf_fast: !remove
@@ -314,6 +320,7 @@ FV3_GFS_v17_p8:
     orog_gsl:
       <<: *orog_gsl_defaults
   task_run_fcst:
+    files_to_link: *FV3_HRRR_fix_files
     fv3:
       namelist:
         update_values:
@@ -417,6 +424,7 @@ FV3_HRRR:
     chgres_cube:
       <<: *chgres_cube_gsd_defaults
   task_run_fcst:
+    files_to_link: *FV3_HRRR_fix_files
     fv3:
       namelist:
         update_values:
@@ -486,6 +494,7 @@ FV3_RAP:
     chgres_cube:
       <<: *chgres_cube_gsd_defaults
   task_run_fcst:
+    files_to_link: *FV3_HRRR_fix_files
     fv3:
       namelist:
         update_values:
