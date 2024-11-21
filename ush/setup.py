@@ -13,7 +13,7 @@ from pathlib import Path
 from textwrap import dedent
 
 import yaml
-from uwtools.api.config import get_yaml_config
+from uwtools.api.config import get_nml_config, get_yaml_config
 
 from link_fix import link_fix
 from python_utils import (
@@ -155,6 +155,24 @@ def load_config_for_setup(ushdir, default_config_path, user_config_path):
     # Load CCPP suite-specific settings
     ccpp_suite = default_config['workflow']['CCPP_PHYS_SUITE']
     ccpp_config = get_yaml_config(ushdir / "ccpp_suites_defaults.yaml").get(ccpp_suite, {})
+
+    # Create a temporary section containing the physics-based namelist settings
+    srw_base_file = Path(ushdir).parent / "parm" / "input.nml.FV3"
+    srw_nml = get_nml_config(srw_base_file)
+    if ccpp_config:
+        # Check to see if there are namelist updates
+        try:
+            nml_config = ccpp_config["fv3_namelist_settings"]
+        except KeyError:
+            logging.info(f"No updates for the namelist for suite {ccpp_suite}")
+            nml_config = {}
+
+        nml_config = get_nml_config(nml_config)
+        srw_nml.update_from(nml_config)
+    default_config.update_from({"fv3_namelist_settings": get_yaml_config(srw_nml.data).data})
+
+    # Apply any suite changes not related to the model namelist
+    ccpp_config.pop("fv3_namelist_settings", None)
     default_config.update_from(ccpp_config)
 
 
@@ -1374,6 +1392,12 @@ def setup(USHdir, user_config_fn="config.yaml", debug: bool = False):
     # print content of var_defns if DEBUG=True
     all_lines = cfg_to_yaml_str(expt_config)
     log_info(all_lines, verbose=debug)
+
+
+    # Write out a base namelist for the physics suite
+    physics_base_nml = get_nml_config(expt_config.pop("fv3_namelist_settings"))
+    base_nml_path = Path(fcst_config["fv3"]["namelist"]["base_file"])
+    physics_base_nml.dump(base_nml_path)
 
     global_var_defns_fp = workflow_config["GLOBAL_VAR_DEFNS_FP"]
     # print info message

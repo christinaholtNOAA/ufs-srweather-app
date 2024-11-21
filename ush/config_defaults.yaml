@@ -1760,7 +1760,7 @@ task_run_fcst:
         nsout: -1
         output_grid: '{{ task_run_fcst.WRTCMP_output_grid }}'
     namelist:
-      base_file: "{{ user.PARMdir }}/input.nml.FV3"
+      base_file: '{{ workflow.EXPTDIR }}/input.nml.{{ workflow.CCPP_PHYS_SUITE }}'
       update_values:
         atmos_model_nml:
           blocksize: !int '{{ task_run_fcst.BLOCKSIZE // 1 }}'
