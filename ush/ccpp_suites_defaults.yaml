@@ -25,8 +25,8 @@ orog_gsl_defaults: &orog_gsl_defaults
 
 run_fcst_hrrr_fix_files:
   files_to_link: &FV3_HRRR_fix_files
-    oro_data_ls.nc: '{{ workflow.FIXlam }}/{{ "CRES" | env }}_oro_data_ls.tile7.halo{{ constants.NH0 }}.nc'
-    oro_data_ss.nc: '{{ workflow.FIXlam }}/{{ "CRES" | env }}_oro_data_ss.tile7.halo{{ constants.NH0 }}.nc'
+    INPUT/oro_data_ls.nc: '{{ workflow.FIXlam }}/{{ "CRES" | env }}_oro_data_ls.tile7.halo{{ constants.NH0 }}.nc'
+    INPUT/oro_data_ss.nc: '{{ workflow.FIXlam }}/{{ "CRES" | env }}_oro_data_ss.tile7.halo{{ constants.NH0 }}.nc'
 
 fv3_nml_gfs_gfdl_cloud_mp_defaults:
   gfdl_cloud_microphysics_nml: &gfs_gfdl_cloud_mp
@@ -171,7 +171,8 @@ FV3_GFS_v15_thompson_mynn_lam3km:
     orog_gsl:
       <<: *orog_gsl_defaults
   task_run_fcst:
-    files_to_link: *FV3_HRRR_fix_files
+    fv3:
+      files_to_link: *FV3_HRRR_fix_files
   fv3_namelist_settings:
     atmos_model_nml:
       avg_max_length: 3600.0
@@ -312,7 +313,8 @@ FV3_GFS_v17_p8:
     orog_gsl:
       <<: *orog_gsl_defaults
   task_run_fcst:
-    files_to_link: *FV3_HRRR_fix_files
+    fv3:
+      files_to_link: *FV3_HRRR_fix_files
   fv3_namelist_settings:
     cires_ugwp_nml:
       launch_level: 27
@@ -414,7 +416,9 @@ FV3_HRRR:
     chgres_cube:
       <<: *chgres_cube_gsd_defaults
   task_run_fcst:
-    files_to_link: *FV3_HRRR_fix_files
+    fv3:
+      files_to_link: *FV3_HRRR_fix_files
+  fv3_namelist_settings:
   fv3_namelist_settings:
     fv_core_nml: &HRRR_fv_core
       hord_dp: 6
@@ -482,7 +486,8 @@ FV3_RAP:
     chgres_cube:
       <<: *chgres_cube_gsd_defaults
   task_run_fcst:
-    files_to_link: *FV3_HRRR_fix_files
+    fv3:
+      files_to_link: *FV3_HRRR_fix_files
   fv3_namelist_settings:
     fv_core_nml:
       <<: *HRRR_fv_core

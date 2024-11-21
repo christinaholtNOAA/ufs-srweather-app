@@ -677,17 +677,18 @@ def setup(USHdir, user_config_fn="config.yaml", debug: bool = False):
 
     fcst_config = expt_config["task_run_fcst"]
     grid_config = expt_config["task_make_grid"]
+    ccpp_suite = workflow_config["CCPP_PHYS_SUITE"]
 
     # Warn if user has specified a large timestep inappropriately
     hires_ccpp_suites = ["FV3_RRFS_v1beta", "FV3_WoFS_v0", "FV3_HRRR"]
-    if workflow_config["CCPP_PHYS_SUITE"] in hires_ccpp_suites:
+    if ccpp_suite in hires_ccpp_suites:
         dt = fcst_config.get("DT_ATMOS")
         if dt:
             if dt > 40:
                 logger.warning(
                     dedent(
                         f"""
-                    WARNING: CCPP suite {workflow_config["CCPP_PHYS_SUITE"]} requires short
+                    WARNING: CCPP suite {ccpp_suite} requires short
                     time step regardless of grid resolution. The user-specified value
                     DT_ATMOS = {fcst_config.get("DT_ATMOS")}
                     may result in CFL violations or other errors!
@@ -715,13 +716,13 @@ def setup(USHdir, user_config_fn="config.yaml", debug: bool = False):
                 # DT_ATMOS needs special treatment based on CCPP suite
                 elif param == "DT_ATMOS":
                     if (
-                        workflow_config["CCPP_PHYS_SUITE"] in hires_ccpp_suites
+                        ccpp_suite in hires_ccpp_suites
                         and grid_params[param] > 40
                     ):
                         logger.warning(
                             dedent(
                                 f"""
-                            WARNING: CCPP suite {workflow_config["CCPP_PHYS_SUITE"]} requires short
+                            WARNING: CCPP suite {ccpp_suite} requires short
                             time step regardless of grid resolution; setting DT_ATMOS to 40.\n
                             This value can be overwritten in the user config file.
                             """
@@ -911,10 +912,10 @@ def setup(USHdir, user_config_fn="config.yaml", debug: bool = False):
     #
     # -----------------------------------------------------------------------
 
-    use_merra_climo = workflow_config["CCPP_PHYS_SUITE"] in [
+    use_merra_climo = ccpp_suite in (
             "FV3_GFS_v15_thompson_mynn_lam3km",
             "FV3_GFS_v17_p8",
-            ]
+            )
     workflow_config["USE_MERRA_CLIMO"] = use_merra_climo
     # Add more fix files if MERRA2 files are needed
     if use_merra_climo:
@@ -931,8 +932,10 @@ def setup(USHdir, user_config_fn="config.yaml", debug: bool = False):
                 root_dir=Path(platform_config["FIXlut"]))
         for file_path in fix_files:
             fp = Path(file_path)
-            aero_files[fp.name] = str(fix_clim / fp.name)
+            linkname = ".".join(fp.name.split(".")[0::2])
+            aero_files[linkname] = str(fix_clim / fp.name)
         expt_config.update_from({"task_run_fcst": {"fv3": {"files_to_link": aero_files}}})
+
 
     # Check to make sure all SPP and LSM_SPP lists are the same length.
     global_sect = expt_config["global"]
@@ -1267,7 +1270,7 @@ def setup(USHdir, user_config_fn="config.yaml", debug: bool = False):
                 file_group=prep_task.lower(),
                 source_dir=task_dir,
                 target_dir=workflow_config["FIXlam"],
-                ccpp_phys_suite=workflow_config["CCPP_PHYS_SUITE"],
+                ccpp_phys_suite=ccpp_suite,
                 constants=expt_config["constants"],
                 dot_or_uscore=workflow_config["DOT_OR_USCORE"],
                 nhw=grid_params["NHW"],
@@ -1356,7 +1359,7 @@ def setup(USHdir, user_config_fn="config.yaml", debug: bool = False):
 
     if workflow_config["SDF_USES_THOMPSON_MP"]:
         logging.debug(
-            f'Selected CCPP suite ({workflow_config["CCPP_PHYS_SUITE"]}) uses Thompson MP'
+            f'Selected CCPP suite ({ccpp_suite}) uses Thompson MP'
         )
         logging.debug(f"Setting up links for additional fix files")
 

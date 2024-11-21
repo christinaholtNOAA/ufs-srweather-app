@@ -1722,7 +1722,7 @@ task_run_fcst:
     lateral_boundary_conditions:
       interval_hours: !int '{{ task_get_extrn_lbcs.envvars.LBC_SPEC_INTVL_HRS }}'
       offset: 0
-      path: '{{ task_run_fcst.fv3.rundir }}/INPUT/{{ nco.NET_default }}.t{{ timevars.hh }}z{{ "DOT_ENSMEM" | env  }}.gfs_bndy.tile{tile}.f{forecast_hour:03d}.nc'
+      path: '{{ task_run_fcst.fv3.rundir }}/INPUT/{{ nco.NET_default }}.t{{ timevars.hh }}z.gfs_bndy.tile{tile}.f{forecast_hour:03d}.nc'
     length: !int '{{ workflow.FCST_LEN_HRS }}'
     model_configure:
       update_values:
@@ -1952,7 +1952,7 @@ task_run_fcst:
   #
   PRINT_ESMF: false
 
-  PE_MEMBER01: !int '{{ task_run_fcst.fv3.execution.threads * (task_run_fcst.LAYOUT_Y * task_run_fcst.LAYOUT_X + task_run_fcst.WRTCMP_write_groups|int * task_run_fcst.WRTCMP_write_tasks_per_group|int) if task_run_fcst.fv3.model_configure.update_values.quilting else task_run_fcst.fv3.execution.threads * task_run_fcst.LAYOUT_Y * task_run_fcst.LAYOUT_X}}'
+  PE_MEMBER01: !int '{{ task_run_fcst.fv3.execution.threads * (task_run_fcst.LAYOUT_Y * task_run_fcst.LAYOUT_X + task_run_fcst.WRTCMP_write_groups // 1  * task_run_fcst.WRTCMP_write_tasks_per_group // 1 ) if task_run_fcst.fv3.model_configure.update_values.quilting else task_run_fcst.fv3.execution.threads * task_run_fcst.LAYOUT_Y * task_run_fcst.LAYOUT_X}}'
   
   WRTCMP_write_groups: ""
   WRTCMP_write_tasks_per_group: ""
