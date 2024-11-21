@@ -153,9 +153,10 @@ def run_fcst(config_file, cycle, key_path, member):
         upp_driver = UPP(
             config=expt_config,
             cycle=cycle,
-            leadtime=999,
+            leadtime=dt.timedelta(hours=999),
             key_path=key_path,
         )
+        upp_driver.control_file()
         upp_driver.files_copied()
         upp_driver.files_linked()
         upp_driver.namelist_file()
@@ -186,7 +187,7 @@ def run_fcst(config_file, cycle, key_path, member):
         else:
             expected_output_hours = [int(x) for x in output_fh]
 
-        upp_config = _walk_key_path(expt_config, key_path)
+        upp_config = _walk_key_path(expt_config, ["task_run_post"])
 
         for fcst_hr in expected_output_hours:
             links = {}
@@ -201,7 +202,7 @@ def run_fcst(config_file, cycle, key_path, member):
                         **expt_config_cp,
                     }
                 )
-                upp_block = _walk_key_path(expt_config_cp, key_path)
+                upp_block = _walk_key_path(expt_config_cp, ["task_run_post"])
                 desired_output_fn = upp_block["desired_output_name"]
                 upp_output_fn = rundir / f"{label.upper()}.GrbF{fcst_hr:02d}"
                 links[desired_output_fn] = str(upp_output_fn)
