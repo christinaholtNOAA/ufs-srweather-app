@@ -120,7 +120,6 @@ if __name__ == "__main__":
     # Create list of expected filenames from the experiment
     filename_list = []
 
-
     for x in range(0, args.fcst_len + 1, args.fcst_inc):
         fhour = str(x).zfill(3)
         filename_1 = f"{filename_base_1}f{fhour}.nc"
@@ -131,7 +130,6 @@ if __name__ == "__main__":
     if not filename_list:
         logging.error("No files were found to test")
         sys.exit(1)
-
 
     # Call unittest class
     TestExptFiles.fcst_dir = args.fcst_dir

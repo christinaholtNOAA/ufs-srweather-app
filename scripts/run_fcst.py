@@ -98,7 +98,6 @@ def run_fcst(config_file, cycle, key_path, member):
     # The experiment config will have {{ CRES | env }} and {{ MEMBER | env }} expressions in it that
     # need to be dereferenced during driver initialization
     os.environ["CRES"] = expt_config["workflow"]["CRES"]
-    os.environ["DOT_ENSMEM"] = f".mem{member}" if int(member) else ""
     os.environ["MEMBER"] = member
 
     restart = False
@@ -117,7 +116,11 @@ def run_fcst(config_file, cycle, key_path, member):
             },
         }
         expt_config.update_from(
-            {"task_run_fcst": {"fv3": {"namelist": {"update_values": restart_settings}}}}
+            {
+                "task_run_fcst": {
+                    "fv3": {"namelist": {"update_values": restart_settings}}
+                }
+            }
         )
 
     fv3_driver = FV3(
@@ -175,7 +178,9 @@ def run_fcst(config_file, cycle, key_path, member):
     # Deliver output data
     if do_post:
         fcst_len = fv3_driver.config["length"]
-        output_fh = fv3_driver.config["model_configure"]["update_values"]["output_fh"].split()
+        output_fh = fv3_driver.config["model_configure"]["update_values"][
+            "output_fh"
+        ].split()
         if len(output_fh) == 2 and output_fh[-1] == -1:
             expected_output_hours = range(0, fcst_len + 1, int(output_fh[0]))
         else:
