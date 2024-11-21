@@ -1686,9 +1686,9 @@ task_run_fcst:
     field_table:
       base_file: '{{ user.PARMdir }}/field_table.{{ workflow.CCPP_PHYS_SUITE }}'
     files_to_copy:
-      INPUT/gfs_ctrl.nc: '{{ task_run_fcst.fv3.rundir }}/INPUT/{{ nco.NET_default }}.t{{ timevars.hh }}z{{ "DOT_ENSMEM" | env  }}.gfs_ctrl.nc'
-      INPUT/gfs_data.nc: '{{ task_run_fcst.fv3.rundir }}/INPUT/{{ nco.NET_default }}.t{{ timevars.hh }}z{{ "DOT_ENSMEM" | env }}.gfs_data.tile{{ constants.TILE_RGNL }}.halo{{ constants.NH0 }}.nc'
-      INPUT/sfc_data.nc: '{{ task_run_fcst.fv3.rundir }}/INPUT/{{ nco.NET_default }}.t{{ timevars.hh }}z{{ "DOT_ENSMEM" | env }}.sfc_data.tile{{ constants.TILE_RGNL }}.halo{{ constants.NH0 }}.nc'
+      INPUT/gfs_ctrl.nc: '{{ task_run_fcst.fv3.rundir }}/INPUT/{{ nco.NET_default }}.t{{ timevars.hh }}z.gfs_ctrl.nc'
+      INPUT/gfs_data.nc: '{{ task_run_fcst.fv3.rundir }}/INPUT/{{ nco.NET_default }}.t{{ timevars.hh }}z.gfs_data.tile{{ constants.TILE_RGNL }}.halo{{ constants.NH0 }}.nc'
+      INPUT/sfc_data.nc: '{{ task_run_fcst.fv3.rundir }}/INPUT/{{ nco.NET_default }}.t{{ timevars.hh }}z.sfc_data.tile{{ constants.TILE_RGNL }}.halo{{ constants.NH0 }}.nc'
       noahmptable.tbl: '{{ user.UFS_WTHR_MDL_DIR }}/FV3/ccpp/physics/physics/SFC_Models/Land/Noahmp/noahmptable.tbl'
     files_to_link:
       aerosol.dat: '{{ workflow.FIXam }}/global_climaeropac_global.txt'
