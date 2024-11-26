@@ -1168,18 +1168,9 @@ def setup(USHdir, user_config_fn="config.yaml", debug: bool = False):
               Ensemble verification can not be run unless running in ensemble mode:
                   DO_ENSEMBLE = \"{do_ensemble}\"
               Ensemble verification tasks:
-              """
-        )
-        msg = "".join(
-            [
-                msg,
-                task_str,
-                dedent(
-                    f"""
+                  {task_str}
               Please set DO_ENSEMBLE to True or remove ensemble vx tasks from the
               workflow."""
-                ),
-            ]
         )
         raise Exception(msg)
 
