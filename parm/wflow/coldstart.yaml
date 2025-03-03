@@ -102,14 +102,13 @@ metatask_run_ensemble:
     mem: '{% if global.DO_ENSEMBLE %}{%- for m in range(1, global.NUM_ENS_MEMBERS+1) -%}{{ "%03d "%m }}{%- endfor -%} {% else %}{{ "000"|string }}{% endif %}'
   task_make_ics_mem#mem#:
     <<: *default_task
-    command: '&LOAD_MODULES_RUN_TASK; "make_ics" "&JOBSdir;/JREGIONAL_MAKE_ICS"'
-    join:
+    command:
       cyclestr:
-        value: '&LOGDIR;/{{ jobname }}_@Y@m@d@H&LOGEXT;'
-    envars:
-      <<: *default_vars
-      SLASH_ENSMEM_SUBDIR: '&SLASH_ENSMEM_SUBDIR;'
-      nprocs: !int '{{ task_make_ics.chgres_cube.execution.batchargs.nodes * task_make_ics.chgres_cube.execution.batchargs.tasks_per_node // 1 }}'
+        value: 'source &USHdir;/load_modules_wflow.sh {{ user.MACHINE | lower }} && &SCRIPTSdir;/chgres_cube.py
+          -c &GLOBAL_VAR_DEFNS_FP;
+          --cycle @Y-@m-@dT@H:@M:@S
+          --key-path task_make_ics
+          --mem #mem#'
     join:
       cyclestr:
         value: '&LOGDIR;/{{ jobname }}_@Y@m@d@H&LOGEXT;'
@@ -135,7 +134,7 @@ metatask_run_ensemble:
             value: '{{ task_make_orog.envvars.OROG_DIR }}/make_orog_task_complete.txt'
           streq:
             left: staged_orog
-            right: '{% if not rocoto.get("tasks", {}).get("task_make_orog") %}staged_orog{% endif %}'
+            right: '{{ "staged_orog" if not rocoto.get("tasks", {}).get("task_make_orog") }}'
         or_sfc_climo:
           datadep_sfc_climo:
             attrs:
@@ -143,20 +142,17 @@ metatask_run_ensemble:
             value: '{{ task_make_sfc_climo.envvars.SFC_CLIMO_DIR }}/make_sfc_climo_task_complete.txt'
           streq:
             left: staged_sfc_climo
-            right: '{% if not rocoto.get("tasks", {}).get("task_make_sfc_climo") %}staged_sfc_climo{% endif %}'
+            right: '{{ "staged_sfc_climo" if not rocoto.get("tasks", {}).get("task_make_sfc_climo") }}'
 
   task_make_lbcs_mem#mem#:
     <<: *default_task
-    command: '&LOAD_MODULES_RUN_TASK; "make_ics" "&JOBSdir;/JREGIONAL_MAKE_LBCS"'
-    join:
+    command:
       cyclestr:
-        value: '&LOGDIR;/{{ jobname }}_@Y@m@d@H&LOGEXT;'
-    envars:
-      <<: *default_vars
-      SLASH_ENSMEM_SUBDIR: '&SLASH_ENSMEM_SUBDIR;'
-      bcgrp: '00'
-      bcgrpnum: '1'
-      nprocs: !int '{{ task_make_lbcs.chgres_cube.execution.batchargs.nodes * task_make_lbcs.chgres_cube.execution.batchargs.tasks_per_node // 1 }}'
+        value: 'source &USHdir;/load_modules_wflow.sh {{ user.MACHINE | lower }} && &SCRIPTSdir;/chgres_cube.py
+          -c &GLOBAL_VAR_DEFNS_FP;
+          --cycle @Y-@m-@dT@H:@M:@S
+          --key-path task_make_lbcs
+          --mem #mem#'
     join:
       cyclestr:
         value: '&LOGDIR;/{{ jobname }}_@Y@m@d@H&LOGEXT;'
