@@ -1357,37 +1357,103 @@ task_make_grid:
 #----------------------------
 # MAKE OROG config parameters
 #-----------------------------
-#-----------------------------------------------------------------------
-# KMP_AFFINITY_MAKE_OROG: 
-# Intel Thread Affinity Interface for the make_orog task. 
-# Settings for this task are disabled because this task does not use 
-# parallelized code.
-#
-# OMP_NUM_THREADS_MAKE_OROG: 
-# The number of OpenMP threads to use for parallel regions.
-#
-# OMP_STACKSIZE_MAKE_OROG: 
-# Controls the size of the stack for threads created by the OpenMP 
-# implementation.
-#
-# OROG_DIR: 
-# The directory containing pre-generated orography files to use when 
-# the MAKE_OROG task is not meant to run.
-#-----------------------------------------------------------------------
 task_make_orog:
+
+  # The top-level run direcotry for the whole task. All UW drivers will be run in subdirectories.
+  rundir: '{{ workflow.EXPTDIR }}/orog'
+
+  # The entries in orog: section follow the UW YAML, documented by uwtools:
+  # https://uwtools.readthedocs.io/en/main/sections/user_guide/yaml/components/orog.html
+  orog:
   orog:
     execution:
       batchargs:
         nodes: 1
         tasks_per_node: 24
         walltime: 00:20:00
-      threads: !int '{{ task_make_orog.envvars.OMP_NUM_THREADS_MAKE_OROG }}'
+      threads: 6
 
-  envvars:
-    KMP_AFFINITY_MAKE_OROG: "disabled"
-    OMP_NUM_THREADS_MAKE_OROG: 6
-    OMP_STACKSIZE_MAKE_OROG: "2048m"
-    OROG_DIR: '{{ workflow.EXPTDIR + "/orog" if rocoto.tasks.get("task_make_orog") }}'
+      executable: "{{ user.EXECdir }}/orog"
+      envcmds:
+        - module use {{ user.HOMEdir }}/modulefiles
+        - module load build_{{ user.MACHINE|lower }}_{{ workflow.COMPILER }}
+    files_to_link:
+      fort.15: "{{ platform.FIXorg }}/thirty.second.antarctic.new.bin"
+      landcover30.fixed: "{{ platform.FIXorg }}/landcover30.fixed"
+      fort.235: "{{ platform.FIXorg }}/gmted2010.30sec.int"
+    old_line1_items:
+      mtnres: 1
+      lonb: 0
+      latb: 0
+      jcap: 0
+      nr: 0
+      nf1: 0
+      nf2: 0
+      efac: 0
+      blat: 0
+    grid_file: "{{ workflow.FIXlam }}/{{ 'CRES' | env }}_grid.tile7.halo{{ grid_params.NHW }}.nc"
+    orog_file: "none"
+    rundir: "{{ task_make_orog.rundir }}/orog"
+  # The entries in filter_topo: section follow the UW YAML, documented by uwtools:
+  # https://uwtools.readthedocs.io/en/main/sections/user_guide/yaml/components/filter_topo.html
+  filter_topo:
+    config:
+      filtered_orog: "{{ 'CRES' | env }}_filtered_orog.tile{{ constants.TILE_RGNL }}.nc"
+      input_grid_file: "{{ workflow.FIXlam }}/{{ 'CRES' | env }}_grid.tile7.halo{{ grid_params.NHW }}.nc"
+      input_raw_orog: "{{ task_make_orog.orog.rundir }}/out.oro.nc"
+    execution:
+      batchargs:
+        nodes: 1
+        tasks_per_node: 1
+        walltime: 00:05:00
+      executable: "{{ user.EXECdir }}/filter_topo"
+      envcmds:
+        - module use {{ user.HOMEdir }}/modulefiles
+        - module load build_{{ user.MACHINE|lower }}_{{ workflow.COMPILER }}
+    namelist:
+      update_values:
+        filter_topo_nml:
+          grid_file: "{{ workflow.FIXlam }}/{{ 'CRES' | env }}_mosaic.halo{{ grid_params.NHW }}.nc"
+          topo_file: "{{ task_make_orog.filter_topo.rundir }}/{{ 'CRES' | env }}_filtered_orog"
+          mask_field: land_frac
+          regional: true
+          stretch_fac: !float "{{ grid_params.STRETCH_FAC }}"
+          res: !int "{{ ('CRES' | env)[1:] }}"
+    rundir: "{{ task_make_orog.rundir }}/filtered_topo"
+  # The entries in shave: sections follow the UW YAML, documented by uwtools:
+  # https://uwtools.readthedocs.io/en/main/sections/user_guide/yaml/components/shave.html
+  # There are two shave sections here with slightly different configurations.
+  shave0:
+    shave:
+      execution: &shave_execution
+        batchargs:
+          nodes: 1
+          tasks_per_node: 1
+          walltime: 00:05:00
+        executable: "{{ user.EXECdir }}/shave"
+        envcmds:
+          - module use {{ user.HOMEdir }}/modulefiles
+          - module load build_{{ user.MACHINE|lower }}_{{ workflow.COMPILER }}
+      config: &shave_config
+        input_grid_file: "{{ task_make_orog.filtered_output }}"
+        output_grid_file: "{{ task_make_orog.rundir }}/{{ 'CRES' | env }}_oro_data.tile{{ constants.TILE_RGNL }}.halo{{ constants.NH0 }}.nc"
+        nhalo: !int "{{ constants.NH0 }}"
+        nx: !int "{{ grid_params.NX }}"
+        ny: !int "{{ grid_params.NY }}"
+      rundir: "{{ task_make_orog.rundir }}/shave0"
+  shave4:
+    shave:
+      execution:
+        <<: *shave_execution
+      config:
+        <<: *shave_config
+        nhalo: !int "{{ constants.NH4 }}"
+        output_grid_file: "{{ task_make_orog.rundir }}/{{ 'CRES' | env }}_oro_data.tile{{ constants.TILE_RGNL }}.halo{{ constants.NH4 }}.nc"
+      rundir: "{{ task_make_orog.rundir }}/shave4"
+
+  # Describes the location and name of the output from filtered orog as a helper entry for SRW since
+  # it is needed in the downstream shave tasks.
+  filtered_output: "{{ task_make_orog.filter_topo.rundir }}/{{ task_make_orog.filter_topo.config.filtered_orog }}"
 
 #----------------------------
 # MAKE SFC CLIMO config parameters
@@ -1408,16 +1474,45 @@ task_make_orog:
 # to use when the MAKE_SFC_CLIMO task is not meant to run.
 #-----------------------------------------------------------------------
 task_make_sfc_climo:
+  # The entries in sfc_climo_gen: sections follow the UW YAML, documented by uwtools:
+  # https://uwtools.readthedocs.io/en/main/sections/user_guide/yaml/components/sfc_climo_gen.html
   sfc_climo_gen:
     execution:
       batchargs:
+        export: NONE
         nodes: 2
         tasks_per_node: 24
         walltime: 00:20:00
-  envvars:
-    # This section is a placeholder and will be removed with make_sfc_climo
-    # integration
-    SFC_CLIMO_DIR: '{{ workflow.EXPTDIR + "/sfc_climo" if rocoto.tasks.get("task_make_sfc_climo") }}'
+      envcmds:
+        - module use {{ user.HOMEdir }}/modulefiles
+        - module load build_{{ user.MACHINE|lower() }}_{{ workflow.COMPILER }}
+      executable: "{{ user.EXECdir }}/sfc_climo_gen"
+      mpicmd: '{{ platform.BATCH_RUN_CMD }}'
+    namelist:
+      update_values:
+        config:
+          halo: !int '{{ constants.NH4 }}'
+          input_facsf_file: "{{ platform.FIXsfc}}/facsf.1.0.nc"
+          input_maximum_snow_albedo_file: "{{ platform.FIXsfc }}/maximum_snow_albedo.0.05.nc"
+          input_slope_type_file: "{{ platform.FIXsfc }}/slope_type.1.0.nc"
+          input_snowfree_albedo_file: "{{ platform.FIXsfc }}/snowfree_albedo.4comp.0.05.nc"
+          input_soil_type_file: "{{ platform.FIXsfc }}/soil_type.statsgo.0.05.nc"
+          input_substrate_temperature_file: "{{ platform.FIXsfc }}/substrate_temperature.2.6x1.5.nc"
+          input_vegetation_greenness_file: "{{ platform.FIXsfc }}/vegetation_greenness.0.144.nc"
+          input_vegetation_type_file: "{{ platform.FIXsfc }}/vegetation_type.igbp.0.05.nc"
+          maximum_snow_albedo_method: "bilinear"
+          mosaic_file_mdl: "{{ workflow.FIXlam }}/{{ 'CRES' | env }}_mosaic.halo{{ constants.NH4 }}.nc"
+          orog_dir_mdl: "{{ workflow.FIXlam }}"
+          orog_files_mdl: 
+            - "{{ 'CRES' | env }}_oro_data.tile{{ constants.TILE_RGNL }}.halo{{ constants.NH4 }}.nc"
+          snowfree_albedo_method: "bilinear"
+          vegetation_greenness_method: "bilinear"
+    rundir: '{{ workflow.EXPTDIR }}/sfc_climo'
+  platform:
+    account: "{{ user.ACCOUNT }}"
+    scheduler: "{{ platform.SCHED }}"
+
+
 
 #----------------------------
 # EXTRN ICS config parameters
@@ -1606,107 +1701,102 @@ task_get_extrn_lbcs:
 # MAKE ICS config parameters
 #-----------------------------
 task_make_ics:
+
+  # The entries in the chgres_cube: section follow the UW YAML, documented by uwtools:
+  # https://uwtools.readthedocs.io/en/main/sections/user_guide/yaml/components/chgres_cube.html
   chgres_cube:
     execution:
       batchargs:
         nodes: 4
         tasks_per_node: 12
         walltime: 00:30:00
-      threads: !int '{{ task_make_ics.envvars.OMP_NUM_THREADS_MAKE_ICS }}'
-  #-----------------------------------------------------------------------
-  # KMP_AFFINITY_MAKE_ICS: 
-  # Intel Thread Affinity Interface for the make_ics task. 
-  #
-  # OMP_NUM_THREADS_MAKE_ICS: 
-  # The number of OpenMP threads to use for parallel regions.
-  #
-  # OMP_STACKSIZE_MAKE_ICS: 
-  # Controls the size of the stack for threads created by the OpenMP 
-  # implementation.
-  #-----------------------------------------------------------------------
-  envvars:
-    KMP_AFFINITY_MAKE_ICS: "scatter"
-    OMP_NUM_THREADS_MAKE_ICS: 1
-    OMP_STACKSIZE_MAKE_ICS: "1024m"
-    #
-    #-----------------------------------------------------------------------
-    #
-    # USE_FVCOM:
-    # Flag set to update surface conditions in FV3-LAM with fields generated
-    # from the Finite Volume Community Ocean Model (FVCOM). This will
-    # replace lake/sea surface temperature, ice surface temperature, and ice
-    # placement. This flag will be used in make_ics to modify sfc_data.nc
-    # after chgres_cube is run by running the routine process_FVCOM.exe 
-    # FVCOM data must already be interpolated to the desired FV3-LAM grid. 
-    #
-    # FVCOM_WCSTART:
-    # Define whether this is a "warm" start or a "cold" start. Setting this to 
-    # "warm" will read in the sfc_data.nc file generated in a RESTART directory.
-    # Setting this to "cold" will read in the sfc_data.nc file generated from 
-    # chgres_cube in the make_ics portion of the workflow.
-    #
-    # FVCOM_DIR:
-    # User defined directory where FVCOM data already interpolated to FV3-LAM
-    # grid is located. The file in this directory must be named fvcom.nc
-    #
-    # FVCOM_FILE:
-    # Name of file located in FVCOM_DIR that has FVCOM data interpolated to 
-    # FV3-LAM grid. This file will be copied later to a new location and name
-    # changed to fvcom.nc
-    #
-    # LEVP:
-    # Number of vertical levels in the atmosphere. In order to change this
-    # number, the user will additionally need to create a vertical coordinate
-    # distribution file; this process is described in the Users Guide section
-    # "Changing the Number of Vertical Levels". This value should be the same
-    # in both make_ics and make_lbcs.
-    #
-    # VCOORD_FILE:
-    # Full path to the vertical coordinate distribution file. This file should
-    # be the same in both make_ics and make_lbcs.
-    #
-    #------------------------------------------------------------------------
-    #
-    USE_FVCOM: false
-    FVCOM_WCSTART: "cold"
-    FVCOM_DIR: ""
-    FVCOM_FILE: "fvcom.nc"
-    VCOORD_FILE: "{{ workflow.FIXam }}/global_hyblev.l65.txt"
-    LEVP: 65
+      threads: 1
+    envcmds:
+        - module use {{ user.HOMEdir }}/modulefiles
+        - module load build_{{ user.MACHINE|lower }}_{{ workflow.COMPILER }}
+      executable: "{{ user.EXECdir }}/chgres_cube"
+      mpicmd: '{{ platform.BATCH_RUN_CMD }}'
+    namelist:
+      update_values:
+        config:
+          convert_atm: true
+          convert_nst: true
+          convert_sfc: true
+          cycle_day: !int "{{ cycle.strftime('%d') }}"
+          cycle_hour: !int "{{ cycle.strftime('%H') }}"
+          cycle_mon: !int "{{ cycle.strftime('%m') }}"
+          data_dir_input_grid: '{{ task_get_extrn_ics.envvars.rundir }}'
+          external_model: "FV3GFS"
+          fix_dir_target_grid: "{{ workflow.FIXlam }}"
+          halo_blend: !int "{{ global.HALO_BLEND }}"
+          halo_bndy: !int "{{ constants.NH4 }}"
+          input_type: "gaussian_nemsio" 
+          lai_from_climo: true
+          minmax_vgfrc_from_climo: true
+          mosaic_file_target_grid: "{{ workflow.FIXlam }}/{{ 'CRES' | env }}_mosaic.halo{{ constants.NH4 }}.nc"
+          nsoill_out: 4
+          orog_dir_target_grid: "{{ workflow.FIXlam }}"
+          orog_files_target_grid: "{{ 'CRES' | env }}_oro_data.tile{{ constants.TILE_RGNL }}.halo{{ constants.NH4 }}.nc"
+          regional: 1
+          sotyp_from_climo: true
+          tg3_from_soil: false
+          varmap_file: "{{ user.PARMdir }}/ufs_utils/varmap_tables/GFSphys_var_map.txt"
+          vcoord_file_target_grid: "{{ workflow.FIXam }}/global_hyblev.l65.txt"
+          vgtyp_from_climo: true
+          vgfrc_from_climo: true
+    rundir: '{{ task_run_fcst.fv3.rundir }}/tmp_MAKE_ICS'
+
+  # The location of the metadata path created by retrieve_data.py
+  input_files_metadata_path: '{{ task_get_extrn_ics.envvars.rundir }}/{{ workflow.EXTRN_MDL_VAR_DEFNS_FN }}.yaml'
+
+  # This section is used with uwcopy or uwlink and maps the output from chgres_cube to SRW-specific
+  # file paths.
+  output_file_links:
+    '{{ nco.NET_default }}.t{{ timevars.hh }}z.sfc_data.tile{{ constants.TILE_RGNL }}.halo{{ constants.NH0 }}.nc': out.sfc.tile{{ constants.TILE_RGNL }}.nc
+    '{{ nco.NET_default }}.t{{ timevars.hh }}z.gfs_data.tile{{ constants.TILE_RGNL }}.halo{{ constants.NH0 }}.nc': out.atm.tile{{ constants.TILE_RGNL }}.nc
+    '{{ nco.NET_default }}.t{{ timevars.hh }}z.gfs_ctrl.nc': gfs_ctrl.nc
+    '{{ nco.NET_default }}.t{{ timevars.hh }}z.gfs_bndy.tile{{ constants.TILE_RGNL }}.f000.nc': gfs.bndy.nc
+
+
 
 #----------------------------
 # MAKE LBCS config parameters
 #-----------------------------
 task_make_lbcs:
+
+  # The entries in the chgres_cube: section follow the UW YAML, documented by uwtools:
+  # https://uwtools.readthedocs.io/en/main/sections/user_guide/yaml/components/chgres_cube.html
   chgres_cube:
     execution:
-      batchargs:
-        nodes: 4
-        tasks_per_node: 12
-        walltime: 00:30:00
-      threads: !int '{{ task_make_lbcs.envvars.OMP_NUM_THREADS_MAKE_ICS }}'
-  #------------------------------------------------------------------------
-  #
-  # KMP_AFFINITY_MAKE_LBCS: 
-  # Intel Thread Affinity Interface for the make_lbcs task. 
-  # 
-  # OMP_NUM_THREADS_MAKE_LBCS: 
-  # The number of OpenMP threads to use for parallel regions.
-  # 
-  # OMP_STACKSIZE_MAKE_LBCS: 
-  # Controls the size of the stack for threads created by the OpenMP implementation.
-  #
-  # VCOORD_FILE: 
-  # Full path to the file used to set the vertical coordinates in FV3. 
-  # This file should be the same in both make_ics and make_lbcs.
-  #
-  #------------------------------------------------------------------------
-  envvars:
-    KMP_AFFINITY_MAKE_LBCS: "scatter"
-    OMP_NUM_THREADS_MAKE_LBCS: 1
-    OMP_STACKSIZE_MAKE_LBCS: "1024m"
-    VCOORD_FILE: "{{ workflow.FIXam }}/global_hyblev.l65.txt"
-  LEVP: 65
+      <<: *chgres_cube_execution
+    namelist:
+      update_values:
+        config:
+          convert_atm: true
+          cycle_day: !int "{{ (cycle + leadtime).strftime('%d') }}"
+          cycle_hour: !int "{{ (cycle + leadtime).strftime('%H') }}"
+          cycle_mon: !int "{{ (cycle + leadtime).strftime('%m') }}"
+          data_dir_input_grid: '{{ task_get_extrn_lbcs.envvars.rundir }}'
+          external_model: "FV3GFS"
+          fix_dir_target_grid: "{{ workflow.FIXlam }}"
+          halo_blend: !int "{{ global.HALO_BLEND }}"
+          halo_bndy: !int "{{ constants.NH4 }}"
+          input_type: "gaussian_nemsio"
+          mosaic_file_target_grid: "{{ workflow.FIXlam }}/{{ 'CRES' | env }}_mosaic.halo{{ constants.NH4 }}.nc"
+          orog_dir_target_grid: "{{ workflow.FIXlam }}"
+          orog_files_target_grid: "{{ 'CRES' | env }}_oro_data.tile{{ constants.TILE_RGNL }}.halo{{ constants.NH4 }}.nc"
+          regional: 2
+          varmap_file: "{{ user.PARMdir }}/ufs_utils/varmap_tables/GFSphys_var_map.txt"
+          vcoord_file_target_grid: "{{ workflow.FIXam }}/global_hyblev.l65.txt"
+    rundir: '{{ task_run_fcst.fv3.rundir}}/tmp_MAKE_LBCS_{{ timevars.yyyymmddhh }}'
+
+  # The location of the metadata path created by retrieve_data.py
+  input_files_metadata_path: '{{ task_get_extrn_lbcs.envvars.rundir }}/{{ workflow.EXTRN_MDL_VAR_DEFNS_FN }}.yaml'
+
+  # This section is used with uwcopy or uwlink and maps the output from chgres_cube to SRW-specific
+  # file paths.
+  output_file_links:
+    '{{ nco.NET_default }}.t{{ timevars.hh }}z.gfs_bndy.tile7.f{{ "%03d" % (leadtime.total_seconds() // 3600) }}.nc': gfs.bndy.nc
 
 #----------------------------
 # IO_LAYOUT_Y FORECAST config parameters
@@ -2009,94 +2099,57 @@ task_run_post:
         nodes: 1
         tasks_per_node: 24
         walltime: 00:15:00
-      threads: !int '{{ task_run_post.envvars.OMP_NUM_THREADS_RUN_POST }}'
-  #-----------------------------------------------------------------------
-  #-----------------------------------------------------------------------
-  # KMP_AFFINITY_RUN_POST: 
-  # Intel Thread Affinity Interface for the run_post task. 
-  #
-  # OMP_NUM_THREADS_RUN_POST: 
-  # The number of OpenMP threads to use for parallel regions.
-  #
-  # OMP_STACKSIZE_RUN_POST: 
-  # Controls the size of the stack for threads created by the OpenMP implementation.
-  #-----------------------------------------------------------------------
-  envvars:
-    KMP_AFFINITY_RUN_POST: "scatter"
-    OMP_NUM_THREADS_RUN_POST: 1
-    OMP_STACKSIZE_RUN_POST: "1024m"
-    #
-    #-----------------------------------------------------------------------
-    #
-    # Set parameters associated with subhourly forecast model output and 
-    # post-processing.
-    #
-    # SUB_HOURLY_POST:
-    # Flag that indicates whether the forecast model will generate output 
-    # files on a sub-hourly time interval (e.g., 10 minutes, 15 minutes).
-    # This will also cause the post-processor to process these sub-hourly
-    # files.  If ths is set to true, then DT_SUBHOURLY_POST_MNTS should be 
-    # set to a value between 1 and 59.
-    #
-    # DT_SUB_HOURLY_POST_MNTS:
-    # Time interval in minutes between the forecast model output files 
-    # (only used if SUB_HOURLY_POST is set to true). If 
-    # SUB_HOURLY_POST is set to true, this needs to be set to a valid 
-    # integer between 1 and 59. Note that if SUB_HOURLY_POST is set to true, but
-    # DT_SUB_HOURLY_POST_MNTS is set to 0, SUB_HOURLY_POST will be reset
-    # to false in the experiment generation scripts (there will be an 
-    # informational message in the log file to emphasize this).
-    #
-    #-----------------------------------------------------------------------
-    #
-    SUB_HOURLY_POST: false
-    DT_SUBHOURLY_POST_MNTS: 0
-    #
-    #-----------------------------------------------------------------------
-    #
-    # Set parameters for customizing the post-processor (UPP).  Definitions:
-    #
-    # USE_CUSTOM_POST_CONFIG_FILE:
-    # Flag that determines whether a user-provided custom configuration file
-    # should be used for post-processing the model data. If this is set to
-    # true, then the workflow will use the custom post-processing (UPP) 
-    # configuration file specified in CUSTOM_POST_CONFIG_FP. Otherwise, a 
-    # default configuration file provided in the UPP repository will be 
-    # used.
-    #
-    # CUSTOM_POST_CONFIG_FP:
-    # The full path to the custom post flat file, including filename, to be 
-    # used for post-processing. This is only used if CUSTOM_POST_CONFIG_FILE
-    # is set to true.
-    #
-    # POST_OUTPUT_DOMAIN_NAME:
-    # Domain name (in lowercase) used to construct the names of the output files
-    # generated by the UPP. If using a predefined grid, this variable defaults to PREDEF_GRID_NAME. 
-    # 
-    # If using a custom grid, POST_OUTPUT_DOMAIN_NAME must be specified by 
-    # the user. Note that this variable is first changed to lowercase
-    # before being used to construct the file names.
-    # The post output files are named as follows:
-    # 
-    #   ${NET_default}.tHHz.[var_name].f###.${POST_OUTPUT_DOMAIN_NAME}.grib2
-    #
-    # TESTBED_FIELDS_FN
-    # The file that lists grib2 fields to be extracted for testbed files.
-    # An empty string means no need to generate testbed files.
-    #
-    # NUMX:
-    # The number of i regions in a 2D decomposition.  Each i row is 
-    # distibuted to numx ranks. Default value of numx is 1.
-    # Note that 2D decomposition does not yet work with GNU compilers, so this value 
-    # will be reset to 1 automatically when using GNU compilers (i.e., when COMPILER: gnu).
-    #
-    #-----------------------------------------------------------------------
-    #
-    USE_CUSTOM_POST_CONFIG_FILE: true
-    CUSTOM_POST_CONFIG_FP: "{{ user.SORCdir }}/ufs-weather-model/tests/parm/postxconfig-NT-fv3lam.txt"
-    POST_OUTPUT_DOMAIN_NAME: '{{ workflow.PREDEF_GRID_NAME | lower() }}'
-    TESTBED_FIELDS_FN: ""
-    NUMX: 1
+      envcmds:
+        - module use {{ user.HOMEdir }}/modulefiles
+        - module load build_{{ user.MACHINE|lower }}_{{ workflow.COMPILER }}
+      executable: '{{ user.EXECdir }}/upp.x'
+      mpicmd: '{{ platform.BATCH_RUN_CMD }}'
+      threads: 1
+    control_file: '{{ user.UFS_WTHR_MDL_DIR }}/tests/parm/postxconfig-NT-fv3lam.txt'
+    files_to_copy:
+      eta_micro_lookup.dat: '{{ user.PARMdir }}/upp/nam_micro_lookup.dat'
+      params_grib2_tbl_new: '{{ user.PARMdir }}/upp/params_grib2_tbl_new'
+      postxconfig-NT_FH00.txt: '{{ task_run_post.upp.control_file }}'
+    namelist:
+      update_values:
+        model_inputs:
+          datestr: "{{ timevars.valid_time }}"
+          filename: '{{ task_run_fcst.fv3.rundir }}/dynf{{ timevars.fff }}.nc'
+          filenameflux: '{{ task_run_fcst.fv3.rundir }}/phyf{{ timevars.fff }}.nc'
+          grib: grib2
+          ioform: netcdf
+          modelname: FV3R
+        nampgb:
+          kpo: 47
+          po: [1000.,975.,950.,925.,900.,875.,850.,825.,800.,775.,750.,725.,700.,675.,650.,625.,600.,575.,550.,525.,500.,475.,450.,425.,400.,375.,350.,325.,300.,275.,250.,225.,200.,175.,150.,125.,100.,70.,50.,30.,20.,10.,7.,5.,3.,2.,1.]
+    rundir: '{{ task_run_fcst.fv3.rundir }}/postprd/{{ timevars.fff }}'
+  platform:
+    account: '{{ user.ACCOUNT }}'
+    scheduler: '{{ platform.SCHED }}'
+
+  # The output domain used when renaming UPP native output. This is also used by verification tasks.
+  post_output_domain_name: '{{ workflow.PREDEF_GRID_NAME }}'
+
+  # The desired output file name of the UPP native output.
+  desired_output_name: '{{ nco.NET_default }}.t{{ timevars.hh }}z.{{ file_label }}.f{{ timevars.fff }}.{{ task_run_post.post_output_domain_name }}.grib2'
+
+  # The expected prefixes for the output files from UPP.
+  output_file_labels:
+    - prslev
+    - natlev
+
+
+#----------------------------------------------------------------------------------------------
+# This is a helper section to help alleviate repetitive and/or tedious syntax for working with
+# datetime objects. Keys map to commonly used variable names.
+#----------------------------------------------------------------------------------------------
+timevars:
+  yyyymmdd: '{{ cycle.strftime("%Y%m%d") }}'
+  yyyymmddhh: '{{ cycle.strftime("%Y%m%d%H") }}'
+  hh: '{{ cycle.strftime("%H") }}'
+  valid_time: "{{ (cycle + leadtime).strftime('%Y-%m-%d_%H:%M:%S') }}"
+  fff: '{{ "%03d" % (leadtime.total_seconds() // 3600) }}'
+
 
 #-----------------------------
 # Integration test resources
@@ -2784,7 +2837,7 @@ verification:
   # This is used in forming the names of the verification output files and
   # is also included in the contents of those files.
   #
-  VX_FCST_MODEL_NAME: '{{ nco.NET_default }}.{{ task_run_post.envvars.POST_OUTPUT_DOMAIN_NAME }}'
+  VX_FCST_MODEL_NAME: '{{ nco.NET_default }}.{{ task_run_post.post_output_domain_name }}'
   #
   # VX_FCST_OUTPUT_INTVL_HRS:
   # The forecast output interval (in hours) to assume for verification
@@ -2813,7 +2866,7 @@ verification:
   # METplus template for the names of the forecast files to use as inputs
   # to the verification tasks.
   # 
-  FCST_FN_TEMPLATE: '${NET_default}.t{init?fmt=%H?shift=-${time_lag}}z{{ ".${ensmem_name}" if user.RUN_ENVIR == "nco" and global.DO_ENSEMBLE }}.prslev.f{lead?fmt=%HHH?shift=${time_lag}}.{{ task_run_post.envvars.POST_OUTPUT_DOMAIN_NAME }}.grib2'
+  FCST_FN_TEMPLATE: '${NET_default}.t{init?fmt=%H?shift=-${time_lag}}z{{ ".${ensmem_name}" if user.RUN_ENVIR == "nco" and global.DO_ENSEMBLE }}.prslev.f{lead?fmt=%HHH?shift=${time_lag}}.{{ task_run_post.post_output_domain_name }}.grib2'
   #
   # FCST_FN_TEMPLATE_PCPCOMBINE_OUTPUT:
   # METplus template for the names of the NetCDF files generated by the
@@ -2821,7 +2874,7 @@ verification:
   # forecast output.  These files will contain forecast accumulated
   # precipitation in NetCDF format for various accumulation intervals.
   #
-  FCST_FN_TEMPLATE_PCPCOMBINE_OUTPUT: '${NET_default}.t{init?fmt=%H}z{{ ".${ensmem_name}" if user.RUN_ENVIR == "nco" and global.DO_ENSEMBLE }}.prslev.f{lead?fmt=%HHH}.{{ task_run_post.envvars.POST_OUTPUT_DOMAIN_NAME }}_${FIELD_GROUP}_a${ACCUM_HH}h.nc'
+  FCST_FN_TEMPLATE_PCPCOMBINE_OUTPUT: '${NET_default}.t{init?fmt=%H}z{{ ".${ensmem_name}" if user.RUN_ENVIR == "nco" and global.DO_ENSEMBLE }}.prslev.f{lead?fmt=%HHH}.{{ task_run_post.post_output_domain_name }}_${FIELD_GROUP}_a${ACCUM_HH}h.nc'
   #
   # VX_NDIGITS_ENSMEM_NAMES:
   # Number of digits to assume/use in the forecast ensemble member identifier
