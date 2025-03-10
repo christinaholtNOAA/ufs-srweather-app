@@ -1,0 +1,13 @@
+# Configuration default values applied when user chooses cpl_aqm_parm.CPL_AQM=True
+
+task_run_post:
+  upp:
+    files_to_copy:
+      postxconfig-NT.txt: "{{ workflow.PARMdir }}/upp/postxconfig-NT-AQM.txt"
+    namelist:
+      update_values:
+        nampgb:
+          aqf_on: true
+  output_file_labels:
+    - cmaq
+
