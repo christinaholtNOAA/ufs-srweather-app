@@ -40,3 +40,4 @@ from .config_parser import (
     cfg_to_yaml_str,
     extend_yaml,
 )
+from .utils import walk_key_path

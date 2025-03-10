@@ -27,6 +27,7 @@ from python_utils import (
     cfg_to_yaml_str,
     find_pattern_in_str,
     flatten_dict,
+    walk_key_path,
 )
 
 from setup import setup
@@ -390,7 +391,7 @@ def generate_FV3LAM_wflow(
             "bc_update_interval": expt_config["task_get_extrn_lbcs"]["envvars"][
                 "LBC_SPEC_INTVL_HRS"
             ],
-            "npz": expt_config["task_make_lbcs"]["LEVP"] - 1,
+            "npz": levp - 1,
         }
     )
     cpl_aqm = expt_config["cpl_aqm_parm"]["CPL_AQM"]
@@ -542,8 +543,15 @@ def generate_FV3LAM_wflow(
     settings["gfs_physics_nml"] = gfs_physics_nml_dict
 
     # Update levp in external_ic_nml; this should be the only variable that needs changing
+    vcoord_file = walk_key_path(
+        expt_config,
+        "task_make_lbcs.chgres_cube.namelist.update_values.config.vcoord_file_target_grid",
+        )
+    with open(vcoord_fp, "r", encoding="utf-8") as vcoord_file:
+        line = vcoord_file.readline()
+        levp = int(line.split()[1])
 
-    settings["external_ic_nml"] = {"levp": expt_config["task_make_lbcs"]["LEVP"]}
+    settings["external_ic_nml"] = {"levp": levp}
 
     #
     # Add to "settings" the values of those namelist variables that specify
@@ -781,7 +789,7 @@ def generate_FV3LAM_wflow(
         fire_nml_dict["atm"]["interval_atm"] = expt_config["task_run_fcst"]["envvars"][
             "DT_ATMOS"
         ]
-        fire_nml_dict["atm"]["kde"] = expt_config["task_make_ics"]["envvars"]["LEVP"]
+        fire_nml_dict["atm"]["kde"] = levp
         # Fill in &fire and static &time variables
 
         # These settings must be handled specially below

@@ -1613,6 +1613,8 @@ task_get_extrn_ics:
     USE_USER_STAGED_EXTRN_FILES: false
     EXTRN_MDL_SOURCE_BASEDIR_ICS: ""
     EXTRN_MDL_FILES_ICS: ""
+    rundir: '{{ workflow.EXPTDIR }}/{{ timevars.yyyymmddhh }}/{{ task_get_extrn_ics.envvars.EXTRN_MDL_NAME_ICS }}/for_ICS{{ "/mem%s" % ("MEMBER"|env) if global.DO_ENSEMBLE }}'
+
 
 #----------------------------
 # EXTRN LBCS config parameters
@@ -1696,6 +1698,7 @@ task_get_extrn_lbcs:
     USE_USER_STAGED_EXTRN_FILES: false
     EXTRN_MDL_SOURCE_BASEDIR_LBCS: ""
     EXTRN_MDL_FILES_LBCS: ""
+    rundir: '{{ workflow.EXPTDIR }}/{{ timevars.yyyymmddhh }}/{{ task_get_extrn_lbcs.envvars.EXTRN_MDL_NAME_LBCS }}/for_LBCS{{ "/mem%s" % ("MEMBER"|env) if global.DO_ENSEMBLE }}'
 
 #----------------------------
 # MAKE ICS config parameters

@@ -125,6 +125,25 @@ def load_config_for_setup(ushdir, default_config_path, user_config_path):
     ):
         default_config.update_from(cfg)
 
+    # Load one more if running Coupled AQM
+    if default_config['cpl_aqm_parm']['CPL_AQM']:
+        aqm_config = get_yaml_config(ushdir / "config_defaults_aqm.yaml")
+        default_config.update_from(aqm_config)
+
+    # Load CCPP suite-specific settings
+    ccpp_suite = default_config['workflow']['CCPP_PHYS_SUITE']
+    ccpp_config = get_yaml_config(ushdir / "ccpp_suites_defaults.yaml").get(ccpp_suite, {})
+
+    # Load external model-specific settings
+    external_cfg = get_yaml_config(ushdir / "external_model_defaults.yaml")
+    for bcs in ("ics", "lbcs"):
+        get_task_config = default_config[f"task_get_extrn_{bcs}"]
+        external_model = get_task_config["envvars"][f"EXTRN_MDL_NAME_{bcs.upper()}"]
+        bcs_task = f"task_make_{bcs}"
+        default_config.update_from(
+            {bcs_task: external_cfg.get(external_model, {}).get(bcs_task, {}) }
+        )
+
     # Set the path to the top-level ufs-srweather-app directory
     homedir = Path(__file__).parent.parent.resolve()
     default_config["user"]["HOMEdir"] = str(homedir)
@@ -453,12 +472,6 @@ def setup(ushdir, user_config_fn="config.yaml", debug: bool = False):
         if not partition:
             _remove_tag(rocoto_tasks, "partition")
 
-    # When not running subhourly post, remove those tasks, if they exist
-    if not expt_config["task_run_post"]["envvars"]["SUB_HOURLY_POST"]:
-        post_meta = rocoto_tasks.get("metatask_run_ens_post", {})
-        post_meta.pop("metatask_run_sub_hourly_post", None)
-        post_meta.pop("metatask_sub_hourly_last_hour_post", None)
-
     date_first_cycl = workflow_config["DATE_FIRST_CYCL"]
     date_last_cycl = workflow_config["DATE_LAST_CYCL"]
     incr_cycl_freq = workflow_config["INCR_CYCL_FREQ"]
@@ -780,36 +793,23 @@ def setup(ushdir, user_config_fn="config.yaml", debug: bool = False):
                       {data_key} = \"{basedir}\"'''
                 )
 
-    # Make sure the vertical coordinate file and LEVP for both make_lbcs and make_ics is the same.
-    make_ics_config = expt_config["task_make_ics"]["envvars"]
-    make_lbcs_config = expt_config["task_make_ics"]["envvars"]
-    if ics_vcoord := make_ics_config["VCOORD_FILE"] != (
-        lbcs_vcoord := make_lbcs_config["VCOORD_FILE"]
-    ):
+    # Make sure the vertical coordinate file for both make_lbcs and
+    # make_ics is the same.
+    vcoord_files = {}
+    for bcs_task in ("task_make_ics", "task_make_lbcs"):
+        vcoord_files[bcs_task] = (
+            expt_config[bcs_task]["chgres_cube"]["namelist"]
+            .get("config", {})
+            .get("vcoord_file_target_grid")
+        )
+    if not all(x == list(vcoord_files.values())[0] for x in vcoord_files.values()):
         raise ValueError(
             f"""
              The VCOORD_FILE must be set to the same value for both the
              make_ics task and the make_lbcs task. They are currently
              set to:
 
-             make_ics:
-               VCOORD_FILE: {ics_vcoord}
-
-             make_lbcs:
-               VCOORD_FILE: {lbcs_vcoord}
-             """
-        )
-    if ics_levp := make_ics_config["LEVP"] != (lbcs_levp := make_lbcs_config["LEVP"]):
-        raise ValueError(
-            f"""
-             The number of vertical levels LEVP must be set to the same value for both the
-             make_ics task and the make_lbcs tasks. They are currently set to:
-
-             make_ics:
-               LEVP: {ics_levp}
-
-             make_lbcs:
-               LEVP: {lbcs_levp}
+             {json.dumps(vcoord_files)}
              """
         )
 
@@ -1174,11 +1174,28 @@ def setup(ushdir, user_config_fn="config.yaml", debug: bool = False):
                 )
             )
 
+
+    post_config = expt_config["task_run_post"]
+
+    # Make sure the post output domain is set
+    post_output_domain_name = post_config["post_output_domain_name"]
+
+    if "{{ " in post_output_domain_name:
+        raise Exception(
+            f"""
+
+            The preferred output domain from the post task has not been set:
+
+            task_run_post:
+              post_output_domain_name: {post_output_domain_name}
+
+            """
+        )
+
     # If performing sub-hourly model output and post-processing, check that
     # the output interval DT_SUBHOURLY_POST_MNTS (in minutes) is specified
     # correctly.
-    post_config = expt_config["task_run_post"]
-    if post_config["envvars"]["SUB_HOURLY_POST"]:
+    if post_config["sub_hourly_post"]:
 
         # Subhourly post should be set with minutes between 1 and 59 for
         # real subhourly post to be performed.
@@ -1186,7 +1203,7 @@ def setup(ushdir, user_config_fn="config.yaml", debug: bool = False):
         if dt_subhourly_post_mnts == 0:
             logger.warning(
                 f"""
-                When performing sub-hourly post (i.e. SUB_HOURLY_POST set to \"TRUE\"),
+                When performing sub-hourly post (i.e. task_run_post.sub_hourly_post set to \"True\"),
                 DT_SUBHOURLY_POST_MNTS must be set to a value greater than 0; otherwise,
                 sub-hourly output is not really being performed:
                   DT_SUBHOURLY_POST_MNTS = \"{dt_subhourly_post_mnts}\"
@@ -1461,7 +1478,7 @@ def setup(ushdir, user_config_fn="config.yaml", debug: bool = False):
             )
 
         # Check if SUB_HOURLY_POST is on
-        if expt_config["task_run_post"]["envvars"]["SUB_HOURLY_POST"]:
+        if expt_config["task_run_post"]["sub_hourly_post"]:
             raise ValueError(
                 """
                 SUB_HOURLY_POST is NOT available with Inline Post yet."""
