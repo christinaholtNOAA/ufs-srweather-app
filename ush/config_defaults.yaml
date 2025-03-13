@@ -1708,13 +1708,13 @@ task_make_ics:
   # The entries in the chgres_cube: section follow the UW YAML, documented by uwtools:
   # https://uwtools.readthedocs.io/en/main/sections/user_guide/yaml/components/chgres_cube.html
   chgres_cube:
-    execution:
+    execution: &chgres_cube_execution
       batchargs:
         nodes: 4
         tasks_per_node: 12
         walltime: 00:30:00
       threads: 1
-    envcmds:
+      envcmds:
         - module use {{ user.HOMEdir }}/modulefiles
         - module load build_{{ user.MACHINE|lower }}_{{ workflow.COMPILER }}
       executable: "{{ user.EXECdir }}/chgres_cube"
