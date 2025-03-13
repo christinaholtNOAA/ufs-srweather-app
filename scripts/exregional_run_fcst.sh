@@ -75,6 +75,7 @@
 #    KMP_AFFINITY_RUN_FCST
 #    OMP_NUM_THREADS_RUN_FCST
 #    OMP_STACKSIZE_RUN_FCST
+#    OUTPUT_INTERVAL_MINS
 #    PRINT_ESMF
 #    RESTART_INTERVAL
 #    USE_MERRA_CLIMO
@@ -82,7 +83,6 @@
 #
 #  task_run_post:
 #    CUSTOM_POST_CONFIG_FP
-#    DT_SUBHOURLY_POST_MNTS
 #    POST_OUTPUT_DOMAIN_NAME
 #    SUB_HOURLY_POST
 #    USE_CUSTOM_POST_CONFIG_FILE
@@ -776,7 +776,7 @@ python3 $USHdir/create_model_configure_file.py \
   --fhrot "${FHROT}" \
   --run-dir "${DATA}" \
   --sub-hourly-post "${SUB_HOURLY_POST}" \
-  --dt-subhourly-post-mnts "${DT_SUBHOURLY_POST_MNTS}" \
+  --output-interval-min "${OUTPUT_INTERVAL_MINS}" \
   --dt-atmos "${DT_ATMOS}"
 export err=$?
 if [ $err -ne 0 ]; then

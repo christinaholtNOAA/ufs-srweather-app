@@ -1806,6 +1806,7 @@ task_make_lbcs:
 #-----------------------------
 task_run_fcst:
   fv3:
+    rundir: '{{ workflow.EXPTDIR }}/{{ timevars.yyyymmddhh }}{{ "/mem%s" % ("MEMBER"|env) if global.DO_ENSEMBLE }}'
     execution:
       batchargs:
         nodes: !int '{{ (task_run_fcst.PE_MEMBER01 + task_run_fcst.fv3.execution.batchargs.tasks_per_node - 1) // task_run_fcst.fv3.execution.batchargs.tasks_per_node }}'
@@ -1905,6 +1906,10 @@ task_run_fcst:
   # DO_FCST_RESTART:
   # Flag to turn on/off restart capability of forecast task
   #
+  # OUTPUT_INTERVAL_MINS:
+  # Integer number of minutes of output to write. If not divisible by 60, the value must be
+  # divisible by DT_ATMOS for sub-hourly output.
+  #
   #-----------------------------------------------------------------------
   #
   envvars:
@@ -1919,6 +1924,7 @@ task_run_fcst:
     PRINT_ESMF: false
     DO_FCST_RESTART: false
     USE_MERRA_CLIMO: '{{ workflow.CCPP_PHYS_SUITE in ["FV3_GFS_v15_thompson_mynn_lam3km", "FV3_HRRR_gf", "FV3_GFS_v17_p8"] }}'
+    OUTPUT_INTERVAL_MINS: 60
 
   ITASKS: 1
   #
@@ -2130,9 +2136,6 @@ task_run_post:
     account: '{{ user.ACCOUNT }}'
     scheduler: '{{ platform.SCHED }}'
 
-  # The output domain used when renaming UPP native output. This is also used by verification tasks.
-  post_output_domain_name: '{{ workflow.PREDEF_GRID_NAME }}'
-
   # The desired output file name of the UPP native output.
   desired_output_name: '{{ nco.NET_default }}.t{{ timevars.hh }}z.{{ file_label }}.f{{ timevars.fff }}.{{ task_run_post.post_output_domain_name }}.grib2'
 
@@ -2141,6 +2144,11 @@ task_run_post:
     - prslev
     - natlev
 
+  # The output domain used when renaming UPP native output. This is also used by verification tasks.
+  post_output_domain_name: '{{ workflow.PREDEF_GRID_NAME }}'
+
+  # Whether to process subhourly forecasts
+  sub_hourly_post: false
 
 #----------------------------------------------------------------------------------------------
 # This is a helper section to help alleviate repetitive and/or tedious syntax for working with

@@ -1016,8 +1016,25 @@ def setup(ushdir, user_config_fn="config.yaml", debug: bool = False):
     for val in vlist:
         if not fcst_config.get(val):
             raise ValueError(msg.format(val=val))
-    if not isinstance(fcst_config["envvars"]["DT_ATMOS"], int):
+    dt_atmos = fcst_config["envvars"]["DT_ATMOS"]
+    if not isinstance(dt_atmos, int):
         raise ValueError(msg.format(val="envvars.DT_ATMOS"))
+
+    # Check that user desired output interval for the forecast is valid.
+    if (intvl_mins := fcst_config["envvars"]["OUTPUT_INTERVAL_MINS"]) % 60:
+        if ( intvl_mins * 60 ) % dt_atmos:
+            raise ValueError(
+                f"""
+                The model's OUTPUT_INTERVAL_MINS value must be an hourly multple, or
+                must be a multiple of the model's DT_ATMOS value in seconds.
+
+                It is not.
+
+                  OUTPUT_INTERVAL_MINS = {intvl_mins}
+                  DT_ATMOS = {dt_atmos}
+
+                Please reset OUTPUT_INTERVAL_MINS and/or DT_ATMOS."""
+            )
 
     #
     # -----------------------------------------------------------------------
@@ -1192,55 +1209,26 @@ def setup(ushdir, user_config_fn="config.yaml", debug: bool = False):
             """
         )
 
-    # If performing sub-hourly model output and post-processing, check that
-    # the output interval DT_SUBHOURLY_POST_MNTS (in minutes) is specified
-    # correctly.
+
+    # If performing sub-hourly model output and post-processing, set the appropriate Rocoto
+    # variables for the loop.
     if post_config["sub_hourly_post"]:
+        empty = datetime(1900, 1, 1)
+        lead_times = [(empty + timedelta(minutes=i)).strftime("%X") for i in range(0, fcst_len_hrs * 60 + 1, intvl_mins)]
+        lead_times[0] = (empty + timedelta(seconds=dt_atmos)).strftime("%X")
+        post_metatask = rocoto_config["tasks"]["metatask_run_ens_post"]["metatask_run_post_mem#mem#_all_leads"]
+        updates = {
+            "var": {
+                "leadtime": " ".join(leadtimes),
+                },
+            "task_run_post_mem#mem#_f#leadtime#": {
+                "attrs": {
+                    "cycledefs": "forecast",
+                    },
+                },
+            }
+        post_metatask["var"].pop("cycledef")
 
-        # Subhourly post should be set with minutes between 1 and 59 for
-        # real subhourly post to be performed.
-        dt_subhourly_post_mnts = post_config["DT_SUBHOURLY_POST_MNTS"]
-        if dt_subhourly_post_mnts == 0:
-            logger.warning(
-                f"""
-                When performing sub-hourly post (i.e. task_run_post.sub_hourly_post set to \"True\"),
-                DT_SUBHOURLY_POST_MNTS must be set to a value greater than 0; otherwise,
-                sub-hourly output is not really being performed:
-                  DT_SUBHOURLY_POST_MNTS = \"{dt_subhourly_post_mnts}\"
-                Resetting SUB_HOURLY_POST to \"FALSE\".  If you do not want this, you
-                must set DT_SUBHOURLY_POST_MNTS to something other than zero."""
-            )
-            post_config["SUB_HOURLY_POST"] = False
-
-        if dt_subhourly_post_mnts < 1 or dt_subhourly_post_mnts > 59:
-            raise ValueError(
-                f'''
-                When SUB_HOURLY_POST is set to \"TRUE\",
-                DT_SUBHOURLY_POST_MNTS must be set to an integer between 1 and 59,
-                inclusive but:
-                  DT_SUBHOURLY_POST_MNTS = \"{dt_subhourly_post_mnts}\"'''
-            )
-
-        # Check that DT_SUBHOURLY_POST_MNTS (after converting to seconds) is
-        # evenly divisible by the forecast model's main time step DT_ATMOS.
-        dt_atmos = fcst_config["envvars"]["DT_ATMOS"]
-        rem = dt_subhourly_post_mnts * 60 % dt_atmos
-        if rem != 0:
-            raise ValueError(
-                f"""
-                When SUB_HOURLY_POST is set to \"TRUE\") the post
-                processing interval in seconds must be evenly divisible
-                by the time step DT_ATMOS used in the forecast model,
-                i.e. the remainder must be zero.  In this case, it is
-                not:
-
-                  DT_SUBHOURLY_POST_MNTS = \"{dt_subhourly_post_mnts}\"
-                  DT_ATMOS = \"{dt_atmos}\"
-                  remainder = (DT_SUBHOURLY_POST_MNTS*60) %% DT_ATMOS = {rem}
-
-                Please reset DT_SUBHOURLY_POST_MNTS and/or DT_ATMOS so
-                that this remainder is zero."""
-            )
 
     #
     # -----------------------------------------------------------------------

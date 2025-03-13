@@ -167,15 +167,15 @@ def create_model_configure_file(
     # dt_subhourly_post_mnts (in units of minutes) and the forecast model's
     # main time step dt_atmos (in units of seconds). Note that nsout is
     # guaranteed to be an integer because the experiment generation scripts
-    # require that dt_subhourly_post_mnts (after conversion to seconds) be
+    # require that output_interval_mins (after conversion to seconds) be
     # evenly divisible by dt_atmos. Also, in this case, the variable output_fh
     # [which specifies the output interval in hours;
     # see the jinja model_config template file] is set to 0, although this
     # doesn't matter because any positive value of nsout will override output_fh.
     #
-    # If sub_hourly_post is set to "FALSE", then the workflow is hard-coded
-    # (in the jinja model_config template file) to direct the forecast model
-    # to output files every hour. This is done by setting (1) output_fh to 1
+    # If sub_hourly_post is set to "FALSE", then the forecast will create output for the desired
+    # number of hours configured by the user via task_run_fcst.envvars.OUTPUT_INTERVAL_MINS.
+    # This is done by setting (1) output_fh to 1
     # here, and (2) nsout to -1 here which turns off output by time step interval.
     #
     # Note that the approach used here of separating how hourly and subhourly
@@ -188,10 +188,10 @@ def create_model_configure_file(
     # to, or smaller than one hour.
     #
     if sub_hourly_post:
-        nsout = (dt_subhourly_post_mnts * 60) // dt_atmos
+        nsout = (output_interval_mins * 60) // dt_atmos
         output_fh = 0
     else:
-        output_fh = 1
+        output_fh = output_interval_mins // 60
         nsout = -1
 
     settings.update({"output_fh": output_fh, "nsout": nsout})
@@ -267,9 +267,9 @@ def _parse_args(argv):
     )
 
     parser.add_argument(
-        "-d",
-        "--dt-subhourly-post-mnts",
-        dest="dt_subhourly_post_mnts",
+        "-o",
+        "--output-interval-mins"
+        dest="output_interval_mins",
         required=True,
         help="Subhourly post minitues.",
     )
