@@ -1,0 +1,12 @@
+task_run_post:
+  upp:
+    files_to_link:
+      Nalli.IRwater.EmisCoeff.bin: {{ global.CRTM_DIR }}/Nalli.IRwater.EmisCoeff.bin
+      FAST<p>.bin: !glob {{ global.CRTM_DIR }}/FAST*.bin
+      NPOESS.IRland.EmisCoeff.bin: {{ global.CRTM_DIR }}/NPOESS.IRland.EmisCoeff.bin
+      NPOESS.IRsnow.EmisCoeff.bin: {{ global.CRTM_DIR }}/NPOESS.IRsnow.EmisCoeff.bin
+      NPOESS.IRice.EmisCoeff.bin: {{ global.CRTM_DIR }}/NPOESS.IRice.EmisCoeff.bin
+      AerosolCoeff.bin: {{ global.CRTM_DIR }}/AerosolCoeff.bin
+      CloudCoeff.bin: {{ global.CRTM_DIR }}/CloudCoeff.bin
+      <c>.SpcCoeff.bin: !glob {{ global.CRTM_DIR }}/*.SpcCoeff.bin
+      <c>.TauCoeff.bin: !glob {{ global.CRTM_DIR }}/*.TauCoeff.bin
